@@ -35,7 +35,8 @@ class Player(Rect2):
         # position
         super().__init__(left, top, width, height)
         self.topleft_initial = self.topleft
-
+        
+        #id = 1 if player 1, id = 2 if player 2
         # speed
         self.dx, self.dy = 10, 4  # initial rates
         self.dx_max, self.dy_max = 15, 15  # max speed, max fall rate
@@ -61,6 +62,9 @@ class Player(Rect2):
         # skills
         self.attack_id = 1  #default starting attack
         self.skill1_id = self.skill2_id = self.skill3_id = self.ult_id = 0
+        
+        #for debugging/testing:
+        self.skill1_id = 100
 
         # attacking
         self.facing_direction = RIGHT
@@ -77,6 +81,8 @@ class Player(Rect2):
         self._handle_facing_direction(input)
         self._handle_acceleration(input)
         self._handle_movement(arena_map)
+        self._handle_meditate(input)
+        self._handle_skill1(input)
         self._handle_attack(input)
 
     def _handle_facing_direction(self, input):
@@ -115,7 +121,8 @@ class Player(Rect2):
         if self.attack_cooldown_expired:
             #These can only be used if not attacking
             _apply_accel_left_right_input(input)
-            _apply_limits()     #if attacking, applies limits twice as fast
+            _apply_limits()     #if attacking, applies limits 3x as fast
+            _apply_limits()
             _apply_accel_jump_input(input)
         _apply_friction()
         _apply_gravity()
@@ -163,10 +170,29 @@ class Player(Rect2):
 
     def _handle_attack(self, input):
         self.new_particle = None
-        if input.ATTACK:
+        if input.ATTACK and not input.DROP_ATTACK:
             if self.attack_cooldown_expired:
                 self.attack_cooldown_expired = False
-                self.new_particle = SKILLS_TABLE[self.attack_id]['start'](self.attack_id, self)
+                self.new_particle = SKILLS_TABLE[self.attack_id]['start'](self.attack_id,self)
+                pygame.time.set_timer(USEREVENT+1+self.id, SKILLS_TABLE[self.attack_id]['cooldown'])
+    
+    #Temporary meditate for now
+    def _handle_meditate(self, input):
+        self.new_particle = None
+        if input.MEDITATE:
+            if self.attack_cooldown_expired:
+                self.attack_cooldown_expired = False
+                self.new_particle = SKILLS_TABLE[-1]['start'](-1,self)
+                pygame.time.set_timer(USEREVENT+1+self.id, SKILLS_TABLE[-1]['cooldown'])
+                pygame.time.set_timer(USEREVENT+3+self.id, SKILLS_TABLE[-1]['cooldown'])
+                
+    def _handle_skill1(self, input):
+        self.new_particle = None
+        if input.SKILL1 and not input.DROP_ATTACK:
+            if self.attack_cooldown_expired and self.energy >= SKILLS_TABLE[self.skill1_id]['energy']:
+                self.attack_cooldown_expired = False
+                self.new_particle = SKILLS_TABLE[self.skill1_id]['start'](self.skill1_id,self)
+                pygame.time.set_timer(USEREVENT+1+self.id, SKILLS_TABLE[self.skill1_id]['cooldown'])
 # -------------------------------------------------------------------------
 
 
@@ -211,6 +237,12 @@ class Input:
         self.RESET = self.kb_input[K_r] or self.y_button
         self.DEBUG = self.kb_input[K_F12] or (self.start_button and self.back_button)
         self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or self.back_button
+        self.SKILL1 = self.kb_input[K_s] #or...
+        self.SKILL2 = self.kb_input[K_d]
+        self.SKILL3 = self.kb_input[K_f]
+        self.ULT    = self.kb_input[K_g]
+        self.DROP_SKILL = self.kb_input[K_q]
+        self.MEDITATE = self.kb_input[K_w]
 
     def __getattr__(self, name):
         return None
@@ -287,7 +319,7 @@ class MeleeParticle(Particle):
         else:
             self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
-        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)
+        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)        
 
 
 #attack_particle = Particle(width=30, height=30, radius=35, cooldown=500, duration=500, color=YELLOW)

@@ -1,5 +1,6 @@
 #COLOR = (RRR, GGG, BBB)
 from pygame import Color
+from pygame.locals import * #for event timers
 
 BLACK = Color(0, 0, 0)
 DGREY = Color(64, 64, 64)
@@ -29,6 +30,13 @@ RESET = 'RESET'
 MELEE = 'MELEE'
 RANGED = 'RANGED'
 
+
+#EVENTS: 
+TIME_TICK_EVENT = USEREVENT + 1
+PLAYER1_LOCK_EVENT = USEREVENT + 2
+PLAYER2_LOCK_EVENT = USEREVENT + 3
+PLAYER1_MEDITATE_EVENT = USEREVENT + 4
+PLAYER2_MEDITATE_EVENT = USEREVENT + 5
 
 def all_in(items_want_inside, container_being_checked):
     for thing in items_want_inside:

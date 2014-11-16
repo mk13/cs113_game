@@ -49,6 +49,7 @@ class GameLoop:
             self.play_area = Rect2(left=65, top=0, width=1150, height=475)
             self.play_area_border = Rect2(left=40, top=0, width=1200, height=500)
             self.player = Player(left=200, top=150, width=30, height=40)
+            self.player.id = 1
             self.player_eyeball = Rect2(left=200, top=150, width=5, height=5)
             self.arena = arena1
 
@@ -56,7 +57,9 @@ class GameLoop:
             self.timer_font = pygame.font.Font('gigi.ttf', 36)
             self.timer_font_xy = 640, 500
             self.health_font = pygame.font.Font('gigi.ttf', 55)
-            self.health_font_xy = 60, 510
+            self.health_font_xy = 60, 480
+            self.energy_font = pygame.font.Font('gigi.ttf', 55)
+            self.energy_font_xy = 80, 525
             self.pause_font = pygame.font.Font('gigi.ttf', 200)
             self.pause_font_xy = font_position_center((self.window.w, self.window.h), self.pause_font, '-PAUSE-')
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
@@ -84,6 +87,7 @@ class GameLoop:
             self.handle_particles()
             self.draw_screen()
             self.handle_event_queue()
+            #Add Player energy/health regen here 
             self.clock.tick(self.fps)
 
     # -------------------------------------------------------------------------
@@ -117,7 +121,8 @@ class GameLoop:
         def _update_active_particles():
             if self.player.new_particle:
                 self.active_particles.append(self.player.new_particle)
-                pygame.time.set_timer(USEREVENT + 2, self.player.new_particle.cooldown)
+                #Added this part into player inputs; causing bugs if skill doesn't create particle
+                #pygame.time.set_timer(USEREVENT + 2, self.player.new_particle.cooldown)
 
         def _update_particles():
             for p in self.active_particles:
@@ -143,7 +148,9 @@ class GameLoop:
 
             # font for health indicator, for testing purposes only
             health_display = self.health_font.render(str(self.player.hit_points), True, RED)
+            energy_display = self.energy_font.render(str(self.player.energy), True, YELLOW)
             self.surface.blit(health_display, self.health_font_xy)
+            self.surface.blit(energy_display, self.energy_font_xy)
 
         def _draw_timer():
             time_display = self.timer_font.render(str(self.game_time), True, BLUE)
@@ -202,11 +209,18 @@ class GameLoop:
             # update game timer
             if event.type == USEREVENT + 1:
                 self.game_time.inc()
-
-            if event.type == USEREVENT + 2:
+            
+            # player 1 skill lock timer
+            if event.type == PLAYER1_LOCK_EVENT:
                 self.player.attack_cooldown_expired = True
-                pygame.time.set_timer(USEREVENT + 2, 0)
+                pygame.time.set_timer(PLAYER1_LOCK_EVENT, 0)
 
+            if event.type == PLAYER1_MEDITATE_EVENT:
+                self.player.energy += 5
+                if self.player.energy > 10:
+                    self.player.energy = 10
+                pygame.time.set_timer(PLAYER1_MEDITATE_EVENT, 0)
+                
             # QUIT event occurs when click X on window bar
             if event.type == QUIT:
                 pygame.quit()
