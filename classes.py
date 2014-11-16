@@ -117,21 +117,34 @@ class Player(Rect2):
         self.move_ip((self.dx, self.dy))  # move then check for collisions
         for terrain in arena.rects:
 
+            # (player's bottom in between terrain top and bottom) or (player's top in between terrain top and bottom)
             if (terrain.top < self.bottom < terrain.bottom) or (terrain.bottom > self.top > terrain.top):
+
+                # (player's left "to the left of" terrain's right) and (player's right "to the right of" terrain's right)
                 if (self.left < terrain.right) and (self.right > terrain.right):
+                    # move player so it's left is flush with terrain's right
                     self.left = terrain.right
                     self.hit_wall_from = LEFT
                     self.dx = self.dy = 0
 
+                # (player's left "to the left of" terrain's left) and (player's right "to the right of" terrain's left)
                 elif (self.left < terrain.left) and (self.right > terrain.left):
+                    # move player so it's right is flush with terrain's left
                     self.right = terrain.left
                     self.hit_wall_from = RIGHT
                     self.dx = self.dy = 0
 
+            # (player's left in between terrain right and left) or (player's right in between terrain left and right)
             if (terrain.right > self.left > terrain.left) or (terrain.left < self.right < terrain.right):
+
+                # (if player's bottom lower than terrain bottom) and (player's top above terrain's bottom)
                 if (self.bottom > terrain.bottom) and (self.top < terrain.bottom):
+                    # move player so it's top is flush with terrain's bottom
                     self.top = terrain.bottom
+
+                # (if player's bottom lower than terrain top) and (player's top above terrain's top)
                 elif (self.bottom > terrain.top) and (self.top < terrain.top):
+                    # move player so it's bottom is flush with terrain's top
                     self.bottom = terrain.top
                     self.dy, self.touching_ground = 0, True
 
@@ -185,17 +198,20 @@ class Input:
         self.RESET = self.kb_input[K_r] or self.y_button
         self.DEBUG = self.kb_input[K_F12] or (self.start_button and self.back_button)
         self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or self.back_button
+
+    def __getattr__(self, name):
+        return None
 # -------------------------------------------------------------------------
 
 
 class Arena:
     def __init__(self, *color_rects):
-        self.rects = [Rect2(rect) for rect, color in color_rects]
-        self.colors = [color for rect, color in color_rects]
-        self.play_area_rect = self.rects[0]
-        self.play_area_color = self.colors[0]
-        self.rects = self.rects[1:]
-        self.colors = self.colors[1:]
+        rects = [Rect2(rect) for rect, color in color_rects]
+        colors = [color for rect, color in color_rects]
+        self.play_area_rect = rects[0]
+        self.play_area_color = colors[0]
+        self.rects = rects[1:]
+        self.colors = colors[1:]
 
     def __iter__(self):
         # currently only time iteration is used is when the rects are drawn
@@ -249,20 +265,32 @@ class MeleeParticle(Particle):
 
 
 attack_particle = Particle(width=30, height=30, radius=35, cooldown=1000, duration=500, color=YELLOW)
+# -------------------------------------------------------------------------
 
 
+class GameTime:
+    def __init__(self):
+        self.qsec = 0
 
+    def __call__(self):
+        return self.qsec
 
+    def inc(self):
+        self.qsec += 1
 
+    @property
+    def msec(self):
+        return self.qsec * 250
 
+    def as_seconds(self):
+        return self.qsec / 4
 
+    def as_half_seconds(self):
+        return self.qsec / 2
 
+    def as_quarter_seconds(self):
+        return self.qsec
 
-
-
-
-
-
-
-
-
+    def __str__(self):
+        sec = self.qsec / 4
+        return '{:>2}:{:0>2}'.format(str(int(sec / 60)), str(int(sec % 60)))
