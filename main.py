@@ -9,6 +9,7 @@ from pygame.locals import *
 # our modules
 from classes import *
 from globals import *
+from skills import * 
 
 # set window starting position for my desktop which has multiple monitors, this
 # is a convenience thing for me.  You guys can add your own setting here if
@@ -68,6 +69,7 @@ class GameLoop:
             self.active_particles = []
 
         pygame.init()
+        initialize_skill_table()
         _setup_display()
         _setup_time()
         _setup_input()
@@ -105,7 +107,7 @@ class GameLoop:
                 # later, at the same time the QUIT event from clicking the
                 # window X is handled
                 pygame.event.post(pygame.event.Event(QUIT))
-
+        
         self.input.refresh()
         self.player(self.input, self.arena)
         _special_input()
@@ -115,14 +117,14 @@ class GameLoop:
         def _update_active_particles():
             if self.player.new_particle:
                 self.active_particles.append(self.player.new_particle)
-                pygame.time.set_timer(USEREVENT + 2, self.player.new_particle.total_time)
+                pygame.time.set_timer(USEREVENT + 2, self.player.new_particle.cooldown)
 
         def _update_particles():
             for p in self.active_particles:
                 if p.expired:
                     self.active_particles.remove(p)
                 else:
-                    p.update(self.game_time.msec, self.player)
+                    p.update(self.game_time.msec)#, self.player)
 
         _update_active_particles()
         _update_particles()

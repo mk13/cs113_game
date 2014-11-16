@@ -26,6 +26,8 @@ ATTACK = 'ATTACK'
 DEBUG = 'DEBUG'
 EXIT = 'EXIT'
 RESET = 'RESET'
+MELEE = 'MELEE'
+RANGED = 'RANGED'
 
 
 def all_in(items_want_inside, container_being_checked):

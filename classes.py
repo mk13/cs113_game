@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 
 from globals import *
+from skills import *
 
 # -------------------------------------------------------------------------
 
@@ -51,10 +52,15 @@ class Player(Rect2):
         # misc.
         self.touching_ground = False  # for jumping
         self.hit_wall_from = None  # for wall jumping
+        self.conditions = []
 
         # character stats
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
+        
+        # skills
+        self.attack_id = 1  #default starting attack
+        self.skill1_id = self.skill2_id = self.skill3_id = self.ult_id = 0
 
         # attacking
         self.facing_direction = RIGHT
@@ -74,9 +80,10 @@ class Player(Rect2):
         self._handle_attack(input)
 
     def _handle_facing_direction(self, input):
-        self.facing_direction = RIGHT if input.RIGHT \
-            else LEFT if input.LEFT \
-            else self.facing_direction
+        if self.attack_cooldown_expired:
+            self.facing_direction = RIGHT if input.RIGHT \
+                else LEFT if input.LEFT \
+                else self.facing_direction
 
     def _handle_acceleration(self, input):
 
@@ -104,16 +111,22 @@ class Player(Rect2):
         def _apply_limits():
             self.dx = eval('{:+}'.format(self.dx)[0] + str(min(abs(self.dx), self.dx_max)))
             self.dy = min(self.dy, self.dy_max)
-
-        _apply_accel_left_right_input(input)
+            
+        if self.attack_cooldown_expired:
+            #These can only be used if not attacking
+            _apply_accel_left_right_input(input)
+            _apply_limits()     #if attacking, applies limits twice as fast
+            _apply_accel_jump_input(input)
         _apply_friction()
-        _apply_accel_jump_input(input)
         _apply_gravity()
         _apply_limits()
 
     def _handle_movement(self, arena):
         self.hit_wall_from = None  # reset every frame
         self.touching_ground = False  # reset every frame
+        #if not self.attack_cooldown_expired:
+        #    self.move_ip((0,self.dy))
+        #else:
         self.move_ip((self.dx, self.dy))  # move then check for collisions
         for terrain in arena.rects:
 
@@ -153,7 +166,7 @@ class Player(Rect2):
         if input.ATTACK:
             if self.attack_cooldown_expired:
                 self.attack_cooldown_expired = False
-                self.new_particle = MeleeParticle(attack_particle)
+                self.new_particle = SKILLS_TABLE[self.attack_id]['start'](self.attack_id, self)
 # -------------------------------------------------------------------------
 
 
@@ -232,39 +245,52 @@ arena1 = Arena(
 
 
 class Particle(Rect2):
-    def __init__(self, width, height, radius, cooldown, duration, color):
-        super().__init__(left=0, top=0, width=width, height=height)
-        self.radius = radius
-        self.cooldown = cooldown
-        self.duration = duration
-        self.color = color
+    #def __init__(self, width, height, radius, cooldown, duration, color):
+    def __init__(self, sid, player):
+        #super().__init__(left=0, top=0, width=width, height=height)
+        self.left = 0
+        self.top = 0
+        self.width = SKILLS_TABLE[sid]['width']
+        self.height = SKILLS_TABLE[sid]['height']
+        self.radius = SKILLS_TABLE[sid]['radius']
+        self.cooldown = SKILLS_TABLE[sid]['cooldown']
+        self.duration = SKILLS_TABLE[sid]['duration']
+        self.color = SKILLS_TABLE[sid]['color']
+        self.spawn_time = 0
+        self.expired = False
+        self.dmg = SKILLS_TABLE[sid]['dmg']
+        self.energy = SKILLS_TABLE[sid]['energy']
+        self.belongs_to = player
 
 
 class MeleeParticle(Particle):
-    def __init__(self, particle):
-        super().__init__(particle.width, particle.height, particle.radius, particle.cooldown, particle.duration, particle.color)
-        self.total_time = particle.cooldown + particle.duration
-        self.expired = False
-        self.spawn_time = 0
-
-    def update(self, time, player):
+    def __init__(self, sid, player):
+        #super().__init__(particle.width, particle.height, particle.radius, particle.cooldown, particle.duration, particle.color)
+        super().__init__(sid,player)
+        self.arc = SKILLS_TABLE[sid]['arc']
+        self.radius = SKILLS_TABLE[sid]['radius']
+        
+    #def update(self, time, player):
+    #Let the particle know how it belongs to so it can
+    #rotate around that player and also in collision
+    #detection, will not hit the player who made particle
+    def update(self, time):
         if self.spawn_time == 0:
             self.spawn_time = time
 
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
-        arc = math.pi / 2
 
-        if player.facing_direction == RIGHT:
-            self.centerx = player.centerx + self.radius * math.cos((1 - r) * arc)
+        if self.belongs_to.facing_direction == RIGHT:
+            self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
         else:
-            self.centerx = player.centerx - self.radius * math.cos((1 - r) * arc)
+            self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
-        self.centery = player.centery - self.radius * math.sin((1 - r) * arc)
+        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)
 
 
-attack_particle = Particle(width=30, height=30, radius=35, cooldown=1000, duration=500, color=YELLOW)
+#attack_particle = Particle(width=30, height=30, radius=35, cooldown=500, duration=500, color=YELLOW)
 # -------------------------------------------------------------------------
 
 
