@@ -58,6 +58,7 @@ class Player(Rect2):
         # character stats
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
+        self.level = 10 
         
         # skills
         self.attack_id = 1  #default starting attack
@@ -322,7 +323,6 @@ class MeleeParticle(Particle):
         self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)        
 
 
-#attack_particle = Particle(width=30, height=30, radius=35, cooldown=500, duration=500, color=YELLOW)
 # -------------------------------------------------------------------------
 
 

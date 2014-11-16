@@ -37,6 +37,8 @@ PLAYER1_LOCK_EVENT = USEREVENT + 2
 PLAYER2_LOCK_EVENT = USEREVENT + 3
 PLAYER1_MEDITATE_EVENT = USEREVENT + 4
 PLAYER2_MEDITATE_EVENT = USEREVENT + 5
+REGENERATION_EVENT = USEREVENT + 6
+
 
 def all_in(items_want_inside, container_being_checked):
     for thing in items_want_inside:

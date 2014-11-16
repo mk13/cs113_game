@@ -36,7 +36,8 @@ class GameLoop:
         def _setup_time():
             self.clock = pygame.time.Clock()
             self.fps = 30
-            pygame.time.set_timer(USEREVENT + 1, 250)
+            pygame.time.set_timer(TIME_TICK_EVENT, 250)
+            pygame.time.set_timer(REGENERATION_EVENT, 1000)
             self.game_time = GameTime()
 
         def _setup_input():
@@ -87,7 +88,6 @@ class GameLoop:
             self.handle_particles()
             self.draw_screen()
             self.handle_event_queue()
-            #Add Player energy/health regen here 
             self.clock.tick(self.fps)
 
     # -------------------------------------------------------------------------
@@ -207,8 +207,16 @@ class GameLoop:
         # loop through all pygame events
         for event in pygame.event.get():
             # update game timer
-            if event.type == USEREVENT + 1:
+            if event.type == TIME_TICK_EVENT:
                 self.game_time.inc()
+                
+            if event.type == REGENERATION_EVENT:
+                self.player.hit_points += self.player.level/10
+                if self.player.hit_points > 100:
+                    self.player.hit_points = 100
+                self.player.energy += self.player.level/5
+                if self.player.energy > 10:
+                    self.player.energy = 10
             
             # player 1 skill lock timer
             if event.type == PLAYER1_LOCK_EVENT:
