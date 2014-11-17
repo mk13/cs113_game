@@ -85,11 +85,10 @@ def blank_function(sid,player,up = False, down = False):
 
 #'start' function for teleport    
 def teleport_start(sid,player, up = False, down = False):
-    if player.energy >= SKILLS_TABLE[sid]['energy']:
-        if player.facing_direction == RIGHT:
-            player.left += 100
-        else:
-            player.left -= 100
+    if player.facing_direction == RIGHT:
+        player.left += 100
+    else:
+        player.left -= 100
     return None
 
 #Example of a special function
