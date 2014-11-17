@@ -53,7 +53,7 @@ class Player(Rect2):
         # misc.
         self.touching_ground = False  # for jumping
         self.hit_wall_from = None  # for wall jumping
-        self.conditions = []
+        #self.conditions = []
 
         # character stats
         self.hit_points = self.hit_points_max = 100
@@ -75,9 +75,15 @@ class Player(Rect2):
         self.facing_direction = RIGHT
         self.attack_cooldown_expired = True
         self.new_particle = None
+        
+        # conditions : both good and bad
+        #self.conditions = []
 
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)
+        
+    def is_dead(self):
+        return self.hit_point <= 0
 
     def move_ip(self, dxdy):
         super().move_ip(dxdy)
@@ -303,6 +309,15 @@ class Particle(Rect2):
         self.dmg = SKILLS_TABLE[sid]['dmg']
         self.energy = SKILLS_TABLE[sid]['energy']
         self.belongs_to = player
+        #self.conditions = []
+        
+        #if 'conditions' in SKILLS_TABLE[sid].keys():
+        #    for c in SKILLS_TABLE[sid]['conditions']:
+        #        self.conditions.append(c)
+        if 'on_hit_f' in SKILLS_TABLE[sid].keys():
+            self.on_hit_f = SKILLS_TABLE[sid]['on_hit_f']
+        else:
+            self.on_hit_f = None
 
 
 class MeleeParticle(Particle):
@@ -311,6 +326,11 @@ class MeleeParticle(Particle):
         super().__init__(sid,player)
         self.arc = SKILLS_TABLE[sid]['arc']
         self.radius = SKILLS_TABLE[sid]['radius']
+        self.has_hit = []   #Need this to keep track of what it has hit;
+                            #melee particles are not delete upon hitting
+                            #a target, so we need to know who it has hit
+                            #to prevent the same target being hit multiple
+                            #times
         
     #def update(self, time, player):
     #Let the particle know how it belongs to so it can
@@ -329,7 +349,17 @@ class MeleeParticle(Particle):
         else:
             self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
-        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)        
+        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)
+
+    def on_hit(self,target,time):   #DONT delete time; will use later
+        if target != self.belongs_to and target not in self.has_hit:
+            self.has_hit.append(target)
+            target.hit_points - self.dmg
+            #for c in self.conditions:
+            #    player.conditions.append(c)
+            if self.on_hit_f:
+                self.on_hit_f(target)
+            
 
 class RangeParticle(Particle):
     def __init__(self, sid, player, up, down):
@@ -384,10 +414,16 @@ class RangeParticle(Particle):
             self.dy += self.ddy
             self.centerx += self.dx
             self.centery += self.dy
+            
+    def on_hit(self,target,time):     #DONT delete time; will use later
+        if target != self.belongs_to:
+            target.hit_points - self.dmg
+            #for c in self.conditions:
+            #    player.conditions.append(c)
+            if self.on_hit_f:
+                self.on_hit_f(target)
 
 # -------------------------------------------------------------------------
-
-
 class GameTime:
     def __init__(self):
         self.qsec = 0
@@ -414,3 +450,5 @@ class GameTime:
     def __str__(self):
         sec = self.qsec / 4
         return '{:>2}:{:0>2}'.format(str(int(sec / 60)), str(int(sec % 60)))
+        
+# ------------------------------------------------------------------------

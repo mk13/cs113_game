@@ -14,10 +14,12 @@ SKILLS_TABLE = {}
 # 100-999: for skills
 # 1000+  : for ultimate
 
-#NOTE:
-#   COOLDOWN: How long it locks your character
-#   DURATION: How long the particle lives
+#NOTE:: These attributes are MANDATORY
+#   Cooldown: How long it locks your character
+#   Duration: How long the particle lives
+#   Energy: How much energy it costs; put 0 if no cost
 
+#More information:
 #   Do not worry about subtracting energy costs,
 #   player input function will handle that.
 
@@ -27,18 +29,24 @@ SKILLS_TABLE = {}
 #   whether player pressed up or down.
 #   Melee particles do not care about up or down.
 
+#   "on_hit_f(target)": Is the additional effects it will do on the
+#   player instantly. All particle hits already deal damage
+#   and place debuffs without 'on_hit_f'. Should be used for
+#   instantaneous effects such as knock-back. Keep as 'None'
+#   if not used.
+
 def initialize_skill_table():
     #Meditate
     SKILLS_TABLE[-1] = {'type': None, 'start':blank_function, 'cooldown':3000, 'energy': 0}
     #Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee(30,30,math.pi/2, 35, 500,500,YELLOW,10,0)
     #Teleport
-    SKILLS_TABLE[100] = {'type': None,'start':teleport_function,'cooldown':500,'energy': 5}
+    SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':500,'energy': 5}
     #FIREBALL!
     SKILLS_TABLE[101] = _auto_range(50,50,5,2,500,10000,RED,10,2)
     #LIGHTNING BOLT!
     SKILLS_TABLE[102] = _auto_range(50,50,5,2,500,10000,BLUE,10,2)
-    SKILLS_TABLE[102]["special_path"] = lightning_bolt
+    SKILLS_TABLE[102]["special_path"] = lightning_bolt_start
 
 #Templates=================================================
 def _auto_melee(width, height, arc, radius, cooldown, duration, color, dmg, energy):
@@ -57,7 +65,7 @@ def _auto_melee(width, height, arc, radius, cooldown, duration, color, dmg, ener
            
 def _auto_range(width, height, speed, acceleration, cooldown, duration, color, dmg, energy):
     return {'type': RANGE,
-            'start': (lambda sid,p,u,d : classes.RangeParticle(sid,p,u,d)),
+            'start': (lambda sid,player,up,down : classes.RangeParticle(sid,player,up,down)),
             'width': width,
             'height': height,
             'speed' : speed,
@@ -74,8 +82,9 @@ def _auto_range(width, height, speed, acceleration, cooldown, duration, color, d
 #Used for meditation
 def blank_function(sid,player,up = False, down = False):
     return None
-    
-def teleport_function(sid,player, up = False, down = False):
+
+#'start' function for teleport    
+def teleport_start(sid,player, up = False, down = False):
     if player.energy >= SKILLS_TABLE[sid]['energy']:
         if player.facing_direction == RIGHT:
             player.left += 100
@@ -86,7 +95,7 @@ def teleport_function(sid,player, up = False, down = False):
 #Example of a special function
 #Takes in two parameters: the particle object, and time  
 #Returns new x and y  
-def lightning_bolt(particle,time):
+def lightning_bolt_start(particle,time):
     x = particle.centerx
     if particle.direction == RIGHT:
         x += 5
