@@ -2,6 +2,7 @@ import math
 
 import pygame
 from pygame.locals import *
+import random
 
 from globals import *
 from skills import *
@@ -26,6 +27,15 @@ class Rect2(pygame.Rect):
 
             elif all_in(('topleft', 'size'), kargs):
                 super().__init__(kargs['topleft'], kargs['size'])
+                
+    def p_collidelist(self,li):
+        #follows same logic as pygame.collidelist, but customized
+        #to look at center coords
+        for i in range(len(li)):
+            if self.centerx < li[i].right and self.centerx > li[i].left \
+            and self.centery > li[i].top and self.centery < li[i].bottom:
+                return i
+        return -1
 # -------------------------------------------------------------------------
 
 
@@ -88,10 +98,15 @@ class Player(Rect2):
         return Player(self.left, self.top, self.width, self.height)
         
     def is_dead(self):
-        return self.hit_point <= 0
+        return self.hit_points <= 0
 
     def move_ip(self, dxdy):
         super().move_ip(dxdy)
+        
+    def distance_from(self, other):
+        a = self.centerx - other.centerx
+        b = self.centery - other.centery
+        return math.sqrt(a*a + b*b)
 
     def __call__(self, input, arena_map):
         self._handle_facing_direction(input)
@@ -119,11 +134,15 @@ class Player(Rect2):
 
         def _apply_accel_jump_input(input):
             if input.JUMP:
-                self.dy -= self.dy_jump if self.touching_ground or self.hit_wall_from \
-                    else 0
-                self.dx += self.dx_wall_jump if self.hit_wall_from == LEFT \
-                    else -self.dx_wall_jump if self.hit_wall_from == RIGHT \
-                    else 0
+                if not isinstance(self, Monster):
+                    self.dy -= self.dy_jump if self.touching_ground or self.hit_wall_from \
+                        else 0
+                    self.dx += self.dx_wall_jump if self.hit_wall_from == LEFT \
+                        else -self.dx_wall_jump if self.hit_wall_from == RIGHT \
+                        else 0
+                else:
+                    self.dy -= self.dy_jump if self.touching_ground \
+                        else 0
 
         def _apply_gravity():
             self.dy += self.dy_gravity
@@ -136,6 +155,7 @@ class Player(Rect2):
             #These can only be used if not attacking
             _apply_accel_left_right_input(input)
             _apply_accel_jump_input(input)
+        
         _apply_friction()
         _apply_gravity()
         _apply_limits()
@@ -147,6 +167,7 @@ class Player(Rect2):
         #    self.move_ip((0,self.dy))
         #else:
         self.move_ip((self.dx, self.dy))  # move then check for collisions
+        
         for terrain in arena.rects:
 
             # @TODO: implement Peter's modified coded for movement to squelch bug of glitchy behavior near edge of platforms.
@@ -181,7 +202,9 @@ class Player(Rect2):
                     # move player so it's bottom is flush with terrain's top
                     self.bottom = terrain.top
                     self.dy, self.touching_ground = 0, True
-                    
+        out_of_arena_fix(self)            # otherwise, player can jump up and over arena
+
+        
     #Handles attacks, skill buttons, and meditate
     #If multiple pushed, priority is:
     #   ultimate > skill3 > skill2 > skill1 > attack > meditate
@@ -217,7 +240,111 @@ class Player(Rect2):
         return 0
 # -------------------------------------------------------------------------
 
+class Monster(Player):
+    def __init__(self, type, left, top, player1, player2):
+        self.type = type    #WEAK, MEDIUM, ULTIMATE
+        
+        if self.type == WEAK: 
+            super().__init__(0,left,top,30,40)
+            self.dx_max, self.dy_max = 5,20
+            self.dy_gravity = 6
+            self.hit_points = self.hit_points_max = 100
+            self.chasing_time = 5000
+            self.idle_time = 5000
+        elif self.type == MEDIUM:
+            super().__init__(0,left,top,50,60)
+            self.dx_max, self.dy_max = 7,20
+            self.dy_gravity = 6
+            self.hit_points = self.hit_points_max = 250
+            self.chasing_time = 7000
+            self.idle_time = 5000
+        elif self.type == ULTIMATE:
+            super().__init__(0,left,top,80,80)
+            self.dx_max, self.dy_max = 10,20
+            self.dy_gravity = 6
+            self.hit_points = self.hit_points_max = 500
+            self.chasing_time = 10000
+            self.idle_time = 5000
+        
+        self.dy_jump = 30
+        self.dy_gravity = 2
+        self.dx_friction = 0
+        self.p1 = player1
+        self.p2 = player2
+        
+        self.target = None
+        self.status = IDLE
+        self.last_status_change = 0
+        
+        self.ai_input = AI_Input()
+    
+    def _pick_new_target(self):
+        d1 = self.distance_from(self.p1)
+        d2 = self.distance_from(self.p2)
+        if d1 > d2:
+            self.target = self.p1
+        elif d2 < d2:
+            self.target = self.p2
+        else:
+            if random.randint(1,2)  == 1:
+                self.target = self.p1
+            else:
+                self.target = self.p2
+                
+    def _switch_mode(self,time):
+        time_spent_in_status = time - self.last_status_change
+        if self.status == CHASING and time_spent_in_status > self.chasing_time:
+            self.last_status_change = time
+            self.status = IDLE
+            self.target = None
+        elif self.status == IDLE and time_spent_in_status > self.idle_time:
+            self.last_status_change = time
+            self.status = CHASING
+            self._pick_new_target()
+        
+    def _ai(self,time):
+        self._switch_mode(time)
+        if self.status == CHASING:
+            self.ai_input.refresh()
+            if self.target.centerx >= self.centerx:
+                self.ai_input.RIGHT = True
+            else:
+                self.ai_input.LEFT = True
+            
+            if self.target.centery < self.centery:
+                if random.randint(1,10) == 1:
+                    self.ai_input.JUMP = True
+                
+        else:
+            self.ai_input.JUMP = False
+            if random.randint(1,30) < 5:
+                if self.ai_input.RIGHT:
+                    self.ai_input.RIGHT = False
+                    self.ai_input.LEFT = True
+                else:
+                    self.ai_input.RIGHT = True
+                    self.ai_input.LEFT = False
+            if random.randint(1,10) == 2:
+                self.ai_input.JUMP = True
+               
+        
+    def __call__(self, time, arena_map):
+        self._ai(time)
+        self._handle_facing_direction(self.ai_input)
+        self._handle_acceleration(self.ai_input)
+        self._handle_movement(arena_map)
+        
+        
+class AI_Input():
+    def __init__(self):
+        self.RIGHT = False
+        self.LEFT = False
+        self.JUMP = False
+        
+    def refresh(self):
+        self.RIGHT = self.LEFT = self.JUMP = False
 
+# -------------------------------------------------------------------------
 class Input:
     def __init__(self):
         try:

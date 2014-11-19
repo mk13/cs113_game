@@ -49,8 +49,8 @@ class GameLoop:
             self.window_border = Rect2(left=0, top=0, width=1278, height=600)
             self.play_area = Rect2(left=65, top=0, width=1150, height=475)
             self.play_area_border = Rect2(left=40, top=0, width=1200, height=500)
-            self.player = Player(id=1, left=200, top=150, width=30, height=40)
-            self.player_eyeball = Rect2(left=200, top=150, width=5, height=5)
+            self.player1 = Player(id=1, left=200, top=150, width=30, height=40)
+            self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
             self.arena = arena1
 
         def _setup_fonts():
@@ -70,13 +70,22 @@ class GameLoop:
 
         def _setup_particles():
             self.active_particles = []
-
+            
+        def _setup_monsters():
+            self.active_monsters = []
+            
+            #TEST - Monster
+            self.active_monsters.append(Monster(ULTIMATE, 400, 150, self.player1, self.player1))
+            self.active_monsters.append(Monster(MEDIUM, 400, 150, self.player1, self.player1))
+            self.active_monsters.append(Monster(WEAK, 400, 150, self.player1, self.player1))
+            
         pygame.init()
         initialize_skill_table()
         _setup_display()
         _setup_time()
         _setup_input()
         _setup_Rects()
+        _setup_monsters()
         _setup_fonts()
         _setup_particles()
 
@@ -84,6 +93,7 @@ class GameLoop:
     def __call__(self):
         while True:
             self.handle_player_input()
+            self.handle_monsters()
             self.handle_particles()
             self.draw_screen()
             self.handle_event_queue()
@@ -94,7 +104,7 @@ class GameLoop:
 
         def _special_input():
             if self.input.RESET:
-                self.player.topleft = self.player.topleft_initial
+                self.player1.topleft = self.player1.topleft_initial
 
             if self.input.DEBUG:
                 rendered_font = self.pause_font.render('-PAUSE-', True, RED)
@@ -112,28 +122,50 @@ class GameLoop:
                 pygame.event.post(pygame.event.Event(QUIT))
         
         self.input.refresh()
-        self.player(self.input, self.arena)
+        self.player1(self.input, self.arena)
         _special_input()
 
     def handle_particles(self):
 
         def _update_active_particles():
-            if self.player.new_particle:
-                self.active_particles.append(self.player.new_particle)
-                self.player.new_particle = None
+            if self.player1.new_particle:
+                self.active_particles.append(self.player1.new_particle)
+                self.player1.new_particle = None
                 #Added this part into player inputs; causing bugs if skill doesn't create particle
-                #pygame.time.set_timer(USEREVENT + 2, self.player.new_particle.cooldown)
+                #pygame.time.set_timer(USEREVENT + 2, self.player1.new_particle.cooldown)
 
         def _update_particles():
             for p in self.active_particles:
                 if p.expired:
                     self.active_particles.remove(p)
                 else:
-                    p.update(self.game_time.msec)#, self.player)
+                    p.update(self.game_time.msec)#, self.player1)
+                    
+        def _check_particle_collisions():
+            for p in self.active_particles:
+                if isinstance(p,RangeParticle):
+                    #Do not use collidelist for terrain; if particle
+                    #is bigger than the character, it causes
+                    #the particle to be deleted instantly
+                    #since the particle will touch the ground on
+                    #creation - assuming the player was on ground
+                    #when cast
+                    if p.p_collidelist(self.arena.rects) != -1:
+                        self.active_particles.remove(p)
+                    #else: destructible terrain collision here
+                    
 
         _update_active_particles()
         _update_particles()
-
+        _check_particle_collisions()
+    # -------------------------------------------------------------------------
+    def handle_monsters(self):
+        for m in self.active_monsters:
+            if m.is_dead():
+                self.active_monsters.remove(m)
+            else:
+                m(self.game_time.msec, self.arena)
+    
     # -------------------------------------------------------------------------
     def draw_screen(self):
         def _draw_ui():
@@ -147,8 +179,8 @@ class GameLoop:
             pygame.draw.rect(self.surface, DKRED, self.play_area_border)
 
             # font for health indicator, for testing purposes only
-            health_display = self.health_font.render(str(self.player.hit_points), True, RED)
-            energy_display = self.energy_font.render(str(self.player.energy), True, YELLOW)
+            health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
+            energy_display = self.energy_font.render(str(self.player1.energy), True, YELLOW)
             self.surface.blit(health_display, self.health_font_xy)
             self.surface.blit(energy_display, self.energy_font_xy)
 
@@ -157,10 +189,10 @@ class GameLoop:
             self.surface.blit(time_display, self.timer_font_xy)
 
         def _draw_debug():
-            x = '| x:{:>8.2f}|'.format(self.player.x)
-            y = '| y:{:>8.2f}|'.format(self.player.y)
-            dx = '|dx:{:>8.2f}|'.format(self.player.dx)
-            dy = '|dy:{:>8.2f}|'.format(self.player.dy)
+            x = '| x:{:>8.2f}|'.format(self.player1.x)
+            y = '| y:{:>8.2f}|'.format(self.player1.y)
+            dx = '|dx:{:>8.2f}|'.format(self.player1.dx)
+            dy = '|dy:{:>8.2f}|'.format(self.player1.dy)
 
             debug_font = self.debug_font.render(x, True, GREEN)
             self.surface.blit(debug_font, self.debug_font_xy1)
@@ -181,14 +213,18 @@ class GameLoop:
 
         def _draw_players():
             # placeholder for a playable character; is movable
-            pygame.draw.rect(self.surface, LBLUE, self.player)
-            if self.player.facing_direction == LEFT:
-                self.player_eyeball.topleft = self.player.topleft
-                self.player_eyeball.move_ip((+3, 3))
+            pygame.draw.rect(self.surface, LBLUE, self.player1)
+            if self.player1.facing_direction == LEFT:
+                self.player1_eyeball.topleft = self.player1.topleft
+                self.player1_eyeball.move_ip((+3, 3))
             else:
-                self.player_eyeball.topright = self.player.topright
-                self.player_eyeball.move_ip((-3, 3))
-            pygame.draw.rect(self.surface, DKRED, self.player_eyeball)
+                self.player1_eyeball.topright = self.player1.topright
+                self.player1_eyeball.move_ip((-3, 3))
+            pygame.draw.rect(self.surface, DKRED, self.player1_eyeball)
+            
+        def _draw_monsters():
+            for m in self.active_monsters:
+                pygame.draw.rect(self.surface, ORANGE, m)
 
         def _draw_particles():
             for p in self.active_particles:
@@ -199,6 +235,7 @@ class GameLoop:
         _draw_debug()
         _draw_map()
         _draw_players()
+        _draw_monsters()
         _draw_particles()
         pygame.display.update()  # necessary to update the display
 
@@ -211,22 +248,22 @@ class GameLoop:
                 self.game_time.inc()
 
             if event.type == REGENERATION_EVENT:
-                self.player.hit_points += self.player.level/10
-                if self.player.hit_points > 100:
-                    self.player.hit_points = 100
-                self.player.energy += self.player.level/5
-                if self.player.energy > 10:
-                    self.player.energy = 10
+                self.player1.hit_points += self.player1.level/10
+                if self.player1.hit_points > 100:
+                    self.player1.hit_points = 100
+                self.player1.energy += self.player1.level/5
+                if self.player1.energy > 10:
+                    self.player1.energy = 10
 
             # player 1 skill lock timer
             if event.type == PLAYER1_LOCK_EVENT:
-                self.player.attack_cooldown_expired = True
+                self.player1.attack_cooldown_expired = True
                 pygame.time.set_timer(PLAYER1_LOCK_EVENT, 0)
 
             if event.type == PLAYER1_MEDITATE_EVENT:
-                self.player.energy += 5
-                if self.player.energy > 10:
-                    self.player.energy = 10
+                self.player1.energy += 5
+                if self.player1.energy > 10:
+                    self.player1.energy = 10
                 pygame.time.set_timer(PLAYER1_MEDITATE_EVENT, 0)
                 
             # QUIT event occurs when click X on window bar

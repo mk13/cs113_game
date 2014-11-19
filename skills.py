@@ -84,7 +84,11 @@ def blank_function(sid,player,up = False, down = False):
     return None
 
 #'start' function for teleport    
-def teleport_start(sid,player, up = False, down = False):
+def teleport_start(sid,player, up, down):
+    if up and not down:
+        player.top -= 100
+    elif down and not up:
+        player.bottom += 100
     if player.facing_direction == RIGHT:
         player.left += 100
     else:
@@ -98,8 +102,8 @@ def teleport_start(sid,player, up = False, down = False):
 def lightning_bolt_start(particle,time):
     x = particle.centerx
     if particle.direction == RIGHT:
-        x += 5
+        x += 10
     else:
-        x -= 5
-    y = particle.originy + 50*math.cos(x/10)
+        x -= 10
+    y = particle.originy + 10*math.cos(x/10)
     return x,y
