@@ -30,7 +30,9 @@ class Rect2(pygame.Rect):
 
 
 class Player(Rect2):
-    def __init__(self, left, top, width, height):
+    def __init__(self, id, left, top, width, height):
+        # id = 1 if player 1, id = 2 if player 2
+        self.id = id
 
         # position
         super().__init__(left, top, width, height)
@@ -58,12 +60,12 @@ class Player(Rect2):
         # character stats
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
-        self.level = 10 
-        
+        self.level = 10
+
         # skills
         self.attack_id = 1
         self.skill1_id=self.skill2_id=self.skill3_id=self.ult_id = 0
-        
+
         #for debugging/testing:
         self.attack_id = 1
         self.skill1_id = 100
@@ -76,6 +78,9 @@ class Player(Rect2):
         self.attack_cooldown_expired = True
         self.new_particle = None
         
+        # conditions : both good and bad
+        #self.conditions = []
+
         # conditions : both good and bad
         #self.conditions = []
 
@@ -126,12 +131,10 @@ class Player(Rect2):
         def _apply_limits():
             self.dx = eval('{:+}'.format(self.dx)[0] + str(min(abs(self.dx), self.dx_max)))
             self.dy = min(self.dy, self.dy_max)
-            
+
         if self.attack_cooldown_expired:
             #These can only be used if not attacking
             _apply_accel_left_right_input(input)
-            _apply_limits()     #if attacking, applies limits 3x as fast
-            _apply_limits()
             _apply_accel_jump_input(input)
         _apply_friction()
         _apply_gravity()
@@ -145,6 +148,8 @@ class Player(Rect2):
         #else:
         self.move_ip((self.dx, self.dy))  # move then check for collisions
         for terrain in arena.rects:
+
+            # @TODO: implement Peter's modified coded for movement to squelch bug of glitchy behavior near edge of platforms.
 
             # (player's bottom in between terrain top and bottom) or (player's top in between terrain top and bottom)
             if (terrain.top < self.bottom < terrain.bottom) or (terrain.bottom > self.top > terrain.top):
@@ -176,15 +181,15 @@ class Player(Rect2):
                     # move player so it's bottom is flush with terrain's top
                     self.bottom = terrain.top
                     self.dy, self.touching_ground = 0, True
-    
+                    
     #Handles attacks, skill buttons, and meditate
-    #If multiple pushed, priority is: 
+    #If multiple pushed, priority is:
     #   ultimate > skill3 > skill2 > skill1 > attack > meditate
     #Dropping skills and picking up skills can be handled here later on
-    def _handle_inputs(self,input): 
+    def _handle_inputs(self,input):
         if input.DROP_SKILL:    #Drop skill pressed
             pass
-        
+
         else:   #Drop skill not pressed
             i = self._priority_inputs(input)
             if i and self.attack_cooldown_expired:
@@ -195,11 +200,11 @@ class Player(Rect2):
                     pygame.time.set_timer(USEREVENT+1+self.id, SKILLS_TABLE[i]['cooldown'])
                     if (i == -1):
                         pygame.time.set_timer(USEREVENT+3+self.id, SKILLS_TABLE[-1]['cooldown'])
-            
+
     def _priority_inputs(self, input):
         if input.ULT:
             return self.ult_id
-        elif input.SKILL3: 
+        elif input.SKILL3:
             return self.skill3_id
         elif input.SKILL2:
             return self.skill2_id
@@ -209,8 +214,7 @@ class Player(Rect2):
             return self.attack_id
         elif input.MEDITATE:
             return -1
-        else:
-            return 0
+        return 0
 # -------------------------------------------------------------------------
 
 
@@ -255,10 +259,10 @@ class Input:
         self.RESET = self.kb_input[K_r] or self.y_button
         self.DEBUG = self.kb_input[K_F12] or (self.start_button and self.back_button)
         self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or self.back_button
-        self.SKILL1 = self.kb_input[K_s] #or...
+        self.SKILL1 = self.kb_input[K_s]
         self.SKILL2 = self.kb_input[K_d]
         self.SKILL3 = self.kb_input[K_f]
-        self.ULT    = self.kb_input[K_g]
+        self.ULT = self.kb_input[K_g]
         self.DROP_SKILL = self.kb_input[K_q]
         self.MEDITATE = self.kb_input[K_w]
 
@@ -311,7 +315,6 @@ class Particle(Rect2):
         self.energy = SKILLS_TABLE[sid]['energy']
         self.belongs_to = player
         #self.conditions = []
-        
         #if 'conditions' in SKILLS_TABLE[sid].keys():
         #    for c in SKILLS_TABLE[sid]['conditions']:
         #        self.conditions.append(c)
@@ -332,7 +335,7 @@ class MeleeParticle(Particle):
                             #a target, so we need to know who it has hit
                             #to prevent the same target being hit multiple
                             #times
-        
+
     #def update(self, time, player):
     #Let the particle know how it belongs to so it can
     #rotate around that player and also in collision
@@ -360,8 +363,8 @@ class MeleeParticle(Particle):
             #    player.conditions.append(c)
             if self.on_hit_f:
                 self.on_hit_f(target)
-            
 
+# -------------------------------------------------------------------------
 class RangeParticle(Particle):
     def __init__(self, sid, player, up, down):
         super().__init__(sid,player)
@@ -369,7 +372,7 @@ class RangeParticle(Particle):
         self.direction = player.facing_direction
         self.originx = player.centerx   #Where the particle started
         self.originy = player.centery   #These might be useful later on
-        
+
         #If has special path, upload function to special_f
         if 'special_path' in SKILLS_TABLE[sid].keys():
             self.has_special = True
@@ -377,7 +380,7 @@ class RangeParticle(Particle):
         else:   #Using standard linear path
             self.dx = SKILLS_TABLE[sid]['speed']
             self.ddx = SKILLS_TABLE[sid]['acceleration']
-            
+
             #if player pressed up
             if up:
                 self.dy = SKILLS_TABLE[sid]['speed'] * -1
@@ -388,11 +391,11 @@ class RangeParticle(Particle):
             elif not up and not down:
                 self.dy = 0
                 self.ddy = 0
-            
+
         #initial position
         self.centerx = player.centerx
         self.centery = player.centery
-        
+
         if self.direction == RIGHT:
             self.centerx -= 30
         else:
@@ -400,14 +403,14 @@ class RangeParticle(Particle):
             if not self.has_special:
                 self.dx = self.dx * -1
                 self.ddx = self.ddx * -1
-        
+
     def update(self,time):
         if self.spawn_time == 0:
             self.spawn_time = time
 
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
-        
+
         if self.has_special:
             self.centerx,self.centery = self.special_f(self,time)
         else:
@@ -415,7 +418,7 @@ class RangeParticle(Particle):
             self.dy += self.ddy
             self.centerx += self.dx
             self.centery += self.dy
-            
+
     def on_hit(self,target,time):     #DONT delete time; will use later
         if target != self.belongs_to:
             target.hit_points - self.dmg
@@ -451,5 +454,5 @@ class GameTime:
     def __str__(self):
         sec = self.qsec / 4
         return '{:>2}:{:0>2}'.format(str(int(sec / 60)), str(int(sec % 60)))
-        
+
 # ------------------------------------------------------------------------

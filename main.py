@@ -49,19 +49,18 @@ class GameLoop:
             self.window_border = Rect2(left=0, top=0, width=1278, height=600)
             self.play_area = Rect2(left=65, top=0, width=1150, height=475)
             self.play_area_border = Rect2(left=40, top=0, width=1200, height=500)
-            self.player = Player(left=200, top=150, width=30, height=40)
-            self.player.id = 1
+            self.player = Player(id=1, left=200, top=150, width=30, height=40)
             self.player_eyeball = Rect2(left=200, top=150, width=5, height=5)
             self.arena = arena1
 
         def _setup_fonts():
-            self.timer_font = pygame.font.Font('gigi.ttf', 36)
+            self.timer_font = pygame.font.Font('data/gigi.ttf', 36)
             self.timer_font_xy = 640, 500
-            self.health_font = pygame.font.Font('gigi.ttf', 55)
+            self.health_font = pygame.font.Font('data/gigi.ttf', 55)
             self.health_font_xy = 60, 480
-            self.energy_font = pygame.font.Font('gigi.ttf', 55)
+            self.energy_font = pygame.font.Font('data/gigi.ttf', 55)
             self.energy_font_xy = 80, 525
-            self.pause_font = pygame.font.Font('gigi.ttf', 200)
+            self.pause_font = pygame.font.Font('data/gigi.ttf', 200)
             self.pause_font_xy = font_position_center((self.window.w, self.window.h), self.pause_font, '-PAUSE-')
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
             self.debug_font_xy1 = 1000, 505
@@ -210,7 +209,7 @@ class GameLoop:
             # update game timer
             if event.type == TIME_TICK_EVENT:
                 self.game_time.inc()
-                
+
             if event.type == REGENERATION_EVENT:
                 self.player.hit_points += self.player.level/10
                 if self.player.hit_points > 100:
@@ -218,7 +217,7 @@ class GameLoop:
                 self.player.energy += self.player.level/5
                 if self.player.energy > 10:
                     self.player.energy = 10
-            
+
             # player 1 skill lock timer
             if event.type == PLAYER1_LOCK_EVENT:
                 self.player.attack_cooldown_expired = True

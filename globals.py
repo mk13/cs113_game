@@ -1,6 +1,7 @@
 #COLOR = (RRR, GGG, BBB)
 from pygame import Color
-from pygame.locals import * #for event timers
+from pygame.locals import *  # for event timers
+
 
 BLACK = Color(0, 0, 0)
 DGREY = Color(64, 64, 64)
@@ -30,8 +31,7 @@ RESET = 'RESET'
 MELEE = 'MELEE'
 RANGE = 'RANGED'
 
-
-#EVENTS: 
+#EVENTS:
 TIME_TICK_EVENT = USEREVENT + 1
 PLAYER1_LOCK_EVENT = USEREVENT + 2
 PLAYER2_LOCK_EVENT = USEREVENT + 3
@@ -58,3 +58,14 @@ def font_position_center(center_within_size, font, text):
     x = (center_within_size[0] - font.size(text)[0]) // 2
     y = (center_within_size[1] - font.size(text)[1]) // 2
     return x, y
+
+#Global to handle players from reaching out of 
+#arena.     
+def out_of_arena_fix(r):
+    #self.play_area = Rect2(left=65, top=0, width=1150, height=475)
+    if r.left < 65:
+        r.left = 65
+    if r.bottom > 475:
+        r.bottom = 475
+    if r.right > 1215:
+        r.right = 1215

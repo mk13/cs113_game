@@ -89,6 +89,7 @@ def teleport_start(sid,player, up = False, down = False):
         player.left += 100
     else:
         player.left -= 100
+    out_of_arena_fix(player)
     return None
 
 #Example of a special function
