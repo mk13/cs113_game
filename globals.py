@@ -19,6 +19,8 @@ YELLOW = Color(255, 255, 0)
 PURPLE = Color(255, 0, 255)
 ORANGE = Color(255, 153, 0)
 
+BROWN = Color(139,69,19)
+
 #monster types and globals
 WEAK = 'WEAK'
 MEDIUM = 'MEDIUM'

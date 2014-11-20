@@ -77,7 +77,7 @@ def initialize_skill_table():
     #Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee(30,30,math.pi/2, 35, 500,500,YELLOW,10,0)
     #Peashooter
-    SKILLS_TABLE[2] = _auto_range(10,10,20,0,100,5000,GREEN,10,0)
+    SKILLS_TABLE[2] = _auto_range(10,10,20,0,500,5000,GREEN,10,0)
     #Teleport
     SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':500,'energy': 5}
     #FIREBALL!
@@ -85,6 +85,12 @@ def initialize_skill_table():
     #LIGHTNING BOLT!
     SKILLS_TABLE[102] = _auto_range(50,50,5,2,500,10000,BLUE,10,2)
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_start
+    #Big-Hammer
+    SKILLS_TABLE[1000] = _auto_melee(75,75, math.pi/2, 125, 500,500,DGREY, 20, 5)
+    SKILLS_TABLE[1000]['on_hit_f'] = knock_back
+    SKILLS_TABLE[1000]['start'] = big_hammer
+    SKILLS_TABLE["bighammer0"] = _auto_melee(30,30,math.pi/2,30,500,500,BROWN, 10, 0)
+    SKILLS_TABLE["bighammer1"] = _auto_melee(30,30,math.pi/2,60,500,500,BROWN, 10, 0)
 
 #Templates=================================================
 def _auto_melee(width, height, arc, radius, cooldown, duration, color, dmg, energy):
@@ -145,3 +151,15 @@ def lightning_bolt_start(particle,time):
         x -= 10
     y = particle.originy + 10*math.cos(x/10)
     return x,y
+    
+def big_hammer(sid, player, up = False, down = False):
+    return [classes.MeleeParticle("bighammer0",player),
+            classes.MeleeParticle("bighammer1",player),
+            classes.MeleeParticle(sid,player)]
+    
+def knock_back(target):
+    if target.dx >= 0:
+        target.x -= 50
+    else:
+        target.x += 50
+    out_of_arena_fix(target)

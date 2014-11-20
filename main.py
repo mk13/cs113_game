@@ -135,7 +135,11 @@ class GameLoop:
 
         def _update_active_particles():
             if self.player1.new_particle:
-                self.active_particles.append(self.player1.new_particle)
+                if isinstance(self.player1.new_particle, list):
+                    for p in self.player1.new_particle:
+                        self.active_particles.append(p)
+                else:
+                    self.active_particles.append(self.player1.new_particle)
                 self.player1.new_particle = None
                 #Added this part into player inputs; causing bugs if skill doesn't create particle
                 #pygame.time.set_timer(USEREVENT + 2, self.player1.new_particle.cooldown)

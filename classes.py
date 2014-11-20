@@ -82,18 +82,18 @@ class Player(Rect2):
         # character stats
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
-        self.level = 1
+        self.level = 10
 
         # skills
         self.attack_id = 1
         self.skill1_id=self.skill2_id=self.skill3_id=self.ult_id = 0
 
         #for debugging/testing:
-        self.attack_id = 2
+        self.attack_id = 1
         self.skill1_id = 100
         self.skill2_id = 101
         self.skill3_id = 102
-        self.ult_id = 0
+        self.ult_id = 1000
 
         # attacking
         self.facing_direction = RIGHT
@@ -273,21 +273,21 @@ class Monster(Player):
         
         if self.type == WEAK: 
             super().__init__(0,left,top,30,40)
-            self.dx_max, self.dy_max = 5,20
+            self.dx_max, self.dy_max = 2,10
             self.dy_gravity = 6
             self.hit_points = self.hit_points_max = 100
             self.chasing_time = 5000
             self.idle_time = 5000
         elif self.type == MEDIUM:
             super().__init__(0,left,top,50,60)
-            self.dx_max, self.dy_max = 7,20
+            self.dx_max, self.dy_max = 3,12
             self.dy_gravity = 6
             self.hit_points = self.hit_points_max = 250
             self.chasing_time = 7000
             self.idle_time = 5000
         elif self.type == ULTIMATE:
             super().__init__(0,left,top,80,80)
-            self.dx_max, self.dy_max = 10,20
+            self.dx_max, self.dy_max = 4,13
             self.dy_gravity = 6
             self.hit_points = self.hit_points_max = 500
             self.chasing_time = 10000
