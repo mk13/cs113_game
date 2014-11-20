@@ -147,26 +147,28 @@ class GameLoop:
                     
         def _check_particle_collisions():
             for p in self.active_particles:
+                #opposite = self.player2 if p.belongs_to == self.player1 else \
+                #           self.player1
                 if isinstance(p,RangeParticle):
-                    #Priority: terran > mosnter > player
-                    #Check terrains
                     if p.p_collidelist(self.arena.rects) != -1:
                         self.active_particles.remove(p)
                     #else: destructible terrain collision here
                     else:
-                        #Check monsters
                         first_hit = p.collidelist(self.active_monsters)
                         if first_hit != -1:
                             p.on_hit(self.active_monsters[first_hit], self.game_time.msec)
                             self.active_particles.remove(p)
-                        #Check players - UNCOMMENT ONCE PLAYER2 IS ADDED
                         #else:
-                        #    opposite = self.player2 if p.belongs_to == self.player1 else \
-                        #               self.player1
                         #    if p.colliderect(opposite):
                         #        p.on_hit(opposite, self.game_time.msec)
                         #        self.active_particles.remove(p)
-                    
+                else:
+                    allhit = p.collidelistall(self.active_monsters)
+                    for i in allhit:
+                        p.on_hit(self.active_monsters[i], self.game_time.msec)
+                    #if p.colliderect(opposite):
+                    #    p.on_hit(opposite, self.game_time.msec)
+                        
 
         _update_active_particles()
         _update_particles()
@@ -193,7 +195,7 @@ class GameLoop:
 
             # font for health indicator, for testing purposes only
             health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
-            energy_display = self.energy_font.render(str(self.player1.energy), True, YELLOW)
+            energy_display = self.energy_font.render(str(int(self.player1.energy)), True, YELLOW)
             self.surface.blit(health_display, self.health_font_xy)
             self.surface.blit(energy_display, self.energy_font_xy)
 
