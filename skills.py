@@ -14,10 +14,46 @@ SKILLS_TABLE = {}
 # 100-999: for skills
 # 1000+  : for ultimate
 
-#NOTE:: These attributes are MANDATORY
+#IMPORTANT:: These attributes are MANDATORY
 #   Cooldown: How long it locks your character
 #   Duration: How long the particle lives
 #   Energy: How much energy it costs; put 0 if no cost
+
+#ADDING DEBUFFS TO PARTICLES (ex: slow on hit):
+#   Example: DiseaseBall, id = 999
+#       Create the base:
+#           SKILLS_TABLE[999] = _auto_range(50,50,5,2,500,10000, YELLOW, 10, 2)
+#       Add the debuffs:
+#           SKILLS_TABLE[999]['conditions'] = [Stun(5000), Slow(5000,0.5), etc]
+
+#CONDITIONS (Buff and DEBUFF):
+#ALL DURATION IS IN MILLISECONDS.
+#   Stun(duration)
+#       Disables ALL inputs. They may still trickle move and gravity affects stunned.
+#   Slow(duration, magnitude)
+#       Reduces movement by magnitude; doesn't affect gravity.
+#       Magnitude should be decimal between 0 and 1.
+#   Snare(duration)
+#       Freezes target in place; affects gravity
+#   Dot(magnitude, ticks, frequency)
+#       Deals <magnitude> damage every <frequency> for <ticks> times
+#       Magnitude should be the flat dmg applied every tick.
+#       Tick should be an integer.
+#       Frequency should be milliseconds, factor of 250. (Ex: 1000, 500, etc.)
+#   Silence(duration)
+#       Doesn't affect Monsters. Prevents all attacks/skill inputs.
+#   Wounded(duration)
+#       Doesn't affect Monsters. Reduces Health regen by half.
+#   Weakened(duration)
+#       Doesn't affect Monsters. Reduces Energy regen by half.
+#   Speed(duration, magnitude)
+#       Increases movement by magnitude; doesn't affect gravity.
+#   Shield(duration,magnitude)
+#       Places a protective shield that takes damage instead of hit_points
+#   Invigorate(duration)
+#       Doesn't affect Monsters. Increases Health regen to 2x.
+#   Empowered(duration)
+#       Doesn't affect Monsters. Increases Energy regen to 2x.
 
 #More information:
 #   Do not worry about subtracting energy costs,
@@ -40,6 +76,8 @@ def initialize_skill_table():
     SKILLS_TABLE[-1] = {'type': None, 'start':blank_function, 'cooldown':3000, 'energy': 0}
     #Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee(30,30,math.pi/2, 35, 500,500,YELLOW,10,0)
+    #Peashooter
+    SKILLS_TABLE[2] = _auto_range(10,10,20,0,500,5000,GREEN,10,0)
     #Teleport
     SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':500,'energy': 5}
     #FIREBALL!

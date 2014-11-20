@@ -49,8 +49,12 @@ class GameLoop:
             self.window_border = Rect2(left=0, top=0, width=1278, height=600)
             self.play_area = Rect2(left=65, top=0, width=1150, height=475)
             self.play_area_border = Rect2(left=40, top=0, width=1200, height=500)
+            
             self.player1 = Player(id=1, left=200, top=150, width=30, height=40)
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
+            #self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
+            #self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
+            
             self.arena = arena1
 
         def _setup_fonts():
@@ -76,9 +80,9 @@ class GameLoop:
             
             #TEST - Monster
             self.active_monsters.append(Monster(ULTIMATE, 400, 150, self.player1, self.player1))
-            self.active_monsters.append(Monster(MEDIUM, 400, 150, self.player1, self.player1))
-            self.active_monsters.append(Monster(WEAK, 400, 150, self.player1, self.player1))
-            
+            #self.active_monsters.append(Monster(MEDIUM, 400, 150, self.player1, self.player1))
+            #self.active_monsters.append(Monster(WEAK, 400, 150, self.player1, self.player1))
+                    
         pygame.init()
         initialize_skill_table()
         _setup_display()
@@ -144,15 +148,24 @@ class GameLoop:
         def _check_particle_collisions():
             for p in self.active_particles:
                 if isinstance(p,RangeParticle):
-                    #Do not use collidelist for terrain; if particle
-                    #is bigger than the character, it causes
-                    #the particle to be deleted instantly
-                    #since the particle will touch the ground on
-                    #creation - assuming the player was on ground
-                    #when cast
+                    #Priority: terran > mosnter > player
+                    #Check terrains
                     if p.p_collidelist(self.arena.rects) != -1:
                         self.active_particles.remove(p)
                     #else: destructible terrain collision here
+                    else:
+                        #Check monsters
+                        first_hit = p.collidelist(self.active_monsters)
+                        if first_hit != -1:
+                            p.on_hit(self.active_monsters[first_hit], self.game_time.msec)
+                            self.active_particles.remove(p)
+                        #Check players - UNCOMMENT ONCE PLAYER2 IS ADDED
+                        #else:
+                        #    opposite = self.player2 if p.belongs_to == self.player1 else \
+                        #               self.player1
+                        #    if p.colliderect(opposite):
+                        #        p.on_hit(opposite, self.game_time.msec)
+                        #        self.active_particles.remove(p)
                     
 
         _update_active_particles()
@@ -234,8 +247,8 @@ class GameLoop:
         _draw_timer()
         _draw_debug()
         _draw_map()
-        _draw_players()
         _draw_monsters()
+        _draw_players()
         _draw_particles()
         pygame.display.update()  # necessary to update the display
 
@@ -244,14 +257,45 @@ class GameLoop:
         # loop through all pygame events
         for event in pygame.event.get():
             # update game timer
+            # handle conditions
             if event.type == TIME_TICK_EVENT:
                 self.game_time.inc()
+                
+                #Player 1 conditions
+                for k,v in self.player1.conditions.items():
+                    for e in v:
+                        if e.is_expired(self.game_time.msec):
+                            self.player1.conditions[k].remove(e)
+                            
+                #Player 2 conditions
+                #for k,v in self.player2.conditions.items():
+                #    for e in v:
+                #        if e.is_expired(self.game_time.msec):
+                #            self.player2.conditions[k].remove(e)
+                
+                #Monster conditions
+                for m in self.active_monsters:
+                    for k,v in m.conditions.items():
+                        for e in v:
+                            if e.is_expired(self.game_time.msec):
+                                m.conditions[k].remove(e)
 
             if event.type == REGENERATION_EVENT:
-                self.player1.hit_points += self.player1.level/10
+                if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
+                    self.player1.hit_points += self.player1.level/20
+                elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
+                    self.player1.hit_points += self.player1.level/5
+                else:
+                    self.player1.hit_points += self.player1.level/10
                 if self.player1.hit_points > 100:
                     self.player1.hit_points = 100
-                self.player1.energy += self.player1.level/5
+                
+                if self.player1.conditions[WEAKENED] and not self.player1.conditions[EMPOWERED]:
+                    self.player1.energy += self.player1.level/10
+                elif not self.player1.conditions[WEAKENED] and self.player1.conditions[EMPOWERED]:
+                    self.player1.energy += self.player1.level/2.5
+                else:
+                    self.player1.energy += self.player1.level/5
                 if self.player1.energy > 10:
                     self.player1.energy = 10
 
