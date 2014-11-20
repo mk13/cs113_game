@@ -77,7 +77,7 @@ def initialize_skill_table():
     #Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee(30,30,math.pi/2, 35, 500,500,YELLOW,10,0)
     #Peashooter
-    SKILLS_TABLE[2] = _auto_range(10,10,20,0,500,5000,GREEN,10,0)
+    SKILLS_TABLE[2] = _auto_range(10,10,20,0,100,5000,GREEN,10,0)
     #Teleport
     SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':500,'energy': 5}
     #FIREBALL!

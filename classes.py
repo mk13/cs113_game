@@ -99,6 +99,9 @@ class Player(Rect2):
         self.facing_direction = RIGHT
         self.attack_cooldown_expired = True
         self.new_particle = None
+        
+        # scrolling text
+        self.st_buffer = []
 
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)
@@ -509,8 +512,7 @@ class MeleeParticle(Particle):
     def on_hit(self,target,time):   #DONT delete time; will use later
         if target != self.belongs_to and target not in self.has_hit:
             self.has_hit.append(target)
-            target.hit_points - self.dmg
-            target.shield_trigger()
+            handle_damage(target, self.dmg, time)
             
             for c in self.conditions:
                 c.begin(time, target)
@@ -580,8 +582,7 @@ class RangeParticle(Particle):
 
     def on_hit(self,target,time):     #DONT delete time; will use later
         if target != self.belongs_to:
-            target.hit_points - self.dmg
-            target.shield_trigger()
+            handle_damage(target, self.dmg, time)
             
             for c in self.conditions:
                 c.begin(time, target)
@@ -677,8 +678,7 @@ class Dot(Condition):
         t = time - self.last_tick
         if t >= self.frequency:
             self.last_tick = time
-            self.target.hit_points -= self.magnitude
-            self.target.shield_trigger()
+            handle_damage(self.target, self.magnitude, time)
             self.ticks -= 1
         return (self.ticks <= 0)
                                                  

@@ -93,3 +93,8 @@ def out_of_arena_fix(r):
         r.right = 1215
         fixed = True
     return fixed
+    
+def handle_damage(target, value, time):
+    target.hit_points -= value
+    target.shield_trigger()
+    target.st_buffer.append((value, time + 2000))

@@ -71,6 +71,8 @@ class GameLoop:
             self.debug_font_xy2 = 1000, 520
             self.debug_font_xy3 = 1000, 540
             self.debug_font_xy4 = 1000, 560
+            #Scrolling text font
+            self.st_font = pygame.font.Font('data/gigi.ttf', 30)
 
         def _setup_particles():
             self.active_particles = []
@@ -244,6 +246,25 @@ class GameLoop:
         def _draw_particles():
             for p in self.active_particles:
                 pygame.draw.rect(self.surface, p.color, p)
+                
+        def _draw_scrolling_text():
+            for t in self.player1.st_buffer:
+                self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
+                (self.player1.centerx, self.player1.top - (3000 - t[1] + self.game_time.msec)/50))
+                if t[1] <= self.game_time.msec: 
+                    self.player1.st_buffer.remove(t)
+            #for t in self.player2.st_buffer:
+            #    self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
+            #    (self.player2.centerx, self.player2.top - (3000 - t[1] + self.game_time.msec)/50))
+            #    if t[1] <= self.game_time.msec: 
+            #        self.player2.st_buffer.remove(t)
+            for m in self.active_monsters:
+                for t in m.st_buffer:
+                    self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
+                    (m.centerx, m.top - (3000 - t[1] + self.game_time.msec)/50))
+                    if t[1] <= self.game_time.msec: 
+                        m.st_buffer.remove(t)
+                
 
         _draw_ui()
         _draw_timer()
@@ -252,6 +273,7 @@ class GameLoop:
         _draw_monsters()
         _draw_players()
         _draw_particles()
+        _draw_scrolling_text()
         pygame.display.update()  # necessary to update the display
 
     # -------------------------------------------------------------------------
