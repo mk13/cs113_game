@@ -132,6 +132,7 @@ class Player(Rect2):
         self._handle_movement(arena_map)
         if not self.conditions[STUN] and not self.conditions[SILENCE]:
             self._handle_inputs(input)
+        
 
     def _handle_facing_direction(self, input):
         if self.attack_cooldown_expired and not self.conditions[STUN]:

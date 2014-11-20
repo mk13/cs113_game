@@ -24,7 +24,7 @@ SKILLS_TABLE = {}
 #       Create the base:
 #           SKILLS_TABLE[999] = _auto_range(50,50,5,2,500,10000, YELLOW, 10, 2)
 #       Add the debuffs:
-#           SKILLS_TABLE[999]['conditions'] = [Stun(5000), Slow(5000,0.5), etc]
+#           SKILLS_TABLE[999]['conditions'] = [classes.Stun(5000), classes.Slow(5000,0.5), etc]
 
 #CONDITIONS (Buff and DEBUFF):
 #ALL DURATION IS IN MILLISECONDS.
@@ -79,7 +79,7 @@ def initialize_skill_table():
     #Peashooter
     SKILLS_TABLE[2] = _auto_range(10,10,20,0,500,5000,GREEN,10,0)
     #Teleport
-    SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':500,'energy': 5}
+    SKILLS_TABLE[100] = {'type': None,'start':teleport_start,'cooldown':200,'energy': 5}
     #FIREBALL!
     SKILLS_TABLE[101] = _auto_range(50,50,5,2,500,10000,RED,10,2)
     #LIGHTNING BOLT!
@@ -88,6 +88,7 @@ def initialize_skill_table():
     #Big-Hammer
     SKILLS_TABLE[1000] = _auto_melee(75,75, math.pi/2, 125, 500,500,DGREY, 20, 5)
     SKILLS_TABLE[1000]['on_hit_f'] = knock_back
+    SKILLS_TABLE[1000]['conditions'] = [classes.Stun(3000)]
     SKILLS_TABLE[1000]['start'] = big_hammer
     SKILLS_TABLE["bighammer0"] = _auto_melee(30,30,math.pi/2,30,500,500,BROWN, 10, 0)
     SKILLS_TABLE["bighammer1"] = _auto_melee(30,30,math.pi/2,60,500,500,BROWN, 10, 0)
@@ -132,7 +133,7 @@ def teleport_start(sid,player, up, down):
     if up and not down:
         player.top -= 100
     elif down and not up:
-        player.bottom += 100
+        player.top += 100
     if player.facing_direction == RIGHT:
         player.left += 100
     else:

@@ -56,7 +56,7 @@ class GameLoop:
             #self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
             
             self.arena = arena1
-
+            
         def _setup_fonts():
             self.timer_font = pygame.font.Font('data/gigi.ttf', 36)
             self.timer_font_xy = 640, 500
