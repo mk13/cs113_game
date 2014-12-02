@@ -9,6 +9,7 @@ from pygame.locals import *
 
 # our modules
 from classes import *
+from debug import *
 from globals import *
 from pages import *
 from skills import *
@@ -22,9 +23,7 @@ if os.environ['COMPUTERNAME'] == 'BRIAN-DESKTOP':
 if os.environ['COMPUTERNAME'] == 'MAX-LT':
     os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(50, 30)
 
-# @PYGAMERUNSPECIAL  setting for my IDE
 # -------------------------------------------------------------------------
-
 class StartMenu:
 
     def __init__(self):
@@ -32,31 +31,34 @@ class StartMenu:
             pygame.display.set_mode((1280, 600))
             pygame.display.set_caption('Famished Tournament')
             self.screen = pygame.display.get_surface()
-            self.done = False
-
-            self.start_button = PygButton((325,395,140,40),'Start')
-            self.help_button = PygButton((485,395,110,40), 'Help')
-            self.options_button = PygButton((615,395,175,40), 'Options')
-            self.exit_button = PygButton((810,395,105,40), 'Exit')
+            self.start_button = PygButton((325, 395, 140, 40), 'Start')
+            self.help_button = PygButton((485, 395, 110, 40), 'Help')
+            self.options_button = PygButton((615, 395, 175, 40), 'Options')
+            self.exit_button = PygButton((810, 395, 105, 40), 'Exit')
 
         def _setup_music():
             turn_on_music()
 
+        def _setup_time():
+            self.clock = pygame.time.Clock()
+            self.fps = 5
+
         pygame.init()
         _setup_display()
         _setup_music()
+        _setup_time()
 
     def __call__(self):
-        while not self.done:
+        while True:
             self.draw_UI()
             self.handle_events()
+            self.clock.tick(self.fps)
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
             if 'click' in self.start_button.handleEvent(event):
                 GameLoop(self)()
             if 'click' in self.exit_button.handleEvent(event):
@@ -66,11 +68,13 @@ class StartMenu:
                 HelpPage(self)()
             if 'click' in self.options_button.handleEvent(event):
                 OptionsPage(self)()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_RETURN:
+                    GameLoop(self)()
 
     def draw_UI(self):
-
         self.image = pygame.image.load('data/temp_start_bkg.png')
-        self.screen.blit(self.image, (0,0))
+        self.screen.blit(self.image, (0, 0))
 
         self.start_button.draw(self.screen)
         self.help_button.draw(self.screen)
@@ -80,9 +84,8 @@ class StartMenu:
         self.title_font = pygame.font.Font('data/Kremlin.ttf', 50)
         self.title1 = self.title_font.render('Famished', True, DKRED)
         self.title2 = self.title_font.render('Tournament', True, DKRED)
-        self.screen.blit(self.title1, (495,120))
+        self.screen.blit(self.title1, (495, 120))
         self.screen.blit(self.title2, (450, 175))
-
 
         #text for transparent buttons
         #self.button_font = pygame.font.Font('data/Kremlin.ttf', 30)
@@ -97,15 +100,14 @@ class StartMenu:
 
         pygame.display.flip()
 
-
-
+# -------------------------------------------------------------------------
 class GameLoop:
-    def __init__(self, StartMenu=None):
+    def __init__(self, start_menu=None):
         def _setup_display():
             # set the window size - can add the NOFRAME arg if we don't want a
             # window frame but then we have to figure out how to move the
             # window since it won't have a menu bar to grab
-            pygame.display.set_mode((1280, 600))
+            self.screen = pygame.display.set_mode((1280, 600))
             pygame.display.set_caption('Famished Tournament')
             self.surface = pygame.display.get_surface()
 
@@ -117,7 +119,7 @@ class GameLoop:
             self.game_time = GameTime()
 
         def _setup_input():
-            self.start_menu=StartMenu
+            self.start_menu = start_menu
             pygame.key.set_repeat(100, 10)  # allow multiple KEYDOWN events
             self.input = Input()
 
@@ -129,8 +131,7 @@ class GameLoop:
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
             # self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
             # self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
-
-            self.arena = random.choice((arena1, arena2))
+            self.arena = Arena(random.choice((arena1, arena2)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -166,14 +167,12 @@ class GameLoop:
 
         def _setup_music():
             self.music_flag = get_music_on()
-            if self.music_flag == True:
-                self._songs = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3', 'data/drilldance.mp3',
-                         'data/running_emu.mp3', 'data/wooboodoo.mp3', 'data/accident.mp3']
-                self._currently_playing_song = None
+            if self.music_flag:
+                self.songs = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3',
+                              'data/drilldance.mp3', 'data/running_emu.mp3', 'data/wooboodoo.mp3',
+                              'data/accident.mp3']
+                self.curr_song = None
                 self.play_next_random_song()
-            else:
-                pass
-                #do not start playing music
 
         def _setup_rain():
             self.rain_particles = []
@@ -183,6 +182,41 @@ class GameLoop:
 
         def _setup_mouse():
             pygame.mouse.set_visible(False)
+
+        def _setup_player_sprites():  # load player sprites here
+            # Will later need some value to tell the game what sprite
+            # to load based on player choice, since we don't want to
+            # just load everything possible
+
+            # Load sprites for player 1
+            try:
+                spritesheet1 = pygame.image.load("data/pl_human.png")
+            except:
+                raise (UserWarning, "Unable to load sprites")  # error msg and exit
+            spritesheet1.convert()
+            m1 = []
+
+            # Put spritesheet into list, each sprite is 64x64 pixels large
+            for num in range(1, 7, 1):  # Standing
+                m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
+            for num in range(7, 15, 1):  # Walk Transition
+                m1.append(spritesheet1.subsurface((64 * (num - 7), 64, 64, 64)))
+            for num in range(15, 23, 1):  # Walk Part 1
+                m1.append(spritesheet1.subsurface((64 * (num - 15), 128, 64, 64)))
+            for num in range(23, 31, 1):  # Walk Part 2
+                m1.append(spritesheet1.subsurface((64 * (num - 23), 192, 64, 64)))
+            for num in range(31, 35, 1):  # Jump and Fall
+                m1.append(spritesheet1.subsurface((64 * (num - 31), 256, 64, 64)))
+
+            for num in range(len(m1)):
+                m1[num].set_colorkey((0, 0, 0))  # sprite bg rgb is (0,0,0)
+                m1[num] = m1[num].convert_alpha()
+
+            self.p1_sprite = m1
+            self.p1_wait_frames = 0
+            self.p1_animation_key = -1
+
+            # Player 2 will be the same thing with a different spritesheet
 
         pygame.init()
         initialize_skill_table()
@@ -196,6 +230,7 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_mouse()
+        _setup_player_sprites()
 
     # ------------------------------------------------------------------------
     def __call__(self):
@@ -205,6 +240,8 @@ class GameLoop:
                 self.handle_monsters()
                 self.handle_particles()
                 self.draw_screen()
+                self.draw_debug()
+                pygame.display.update()
                 self.handle_event_queue()
                 self.clock.tick(self.fps)
             else:
@@ -226,7 +263,7 @@ class GameLoop:
             #     except Exception as err:
             #         print('>> {}: {} <<'.format(type(err).__name__, err))
 
-            if self.input.RESET and not self.input.PAUSED:
+            if self.input.RESPAWN and not self.input.PAUSED:
                 self.player1.topleft = self.player1.topleft_initial
 
             if self.input.EXIT:
@@ -322,7 +359,7 @@ class GameLoop:
         def _draw_ui():
             self.surface.fill(DGREY)  # fill background dark grey
 
-            # font for player's health and energy
+            #font for player's health and energy
             #health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
             #energy_display = self.energy_font.render(str(int(self.player1.energy)), True, YELLOW)
             #self.surface.blit(health_display, self.health_font_xy)
@@ -332,28 +369,28 @@ class GameLoop:
             #currently only goes off of one player's health
             #left health bar outline image
             self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
-            self.surface.blit(self.health_bar_outline, (5,20))
+            self.surface.blit(self.health_bar_outline, (5, 20))
             self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
-            self.surface.blit(self.health_bar_outline2, (1239,20))
+            self.surface.blit(self.health_bar_outline2, (1239, 20))
             #right health bar outline image
             #dynamic health bars
             self.damage_taken1 = 100 - self.player1.hit_points
-            self.health_bar1 = Rect((20, (21+(2*self.damage_taken1))), (20,(200-(2*self.damage_taken1))))
-            self.health_bar2 = Rect((1241, (21+(2*self.damage_taken1))), (20, (200-(2*self.damage_taken1))))
+            self.health_bar1 = Rect((20, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
+            self.health_bar2 = Rect((1241, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
             pygame.draw.rect(self.surface, YELLOW, self.health_bar1)
             pygame.draw.rect(self.surface, YELLOW, self.health_bar2)
 
-            #need to add dynamic aspect of energy bars
+            # need to add dynamic aspect of energy bars
             #left energy bar outline image
             self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
-            self.surface.blit(self.energy_bar_outline, (5,280))
+            self.surface.blit(self.energy_bar_outline, (5, 280))
             #right energy bar outline image
             self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
-            self.surface.blit(self.energy_bar_outline2, (1239,280))
+            self.surface.blit(self.energy_bar_outline2, (1239, 280))
             #dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
-            self.energy_bar1 = Rect((20, 281+(20*self.energy_used1)), (20, 200-(20*self.energy_used1)))
-            self.energy_bar2 = Rect((1241, 281+(20*self.energy_used1)), (20, 200-(20*self.energy_used1)))
+            self.energy_bar1 = Rect((20, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
+            self.energy_bar2 = Rect((1241, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
             pygame.draw.rect(self.surface, GREEN, self.energy_bar1)
             pygame.draw.rect(self.surface, GREEN, self.energy_bar2)
 
@@ -375,7 +412,6 @@ class GameLoop:
 
             self.skill_box5 = Rect((290, 500), (40, 40))
             pygame.draw.rect(self.surface, BLACK, self.skill_box5)
-
 
             #player 2 skill boxes
             self.skill_box6 = Rect((950, 500), (40, 40))
@@ -399,45 +435,16 @@ class GameLoop:
             self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.return_button.draw(self.surface)
 
-
         def _draw_timer():
             time_display = self.timer_font.render(str(self.game_time), True, BLUE)
             self.surface.blit(time_display, self.timer_font_xy)
-
-        def _draw_debug():
-            if self.input.debug_text_on:
-                x = '| x:{:>8.2f}|'.format(self.player1.x)
-                y = '| y:{:>8.2f}|'.format(self.player1.y)
-                dx = '|dx:{:>8.2f}|'.format(self.player1.dx)
-                dy = '|dy:{:>8.2f}|'.format(self.player1.dy)
-                debug_font_1 = self.debug_font.render(x, True, GREEN)
-                debug_font_2 = self.debug_font.render(y, True, GREEN)
-                debug_font_3 = self.debug_font.render(dx, True, GREEN)
-                debug_font_4 = self.debug_font.render(dy, True, GREEN)
-                self.surface.blit(debug_font_1, self.debug_font_xy1)
-                self.surface.blit(debug_font_2, self.debug_font_xy2)
-                self.surface.blit(debug_font_3, self.debug_font_xy3)
-                self.surface.blit(debug_font_4, self.debug_font_xy4)
-
-                num_monsters = '|curr num monsters:{:>2}|'.format(len(self.active_monsters))
-                max_monsters = '| max num monsters:{:>2}|'.format(self.arena.max_monsters)
-                debug_font_m1 = self.debug_font.render(num_monsters, True, GREEN)
-                debug_font_m2 = self.debug_font.render(max_monsters, True, GREEN)
-                self.surface.blit(debug_font_m1, self.debug_font_xy5)
-                self.surface.blit(debug_font_m2, self.debug_font_xy6)
 
         def _draw_map():
             for rect in self.arena:
                 if rect.color is not None:
                     pygame.draw.rect(self.surface, rect.color, rect)
 
-        def _draw_destructible_terrain_debug_text():
-            for rect in filter(lambda x: x.hits_to_destroy > 0, self.arena):
-                rendered_debug_font = self.debug_font_small_2.render(str(rect.hits_to_destroy), True, BLACK)
-                pos = font_position_center(rect, self.debug_font_small_2, str(rect.hits_to_destroy))
-                self.surface.blit(rendered_debug_font, pos)
-
-        def _draw_players():
+        def _draw_players_debug():
             pygame.draw.rect(self.surface, LBLUE, self.player1)
             if self.player1.facing_direction == LEFT:
                 self.player1_eyeball.topleft = self.player1.topleft
@@ -446,6 +453,66 @@ class GameLoop:
                 self.player1_eyeball.topright = self.player1.topright
                 self.player1_eyeball.move_ip((-3, 3))
             pygame.draw.rect(self.surface, DKRED, self.player1_eyeball)
+
+        def _draw_players():
+            # Draw player using wait_frames and animation_key
+            # wait_frames = frames waited before key is incremented
+            # animation_key = index for the sprite list
+
+            # Draw player 1
+            if self.player1.state != self.player1.previous_state:
+                self.p1_wait_frames = 0
+                self.p1_animation_key = -1  # -1 because it will always get
+                                            # incremented at the start of each check
+            flip = False  # value for flipping sprite
+
+            # Animations that still need to be implemented
+            # if (self.player1.state == DEATH):
+            # if (self.player1.state == ATTACK):
+            # if (self.player1.state == CAST):
+            # if (self.player1.state == SLIDE):
+
+            # JUMP
+            if self.player1.state == JUMP:
+                if self.player1.facing_direction == LEFT:
+                    flip = True
+                if self.p1_wait_frames <= 0:
+                    self.p1_wait_frames = 5
+                    if self.p1_animation_key <= 0:
+                        self.p1_animation_key += 1
+                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 30], flip, False), (self.player1.left-17,self.player1.top-22))
+            # FALL
+            elif self.player1.state == FALL:
+                if self.player1.facing_direction == LEFT:
+                    flip = True
+                if self.p1_wait_frames <= 0:
+                    self.p1_wait_frames = 5
+                    if self.p1_animation_key <= 0:
+                        self.p1_animation_key += 1
+                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 32], flip, False), (self.player1.left-17,self.player1.top-22))
+            # WALK
+            elif self.player1.state == RWALK or self.player1.state == LWALK:
+                if self.player1.facing_direction == LEFT:
+                    flip = True
+                if self.player1.state == RWALK and self.player1.previous_state != RWALK:
+                    self.p1_animation_key = -8  # Transition sprites loaded before walk
+                elif self.player1.state == LWALK and self.player1.previous_state != LWALK:
+                    self.p1_animation_key = -8
+                if self.p1_wait_frames <= 0:
+                    self.p1_wait_frames = 2
+                    self.p1_animation_key += 1
+                    if self.p1_animation_key > 0:
+                        self.p1_animation_key %= 16  # Loops the key
+                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 14], flip, False), (self.player1.left - 17, self.player1.top - 22))
+            # STAND (default animation)
+            else:
+                if self.player1.facing_direction == LEFT:
+                    flip = True
+                # Currently only have 1 standing sprite
+                self.screen.blit(
+                    pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 1], flip, False), (self.player1.left - 17, self.player1.top - 22))
+            self.p1_wait_frames += -1
+            # Draw player 2 here
 
         def _draw_monsters():
             for m in self.active_monsters:
@@ -496,6 +563,47 @@ class GameLoop:
                     self.rain_particles.remove(r)
             self.make_rain = False
 
+        _draw_ui()
+        _draw_timer()
+        _draw_map()
+        _draw_monsters()
+        # _draw_players_debug()
+        _draw_players()
+        _draw_particles()
+        _draw_scrolling_text()
+        # _draw_rain()
+
+    # -------------------------------------------------------------------------
+    def draw_debug(self):
+
+        def _draw_debug_text():
+            if self.input.debug_text_on:
+                x = '| x:{:>8.2f}|'.format(self.player1.x)
+                y = '| y:{:>8.2f}|'.format(self.player1.y)
+                dx = '|dx:{:>8.2f}|'.format(self.player1.dx)
+                dy = '|dy:{:>8.2f}|'.format(self.player1.dy)
+                debug_font_1 = self.debug_font.render(x, True, GREEN)
+                debug_font_2 = self.debug_font.render(y, True, GREEN)
+                debug_font_3 = self.debug_font.render(dx, True, GREEN)
+                debug_font_4 = self.debug_font.render(dy, True, GREEN)
+                self.surface.blit(debug_font_1, self.debug_font_xy1)
+                self.surface.blit(debug_font_2, self.debug_font_xy2)
+                self.surface.blit(debug_font_3, self.debug_font_xy3)
+                self.surface.blit(debug_font_4, self.debug_font_xy4)
+
+                num_monsters = '|curr num monsters:{:>2}|'.format(len(self.active_monsters))
+                max_monsters = '| max num monsters:{:>2}|'.format(self.arena.max_monsters)
+                debug_font_m1 = self.debug_font.render(num_monsters, True, GREEN)
+                debug_font_m2 = self.debug_font.render(max_monsters, True, GREEN)
+                self.surface.blit(debug_font_m1, self.debug_font_xy5)
+                self.surface.blit(debug_font_m2, self.debug_font_xy6)
+
+        def _draw_destructible_terrain_debug_text():
+            for rect in filter(lambda x: x.hits_to_destroy > 0, self.arena):
+                rendered_debug_font = self.debug_font_small_2.render(str(rect.hits_to_destroy), True, BLACK)
+                pos = font_position_center(rect, self.debug_font_small_2, str(rect.hits_to_destroy))
+                self.surface.blit(rendered_debug_font, pos)
+
         def _draw_mouse_text():
             mouse_pos = pygame.mouse.get_pos()
             play_area_mouse_pos = mouse_pos[0] - self.arena.play_area_rect.left, mouse_pos[1]
@@ -505,18 +613,27 @@ class GameLoop:
                 rendered_debug_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
                 self.surface.blit(rendered_debug_font, mouse_pos)
 
-        _draw_ui()
-        _draw_timer()
-        _draw_debug()
-        _draw_map()
+        def _draw_player_collision_points_for_debugging():
+            coll_data = get_collision_data(self.player1, self.arena)
+            locs = []
+            for terr, pt, side in coll_data:
+                if pt.L: locs.append(self.player1.midleft)
+                if pt.R: locs.append(self.player1.midright)
+                if pt.T: locs.append(self.player1.midtop)
+                if pt.B: locs.append(self.player1.midbottom)
+                if pt.TL: locs.append(self.player1.topleft)
+                if pt.TR: locs.append(self.player1.topright)
+                if pt.BR: locs.append(self.player1.bottomright)
+                if pt.BL: locs.append(self.player1.bottomleft)
+                if locs:  # True if not empty list
+                    pygame.draw.circle(self.surface, ORANGE, self.player1.center, 5, 0)
+                for l in locs:
+                    pygame.draw.circle(self.surface, ORANGE, l, 3, 0)
+
+        _draw_debug_text()
         _draw_destructible_terrain_debug_text()
-        _draw_monsters()
-        _draw_players()
-        _draw_particles()
-        _draw_scrolling_text()
-        # _draw_rain()
+        _draw_player_collision_points_for_debugging()
         _draw_mouse_text()
-        pygame.display.update()
 
     # -------------------------------------------------------------------------
     def handle_event_queue(self):
@@ -527,10 +644,12 @@ class GameLoop:
                     print("the song ended!")
                     self.play_next_random_song()
 
-        def _handle_return_to_main_menu_click():
+        def _handle_return_to_main_menu():
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
                     start_menu()
+            if self.input.ENTER:
+                self.start_menu()
 
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
@@ -620,7 +739,7 @@ class GameLoop:
             _handle_rain_event()
             _handle_monster_spawn_event()
             _handle_quit_event()
-            _handle_return_to_main_menu_click()
+            _handle_return_to_main_menu()
             pygame.event.clear()
         else:
             _handle_quit_event()
@@ -629,12 +748,15 @@ class GameLoop:
 
 # -------------------------------------------------------------------------
     def play_next_random_song(self):
-        self.next_song = random.choice(self._songs)
-        while self.next_song == self._currently_playing_song:
-            self.next_song = random.choice(self._songs)
-        self._currently_playing_song = self.next_song
+        print('self.songs', self.songs)
+        print('self.curr_song', self.curr_song)
+        self.next_song = random.choice([s for s in self.songs if s != self.curr_song])
+        self.curr_song = self.next_song
+        print('self.next_song', self.next_song)
         pygame.mixer.music.load(self.next_song)
         pygame.mixer.music.play()
+        pygame.mixer.music.set_endevent(SONG_END_EVENT)
+
 # -------------------------------------------------------------------------
 if __name__ == '__main__':
     StartMenu()()

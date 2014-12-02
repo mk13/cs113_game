@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import pygame
 from pygame import Color
 from pygame.locals import *  # for event timers
@@ -29,6 +31,16 @@ MEDIUM = 'MEDIUM'
 ULTIMATE = 'ULTIMATE'
 CHASING = 'CHASING'
 IDLE = 'IDLE'
+
+# Player States (for animation)
+STAND = 'STAND'
+LWALK = 'LWALK'
+RWALK = 'RWALK'
+JUMP = 'JUMP'
+FALL = 'FALL'
+DEATH = 'DEATH'
+ATTACK = 'ATTACK'  # Might neeed attack1, cast1, etc
+CAST = 'CAST'
 
 # Inputs
 LEFT = 'LEFT'
@@ -63,9 +75,9 @@ PLAYER2_LOCK_EVENT = USEREVENT + 2
 PLAYER1_MEDITATE_EVENT = USEREVENT + 3
 PLAYER2_MEDITATE_EVENT = USEREVENT + 4
 REGENERATION_EVENT = USEREVENT + 5
-MORE_RAIN_EVENT = USEREVENT + 6
-MONSTER_SPAWN_EVENT = USEREVENT + 7
-SONG_END_EVENT = USEREVENT + 8
+MONSTER_SPAWN_EVENT = USEREVENT + 6
+SONG_END_EVENT = USEREVENT + 7
+MORE_RAIN_EVENT = USEREVENT + 8
 
 # Global Functions
 def all_in(items_want_inside, container_being_checked):
@@ -111,9 +123,7 @@ def turn_off_music():
 
 def turn_on_music():
     global MUSIC_ON
-    if MUSIC_ON == True:
-        pass
-    else:
+    if not MUSIC_ON:
         MUSIC_ON = True
         pygame.mixer.pre_init(44100)
         pygame.mixer.init()
@@ -131,3 +141,36 @@ def turn_on_effects():
 def get_music_on():
     global MUSIC_ON
     return MUSIC_ON
+
+# Arenas
+arena = namedtuple('arena', 'all_terr, max_monsters, possible_monsters')
+terrain = namedtuple('terrain', 'left, top, width, height, color, hits_to_destroy, spawn_point')
+
+arena1 = arena(all_terr=[terrain(0, 270, 300, 60, DKGREEN, -1, False),
+                         terrain(850, 270, 300, 60, DKGREEN, -1, False),
+                         terrain(545, 150, 60, 230, DKGREEN, -1, False),
+                         terrain(140, 100, 150, 20, DKGREEN, -1, False),
+                         terrain(860, 100, 150, 20, DKGREEN, -1, False),
+                         terrain(30, 240, 40, 20, WHITE, 5, False),
+                         terrain(1145, 465, -5, 5, RED, -1, True),
+                         terrain(15, 465, -5, 5, RED, -1, True), ],
+               max_monsters=7, possible_monsters=(WEAK, MEDIUM))
+
+arena2 = arena(all_terr=[terrain(50, 100, 50, 300, DKGREEN, -1, False),
+                         terrain(240, 40, 50, 300, DKGREEN, -1, False),
+                         terrain(500, 135, 100, 25, DKGREEN, -1, False),
+                         terrain(725, 255, 175, 25, DKGREEN, -1, False),
+                         terrain(1050, 375, 100, 25, DKGREEN, -1, False),
+                         terrain(400, 434, 300, 41, DKGREEN, -1, False),
+                         terrain(485, 394, 300, 41, DKGREEN, -1, False),
+                         terrain(970, 65, 80, 10, DKGREEN, -1, False),
+                         terrain(150, 465, -5, 5, RED, -1, True),
+                         terrain(930, 465, -5, 5, RED, -1, True), ],
+               max_monsters=7, possible_monsters=ALL)
+
+# Monsters
+monster_info = namedtuple('monster_info', 'w, h, dx, dy, hp, chase, idle')
+MONSTER_TABLE = {
+    WEAK: monster_info(30, 40, 2, 10, 100, 5000, 5000),
+    MEDIUM: monster_info(50, 60, 3, 12, 250, 7000, 5000),
+    ULTIMATE: monster_info(80, 80, 4, 13, 500, 10000, 5000)}

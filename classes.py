@@ -65,7 +65,7 @@ class Player(Rect2):
 
         # speed
         self.dx, self.dy = 10, 4  # initial rates
-        self.dx_max, self.dy_max = 15, 15  # max speed, max fall rate
+        self.dx_max, self.dy_max = 8, 15  # max speed, max fall rate
 
         # acceleration - player input
         self.dx_movement = 2  # +/- applied when player moves
@@ -106,6 +106,10 @@ class Player(Rect2):
         # scrolling text
         self.st_buffer = []
 
+        # Player State
+        self.state = STAND
+        self.previous_state = STAND
+
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)
 
@@ -134,6 +138,7 @@ class Player(Rect2):
         self._handle_movement(arena_map)
         if not self.conditions[STUN] and not self.conditions[SILENCE]:
             self._handle_inputs(input)
+        self._determine_state(input)
 
     def _handle_facing_direction(self, input):
         if self.attack_cooldown_expired and not self.conditions[STUN]:
@@ -158,19 +163,24 @@ class Player(Rect2):
                 if not isinstance(self, Monster):
                     self.dy -= self.dy_jump if self.touching_ground or self.hit_wall_from \
                         else 0
-                    self.dx += self.dx_wall_jump if self.hit_wall_from == LEFT \
-                        else -self.dx_wall_jump if self.hit_wall_from == RIGHT \
-                        else 0
+                    if not self.touching_ground:
+                        self.dx += self.dx_wall_jump if self.hit_wall_from == LEFT \
+                            else -self.dx_wall_jump if self.hit_wall_from == RIGHT \
+                            else 0
                 else:
                     self.dy -= self.dy_jump if self.touching_ground \
                         else 0
 
         def _apply_gravity():
-            self.dy += self.dy_gravity
+            if (-5 < self.dy < 8): # This helps make the jump arc smoother at the top
+                self.dy += self.dy_gravity * 0.5
+            else:
+                self.dy += self.dy_gravity
 
         def _apply_limits():
             self.dx = eval('{:+}'.format(self.dx)[0] + str(min(abs(self.dx), self.dx_max)))
             self.dy = min(self.dy, self.dy_max)
+            self.dy = max(self.dy, -self.dy_jump)
 
         if self.attack_cooldown_expired and not self.conditions[STUN]:
             # These can only be used if not attacking
@@ -199,7 +209,7 @@ class Player(Rect2):
         def _check_for_collisions():
             self.hit_wall_from, self.touching_ground = None, False  # reset every frame
             for terrain in arena.rects:
-                if terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right:
+                if terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right and self.dy >= 0:
                     if self.top < terrain.top < self.bottom:
                         self.bottom = terrain.top
                         self.dy, self.touching_ground = 0, True
@@ -207,19 +217,23 @@ class Player(Rect2):
                     if self.left < terrain.right < self.right and self.dx <= 0:
                         self.left = terrain.right
                         self.hit_wall_from = LEFT
-                        self.dx = self.dy = 0
+                        self.dx = 0
+                        if self.dy > 0:
+                            self.dy = 0
                     elif self.left < terrain.left < self.right and self.dx >= 0:
                         self.right = terrain.left
                         self.hit_wall_from = RIGHT
-                        self.dx = self.dy = 0
+                        self.dx = 0
+                        if self.dy > 0:
+                            self.dy = 0
                 if terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right:
                     if self.top < terrain.bottom < self.bottom and self.dy < 0:
                         self.top = terrain.bottom
-                        self.dy = -3
-            out_of_arena_fix(self)  # otherwise, player can jump up and over arena
+                        self.dy = self.dy * 0.4 # Prevents immediate drop when player hits ceiling
 
         _move()  # move then check for collisions
         _check_for_collisions()
+        out_of_arena_fix(self)  # otherwise, player can jump up and over arena
 
 
     # Handles attacks, skill buttons, and meditate
@@ -256,15 +270,28 @@ class Player(Rect2):
             return -1
         return 0
 
+    # Determines the player state to be used for animations
+    def _determine_state(self, input):
+        self.previous_state = self.state
+        if self.hit_points <= 0:
+            self.state = DEATH
+        elif not self.attack_cooldown_expired:
+            self.state = ATTACK # or cast
+        elif self.dy < 0:
+            self.state = JUMP
+        elif not self.touching_ground:
+            # if self.hit_wall_from:
+            #     self.state = SLIDE
+            # Needed if we have slide animation
+            self.state = FALL
+        elif input.RIGHT:
+            self.state = RWALK
+        elif input.LEFT:
+            self.state = LWALK        
+        else:
+            self.state = STAND   
 
 # -------------------------------------------------------------------------
-monster_info = namedtuple('monster_info', 'w, h, dx, dy, hp, chase, idle')
-MONSTER_TABLE = {
-    WEAK: monster_info(30, 40, 2, 10, 100, 5000, 5000),
-    MEDIUM: monster_info(50, 60, 3, 12, 250, 7000, 5000),
-    ULTIMATE: monster_info(80, 80, 4, 13, 500, 10000, 5000)}
-
-
 class Monster(Player):
     def __init__(self, info, left, top, player1, player2):
         super().__init__(0, left, top, info.w, info.h)
@@ -334,7 +361,6 @@ class Monster(Player):
         self._handle_movement(arena_map)
 
 # -------------------------------------------------------------------------
-
 class AI_Input():
     def __init__(self):
         self.RIGHT = False
@@ -393,7 +419,7 @@ class Input:
         self.DOWN = self.kb_input[K_DOWN] or self.up_down_axis == +1
         self.JUMP = self.kb_input[K_SPACE] or self.a_button
         self.ATTACK = self.kb_input[K_a] or self.x_button
-        self.RESET = self.kb_input[K_r] or self.y_button
+        self.RESPAWN = self.kb_input[K_r] or self.y_button
         self.DEBUG = self.kb_input[K_F12] or (self.start_button and self.back_button)
         self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or self.back_button
         self.SKILL1 = self.kb_input[K_s]
@@ -402,56 +428,35 @@ class Input:
         self.ULT = self.kb_input[K_g]
         self.DROP_SKILL = self.kb_input[K_q]
         self.MEDITATE = self.kb_input[K_w]
+        self.ENTER = self.kb_input[K_RETURN]
 
     def __getattr__(self, name):
         return None
 
 # -------------------------------------------------------------------------
 class Arena:
-    def __init__(self, *color_rects, max_monsters=5, possible_monsters=ALL):
-        self.max_monsters = max_monsters
-        self.possible_monsters = tuple(MONSTER_TABLE.keys()) if possible_monsters == ALL \
-            else possible_monsters
+    def __init__(self, arena_info):
+        self.max_monsters = arena_info.max_monsters
+        self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
+            else arena_info.possible_monsters
 
-        required = (Rect2(65, 0, 1150, 475, color=SKYBLUE),  # play_area
+        required = [Rect2(65, 0, 1150, 475, color=SKYBLUE),  # play_area
                     Rect2(0, 475, 1280, 50, color=None),  # floor
                     Rect2(15, 0, 50, 600, color=None),  # left wall
-                    Rect2(1215, 0, 50, 600, color=None))  # right wall
-        rects = [c_rect for c_rect in required + color_rects]
-        for rect in rects[4:]:  # don't shift the first 4 rects
+                    Rect2(1215, 0, 50, 600, color=None)]  # right wall
+
+        part2 = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.all_terr]
+        rects = required + part2
+
+        for rect in rects[4:]:  # don't shift amazthe first 4 rects
             rect.move_ip((65, 0))  # to account for play area starting 65 pixels from left
         self.play_area_rect = rects[0]
         self.rects = rects[1:]
 
     def __iter__(self):
         # currently only time iteration is used is when the rects are drawn
-        for c_rect in [self.play_area_rect] + self.rects:
-            yield c_rect
-
-arena1 = Arena(
-    Rect2(0, 270, 300, 60, color=DKGREEN),
-    Rect2(850, 270, 300, 60, color=DKGREEN),
-    Rect2(545, 150, 60, 230, color=DKGREEN),
-    Rect2(140, 100, 150, 20, color=DKGREEN),
-    Rect2(860, 100, 150, 20, color=DKGREEN),
-    Rect2(30, 240, 40, 20, color=WHITE, hits_to_destroy=5),
-    Rect2(1145, 465, -5, 5, color=RED, spawn_point=True),  # neg width/height is trick to create rect that won't work for collisions
-    Rect2(15, 465, -5, 5, color=RED, spawn_point=True),
-    max_monsters=7, possible_monsters=(WEAK, MEDIUM)  # keyword args must be after all the Rect2s
-)
-arena2 = Arena(
-    Rect2(50, 100, 50, 300, color=DKGREEN),
-    Rect2(240, 40, 50, 300, color=DKGREEN),
-    Rect2(500, 135, 100, 25, color=DKGREEN),
-    Rect2(725, 255, 175, 25, color=DKGREEN),
-    Rect2(1050, 375, 100, 25, color=DKGREEN),
-    Rect2(400, 434, 300, 41, color=DKGREEN),
-    Rect2(485, 394, 300, 41, color=DKGREEN),
-    Rect2(970, 65, 80, 10, color=DKGREEN),
-    Rect2(150, 465, -5, 5, color=RED, spawn_point=True),
-    Rect2(930, 465, -5, 5, color=RED, spawn_point=True),
-    max_monsters=7, possible_monsters=ALL  # keyword args must be after all the Rect2s
-)
+        for rect in [self.play_area_rect] + self.rects:
+            yield rect
 
 # -------------------------------------------------------------------------
 class Particle(Rect2):
