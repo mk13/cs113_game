@@ -116,7 +116,7 @@ def initialize_skill_table():
     # Fire and Ice
     ADD_FIRE_AND_ICE(109)
     # Machine Gun
-    SKILLS_TABLE[110] = _auto_range(10, 10, 7, 0.2, 50, 2000, BLACK, 2, 1)
+    SKILLS_TABLE[110] = _auto_range(10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0)
     
     #-----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
@@ -323,7 +323,7 @@ def shield_start(sid, player, up=False, down=False):
     sh.begin(-1,player)
     return None
 def ADD_NAPALM(i):
-    SKILLS_TABLE[i] = {'type': None, 'start': napalm_start, 'cooldown': 200, 'energy':5}
+    SKILLS_TABLE[i] = {'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5}
     SKILLS_TABLE['napalm_main'] = _auto_range(30, 30, 2, 0, 500, 500, RED, 10, 0)
     SKILLS_TABLE['napalm0'] = _auto_range(20, 20, 2, 0, 500, 3000, RED, 10, 0)
     SKILLS_TABLE['napalm1'] = _auto_range(20, 20, 2, 0, 500, 3000, RED, 10, 0)
