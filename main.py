@@ -129,8 +129,11 @@ class GameLoop:
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
             self.player1 = Player(id=1, left=200, top=150, width=30, height=40)
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
-            # self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
-            # self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
+            self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
+            self.player1.hit_points = 20 #FOR TESTING/DEBUGGING, REMOVE LATER
+            self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
+            self.player1.opposite = self.player2    #Makes things a lot easier
+            self.player2.opposite = self.player1    #Makes things a lot easier
             self.arena = Arena(random.choice((arena1, arena2)))
 
         def _setup_fonts():
@@ -154,6 +157,7 @@ class GameLoop:
             self.debug_font_xy4 = 1000, 560
             self.debug_font_xy5 = 725, 505
             self.debug_font_xy6 = 725, 520
+            self.debug_font_xy7 = 725, 535
             # Scrolling text font
             self.st_font = pygame.font.Font(main_font, 30)
 
@@ -219,11 +223,11 @@ class GameLoop:
             # Player 2 will be the same thing with a different spritesheet
 
         pygame.init()
-        initialize_skill_table()
         _setup_display()
         _setup_time()
         _setup_input()
         _setup_Rects()
+        initialize_skill_table()
         _setup_monsters()
         _setup_fonts()
         _setup_particles()
@@ -297,17 +301,21 @@ class GameLoop:
         def _update_particles():
             for p in self.active_particles:
                 if p.expired:
+                    if p.on_expire_f:
+                        p.on_expire_f(p)
                     self.active_particles.remove(p)
                 else:
                     p.update(self.game_time.msec)
 
         def _check_particle_collisions():
             for p in self.active_particles:
-                # opposite = self.player2 if p.belongs_to == self.player1 else \
-                #           self.player1
+                opposite = self.player2 if p.belongs_to == self.player1 else \
+                           self.player1
                 if isinstance(p, RangeParticle):
                     all_terrain_hit_i = p.p_collidelistall(self.arena.rects)
                     if all_terrain_hit_i:  # False if empty list
+                        if p.on_terrain_f:
+                            p.on_terrain_f(p)
                         self.active_particles.remove(p)
                         for i in all_terrain_hit_i:
                             self.arena.rects[i].hits_to_destroy -= 1
@@ -315,14 +323,14 @@ class GameLoop:
                                 self.arena.rects.pop(i)
                     else:
                         first_hit = p.collidelist(self.active_monsters)
-                        if first_hit != -1:
+                        if first_hit != -1: #If hit a monsters
                             p.on_hit(self.active_monsters[first_hit], self.game_time.msec)
                             self.active_particles.remove(p)
-                        # else:
-                        #    if p.colliderect(opposite):
-                        #        p.on_hit(opposite, self.game_time.msec)
-                        #        self.active_particles.remove(p)
-                else:
+                        else:               #If didn't hit a monster, check player
+                            if p.colliderect(opposite):
+                                p.on_hit(opposite, self.game_time.msec)
+                                self.active_particles.remove(p)
+                else: #if MeleeParticle
                     all_monsters_hit_i = p.collidelistall(self.active_monsters)
                     for i in all_monsters_hit_i:
                         p.on_hit(self.active_monsters[i], self.game_time.msec)
@@ -332,8 +340,8 @@ class GameLoop:
                         self.arena.rects[first_terrain_hit_i].hits_to_destroy -= 1
                         if self.arena.rects[first_terrain_hit_i].hits_to_destroy == 0:
                             self.arena.rects.pop(first_terrain_hit_i)
-                    # if p.colliderect(opposite):
-                    #    p.on_hit(opposite, self.game_time.msec)
+                    if p.colliderect(opposite):
+                        p.on_hit(opposite, self.game_time.msec)
 
         _update_active_particles()
         _update_particles()
@@ -374,9 +382,10 @@ class GameLoop:
             self.surface.blit(self.health_bar_outline2, (1239, 20))
             #right health bar outline image
             #dynamic health bars
-            self.damage_taken1 = 100 - self.player1.hit_points
+            self.damage_taken1 = self.player1.hit_points_max - self.player1.hit_points
+            self.damage_taken2 = self.player2.hit_points_max - self.player2.hit_points
             self.health_bar1 = Rect((20, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
-            self.health_bar2 = Rect((1241, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
+            self.health_bar2 = Rect((1241, (21 + (2 * self.damage_taken2))), (20, (200 - (2 * self.damage_taken2))))
             pygame.draw.rect(self.surface, YELLOW, self.health_bar1)
             pygame.draw.rect(self.surface, YELLOW, self.health_bar2)
 
@@ -389,8 +398,9 @@ class GameLoop:
             self.surface.blit(self.energy_bar_outline2, (1239, 280))
             #dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
+            self.energy_used2 = 10 - self.player2.energy
             self.energy_bar1 = Rect((20, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
-            self.energy_bar2 = Rect((1241, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
+            self.energy_bar2 = Rect((1241, 281 + (20 * self.energy_used2)), (20, 200 - (20 * self.energy_used2)))
             pygame.draw.rect(self.surface, GREEN, self.energy_bar1)
             pygame.draw.rect(self.surface, GREEN, self.energy_bar2)
 
@@ -465,6 +475,10 @@ class GameLoop:
                 self.p1_animation_key = -1  # -1 because it will always get
                                             # incremented at the start of each check
             flip = False  # value for flipping sprite
+            
+            # Draw player 2
+            pygame.draw.rect(self.surface, LBLUE, self.player2)
+            
 
             # Animations that still need to be implemented
             # if (self.player1.state == DEATH):
@@ -535,11 +549,11 @@ class GameLoop:
                 (self.player1.centerx, self.player1.top - (3000 - t[1] + self.game_time.msec) / 50))
                 if t[1] <= self.game_time.msec:
                     self.player1.st_buffer.remove(t)
-            # for t in self.player2.st_buffer:
-            #    self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
-            #    (self.player2.centerx, self.player2.top - (3000 - t[1] + self.game_time.msec)/50))
-            #    if t[1] <= self.game_time.msec:
-            #        self.player2.st_buffer.remove(t)
+            for t in self.player2.st_buffer:
+                self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
+                (self.player2.centerx, self.player2.top - (3000 - t[1] + self.game_time.msec)/50))
+                if t[1] <= self.game_time.msec:
+                    self.player2.st_buffer.remove(t)
             for m in self.active_monsters:
                 for t in m.st_buffer:
                     self.surface.blit(self.st_font.render('-' + str(int(t[0])), True, RED),
@@ -663,10 +677,10 @@ class GameLoop:
                                 self.player1.conditions[k].remove(e)
 
                     # Player 2 conditions
-                    # for k,v in self.player2.conditions.items():
-                    #    for e in v:
-                    #        if e.is_expired(self.game_time.msec):
-                    #            self.player2.conditions[k].remove(e)
+                    for k,v in self.player2.conditions.items():
+                        for e in v:
+                            if e.is_expired(self.game_time.msec):
+                                self.player2.conditions[k].remove(e)
 
                     # Monster conditions
                     for m in self.active_monsters:

@@ -112,9 +112,10 @@ def out_of_arena_fix(r):
     return fixed
 
 def handle_damage(target, value, time):
-    target.hit_points -= value
-    target.shield_trigger()
-    target.st_buffer.append((value, time + 2000))
+    if value != 0:
+        target.hit_points -= value
+        target.shield_trigger()
+        target.st_buffer.append((value, time + 2000))
 
 def turn_off_music():
     global MUSIC_ON
@@ -154,7 +155,7 @@ arena1 = arena(all_terr=[terrain(0, 270, 300, 60, DKGREEN, -1, False),
                          terrain(30, 240, 40, 20, WHITE, 5, False),
                          terrain(1145, 465, -5, 5, RED, -1, True),
                          terrain(15, 465, -5, 5, RED, -1, True), ],
-               max_monsters=7, possible_monsters=(WEAK, MEDIUM))
+               max_monsters=1, possible_monsters=(WEAK, MEDIUM))
 
 arena2 = arena(all_terr=[terrain(50, 100, 50, 300, DKGREEN, -1, False),
                          terrain(240, 40, 50, 300, DKGREEN, -1, False),
@@ -166,7 +167,7 @@ arena2 = arena(all_terr=[terrain(50, 100, 50, 300, DKGREEN, -1, False),
                          terrain(970, 65, 80, 10, DKGREEN, -1, False),
                          terrain(150, 465, -5, 5, RED, -1, True),
                          terrain(930, 465, -5, 5, RED, -1, True), ],
-               max_monsters=7, possible_monsters=ALL)
+               max_monsters=1, possible_monsters=ALL)
 
 # Monsters
 monster_info = namedtuple('monster_info', 'w, h, dx, dy, hp, chase, idle')

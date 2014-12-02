@@ -43,7 +43,8 @@ class Rect2(pygame.Rect):
         # follows same logic as pygame.Rect.collidelistall, but customized to look at center coords
         hit_indices = []
         for i, r in enumerate(li):
-            if self.collidepoint(r.center):
+            #if self.collidepoint(r.center): #Using this is causing particles to pass through terrain
+            if li[i].left < self.centerx < li[i].right and li[i].top < self.centery < li[i].bottom:
                 hit_indices.append(i)
         return hit_indices
 
@@ -93,9 +94,9 @@ class Player(Rect2):
 
         # for debugging/testing:
         self.attack_id = 1
-        self.skill1_id = 100
-        self.skill2_id = 101
-        self.skill3_id = 102
+        self.skill1_id = 105
+        self.skill2_id = 108
+        self.skill3_id = 110
         self.ult_id = 1000
 
         # attacking
@@ -117,7 +118,7 @@ class Player(Rect2):
     # Call this after any damage is taken
     def shield_trigger(self):
         if self.hit_points < self.hit_points_max and self.conditions[SHIELD]:
-            s.sort(lambda k: k.remaining)  # Will subtract from lowest remaining time shield first
+            sorted(self.conditions[SHIELD], key=lambda k: k.remaining)  # Will subtract from lowest remaining time shield first
             for s in self.conditions[SHIELD]:
                 s.exchange()
 
@@ -476,14 +477,20 @@ class Particle(Rect2):
         self.energy = SKILLS_TABLE[sid]['energy']
         self.belongs_to = player
         self.conditions = []
+        self.on_hit_f = None
+        self.on_expire_f = None
+        self.on_terrain_f = None
 
         if 'conditions' in SKILLS_TABLE[sid].keys():
             for c in SKILLS_TABLE[sid]['conditions']:
                 self.conditions.append(c)
         if 'on_hit_f' in SKILLS_TABLE[sid].keys():
             self.on_hit_f = SKILLS_TABLE[sid]['on_hit_f']
-        else:
-            self.on_hit_f = None
+        if 'on_expire_f' in SKILLS_TABLE[sid].keys():
+            self.on_expire_f = SKILLS_TABLE[sid]['on_expire_f']
+        if 'on_terrain_f' in SKILLS_TABLE[sid].keys():
+            self.on_terrain_f = SKILLS_TABLE[sid]['on_terrain_f']
+
 
 # -------------------------------------------------------------------------
 class MeleeParticle(Particle):
@@ -601,7 +608,7 @@ class RangeParticle(Particle):
                 target.dx *= -1
 
             if self.on_hit_f:
-                self.on_hit_f(target)
+                self.on_hit_f(self, target)
 
 # -------------------------------------------------------------------------
 class GameTime:
@@ -644,6 +651,8 @@ class Condition:
         target.conditions[c.type].append(c)
 
     def is_expired(self,time):
+        if self.start == -1:
+            self.start = time
         return self.duration <= (time - self.start)
 
 #---Debuffs-----------------------------------------------------------------
@@ -722,6 +731,8 @@ class Shield(Condition):
         self.remaining = self.duration  # used for sorting
 
     def is_expired(self,time):
+        if self.start == -1:
+            self.start = time
         self.remaining = self.duration - time - self.start
         if self.duration <= (time - self.start):
             return True
@@ -730,7 +741,7 @@ class Shield(Condition):
         return False
 
     def exchange(self):
-        if self.magnitude > 0:
+        if self.magnitude > 0 and (self.target.hit_points != self.target.hit_points_max):
             diff = min(self.target.hit_points_max - self.target.hit_points, self.magnitude)
             self.target.hit_points += diff
             self.magnitude -= diff
