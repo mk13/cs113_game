@@ -80,20 +80,20 @@ SKILLS_TABLE = {}
 def initialize_skill_table():
     # Meditate
     SKILLS_TABLE[-1] = {'type': None, 'start': blank_function, 'cooldown': 3000, 'energy': 0}
-    
+
     #-----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
     #-----------------------------------------------------------------------------------------
-    
+
     # Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee(30, 30, math.pi / 2, 35, 500, 500, YELLOW, 10, 0)
     # Peashooter
     SKILLS_TABLE[2] = _auto_range(10, 10, 20, 0, 500, 5000, GREEN, 10, 0)
-    
+
     #-----------------------------------------------------------------------------------------
     # SKILLS 100-999
     #-----------------------------------------------------------------------------------------
-    
+
     # Teleport
     SKILLS_TABLE[100] = {'type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
     # Fireball
@@ -121,10 +121,10 @@ def initialize_skill_table():
     #-----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     #-----------------------------------------------------------------------------------------
-    
+
     # Big-Hammer
     ADD_BIG_HAMMER(1000)
- 
+
 # Templates=================================================
 def _auto_melee(width, height, arc, radius, cooldown, duration, color, dmg, energy):
     return {'type': MELEE, 'start': (lambda sid, p, u, d: classes.MeleeParticle(sid, p)),
@@ -158,10 +158,9 @@ def teleport_start(sid, player, up, down):
         player.left -= 100
     out_of_arena_fix(player)
     return None
-    
+
 def shield_start(sid, player, up, down):
     sh = classes.Shield(10000, 10)
-    
     return None
 
 # Example of a special function
@@ -181,7 +180,6 @@ def lob_motion(particle, time):
     particle.dy += particle.ddy
     y = particle.centery + particle.dy
     return x,y
-    
 
 def ADD_BIG_HAMMER(i):
     SKILLS_TABLE[i] = _auto_melee(75, 75, math.pi / 2, 125, 500, 500, DGREY, 20, 5)
@@ -199,14 +197,13 @@ def knock_back(particle,target,time):
     else:
         target.x += 50
     out_of_arena_fix(target)
-    
-    
+
 
 def ADD_BOULDER_TOSS(i):
     SKILLS_TABLE[i] = {'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6}
     SKILLS_TABLE["boulder_toss"] = _auto_range(30, 30, 5, 0, 500, 3000, BLACK, 2, 0)
     SKILLS_TABLE["boulder_toss"]["conditions"] = [classes.Stun(2000)]
-    SKILLS_TABLE["boulder_toss"]["special_path"] = lob_motion    
+    SKILLS_TABLE["boulder_toss"]["special_path"] = lob_motion
 def boulder_toss_start(sid, player, up=False, down=False):
     obj = classes.RangeParticle("boulder_toss", player, up, down)
     obj.dy = -15
@@ -217,8 +214,6 @@ def boulder_toss_start(sid, player, up=False, down=False):
     obj.ddy = 1
     return obj
 
-    
-    
 def ADD_SHRAPNEL_BOMB(i):
     SKILLS_TABLE[i] = {'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2}
     SKILLS_TABLE["shrapnel_base"] = _auto_range(25, 25, 5, 0, 200, 3000, DGREY, 10, 0)
@@ -250,7 +245,6 @@ def shrapnel_bomb_start(sid, player, up=False, down=False):
         player.skill2_id = "shrapnel_trigger"
     elif player.skill3_id == 105:
         player.skill3_id = "shrapnel_trigger"
-    
     obj = classes.RangeParticle("shrapnel_base", player, up, down)
     obj.dy = -15
     if player.facing_direction == RIGHT:
@@ -267,14 +261,14 @@ def shrapnel_trigger_start(sid, player, up=False, down=False):
         player.skill2_id = 105
     elif player.skill3_id == 'shrapnel_trigger':
         player.skill3_id = 105
-    
+
     obj = player.__dict__['temp_shrapnel']
     del player.__dict__['temp_shrapnel']
     if not obj.expired:
         x = obj.centerx
         y = obj.centery
         obj.expired = True
-        
+
         p0 = classes.RangeParticle("shrapnel0", player, up, down)
         p1 = classes.RangeParticle("shrapnel1", player, up, down)
         p2 = classes.RangeParticle("shrapnel2", player, up, down)
@@ -283,7 +277,7 @@ def shrapnel_trigger_start(sid, player, up=False, down=False):
         p5 = classes.RangeParticle("shrapnel5", player, up, down)
         p6 = classes.RangeParticle("shrapnel6", player, up, down)
         p7 = classes.RangeParticle("shrapnel7", player, up, down)
-        
+
         p0.centerx = p1.centerx = p2.centerx = p3.centerx = p4.centerx = p5.centerx = p6.centerx = p7.centerx = x
         p0.centery = p1.centery = p2.centery = p3.centery = p4.centery = p5.centery = p6.centery = p7.centery = y
         
@@ -319,17 +313,15 @@ def shrapnel_on_terrain(particle):
     elif p.skill3_id == "shrapnel_trigger":
         p.skill3_id = 105
     if 'temp_shrapnel' in p.__dict__.keys():
-        del p.__dict__['temp_shrapnel']    
-        
-        
+        del p.__dict__['temp_shrapnel']
+
+
 def ADD_SHIELD(i):
     SKILLS_TABLE[i] = {'type': None, 'start': shield_start, 'cooldown': 200, 'energy':2}
 def shield_start(sid, player, up=False, down=False):
     sh = classes.Shield(10000,10)
     sh.begin(-1,player)
     return None
-    
-    
 def ADD_NAPALM(i):
     SKILLS_TABLE[i] = {'type': None, 'start': napalm_start, 'cooldown': 200, 'energy':5}
     SKILLS_TABLE['napalm_main'] = _auto_range(30, 30, 2, 0, 500, 500, RED, 10, 0)
@@ -343,7 +335,8 @@ def ADD_NAPALM(i):
     SKILLS_TABLE['napalm1']['special_path'] = lob_motion
     SKILLS_TABLE['napalm0']['special_path'] = lob_motion
     SKILLS_TABLE['napalm1']['special_path'] = lob_motion
-def napalm_start(sid,player,up=False,down=False):    
+
+def napalm_start(sid,player,up=False,down=False):
     obj = classes.RangeParticle("napalm_main", player, up, down)
     obj.dy = -15
     if player.facing_direction == RIGHT:
@@ -381,8 +374,7 @@ def napalm_on_expire(p):
     else:
         temp = p.belongs_to.new_particle
         p.belongs_to.new_particle = [temp, obj0, obj1, obj2]
-        
-        
+
 def ADD_FIRE_AND_ICE(i):
     SKILLS_TABLE[i] = {'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5}
     SKILLS_TABLE['fai_fire'] = _auto_range(20, 20, 5, 2, 500, 10000, RED, 10, 2)

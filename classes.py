@@ -195,6 +195,8 @@ class Player(Rect2):
     def _handle_movement(self, arena):
 
         def _move():
+            self.ptop = self.top
+            self.pleft = self.left
             if self.conditions[SNARE]:
                 self.move_ip((0, 0))
             elif self.conditions[SLOW] or self.conditions[SPEED]:
@@ -210,27 +212,29 @@ class Player(Rect2):
         def _check_for_collisions():
             self.hit_wall_from, self.touching_ground = None, False  # reset every frame
             for terrain in arena.rects:
-                if terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right and self.dy >= 0:
-                    if self.top < terrain.top < self.bottom:
-                        self.bottom = terrain.top
-                        self.dy, self.touching_ground = 0, True
-                if terrain.top < self.bottom < terrain.bottom or terrain.top < self.top < terrain.bottom:
-                    if self.left < terrain.right < self.right and self.dx <= 0:
-                        self.left = terrain.right
-                        self.hit_wall_from = LEFT
-                        self.dx = 0
-                        if self.dy > 0:
-                            self.dy = 0
-                    elif self.left < terrain.left < self.right and self.dx >= 0:
-                        self.right = terrain.left
-                        self.hit_wall_from = RIGHT
-                        self.dx = 0
-                        if self.dy > 0:
-                            self.dy = 0
-                if terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right:
-                    if self.top < terrain.bottom < self.bottom and self.dy < 0:
-                        self.top = terrain.bottom
-                        self.dy = self.dy * 0.4 # Prevents immediate drop when player hits ceiling
+                if not terrain.spawn_point:
+                    if (terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right) or (self.left < terrain.left < self.right or self.left < terrain.right < self.right):
+                        if self.top < terrain.top < self.bottom:
+                            if self.ptop + self.height - 5 <= terrain.top:
+                                self.bottom = terrain.top
+                                self.dy, self.touching_ground = 0, True
+                        if self.top < terrain.bottom < self.bottom and self.dy < 0:
+                            if self.ptop >= terrain.bottom:
+                                self.top = terrain.bottom
+                                self.dy *= 0.4  # Prevents immediate drop when player hits ceiling
+                    if (terrain.top < self.bottom < terrain.bottom or terrain.top < self.top < terrain.bottom) or (self.top < terrain.top < self.bottom or self.top < terrain.bottom < self.bottom):
+                        if self.left < terrain.right < self.right and self.dx <= 0:
+                            self.left = terrain.right
+                            self.hit_wall_from = LEFT
+                            self.dx = 0
+                            if self.dy > 0:
+                                self.dy = 0
+                        elif self.left < terrain.left < self.right and self.dx >= 0:
+                            self.right = terrain.left
+                            self.hit_wall_from = RIGHT
+                            self.dx = 0
+                            if self.dy > 0:
+                                self.dy = 0
 
         _move()  # move then check for collisions
         _check_for_collisions()
@@ -380,49 +384,69 @@ class Input:
             self.gamepad_found = True
         except pygame.error:
             self.gamepad_found = False
-        self.debug_text_on = True
+        self.DEBUG_VIEW = True
         self.PAUSED = False
+        self.ENTER_LEAVE = False
+
 
     def refresh(self):
-        self._get_gamepad_input()
+        self._get_gamepad_axis_buttons_pressed()
         self._get_keyboard_keys_pressed()
+        self._handle_gamepad_updown_events()
         self._handle_keyboard_updown_events()
         self._update_attributes()
 
-    def _get_gamepad_input(self):
+    def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
-            self.left_right_axis = round(self.gamepad.get_axis(0))
-            self.up_down_axis = round(self.gamepad.get_axis(1))
-            #     Y
-            #   X   B
-            #     A
-            self.y_button = self.gamepad.get_button(3)
-            self.x_button = self.gamepad.get_button(0)
-            self.b_button = self.gamepad.get_button(2)
-            self.a_button = self.gamepad.get_button(1)
-            self.start_button = self.gamepad.get_button(9)
-            self.back_button = self.gamepad.get_button(8)
+            self.gp_input = {
+                GP_LEFT: round(self.gamepad.get_axis(0)) == -1,
+                GP_RIGHT: round(self.gamepad.get_axis(0)) == +1,
+                GP_UP: round(self.gamepad.get_axis(1)) == -1,
+                GP_DOWN: round(self.gamepad.get_axis(1)) == +1,
+                #     Y
+                #   X   B
+                #     A
+                GP_Y: self.gamepad.get_button(3),
+                GP_X: self.gamepad.get_button(0),
+                GP_B: self.gamepad.get_button(2),
+                GP_A: self.gamepad.get_button(1),
+                GP_START: self.gamepad.get_button(9),
+                GP_BACK: self.gamepad.get_button(8), }
 
     def _get_keyboard_keys_pressed(self):
         self.kb_input = pygame.key.get_pressed()
 
     def _handle_keyboard_updown_events(self):
-        for event in pygame.event.get(KEYUP):
-            if event.key == K_BACKQUOTE:
-                self.debug_text_on = not self.debug_text_on
+        for event in pygame.event.get(KEYDOWN):
+            if event.key in (K_BACKQUOTE, K_F12):
+                self.DEBUG_VIEW = not self.DEBUG_VIEW
             if event.key == K_PAUSE:
                 self.PAUSED = not self.PAUSED
+            if event.key == K_RETURN:
+                self.ENTER_LEAVE = not self.ENTER_LEAVE
+
+    def _handle_gamepad_updown_events(self):
+        if self.gamepad_found:
+            # Push A and Y at same time in order for the ENTER_LEAVE input to register from gamepad
+            # ENTER_LEAVE input enters game/menu from menu/game
+            joy_button_down_events = pygame.event.get(JOYBUTTONDOWN)
+            if len(list(filter(lambda e: e.button in [self.G_A_BUTTON, self.G_Y_BUTTON], joy_button_down_events))) == 2:
+                self.ENTER_LEAVE = not self.ENTER_LEAVE
+            for event in joy_button_down_events:
+                if event.button == GP_START:
+                    self.PAUSED = not self.PAUSED
+                if event.button == GP_BACK:
+                    self.DEBUG_VIEW = not self.DEBUG_VIEW
 
     def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT] or self.left_right_axis == -1
-        self.RIGHT = self.kb_input[K_RIGHT] or self.left_right_axis == +1
-        self.UP = self.kb_input[K_UP] or self.up_down_axis == -1
-        self.DOWN = self.kb_input[K_DOWN] or self.up_down_axis == +1
-        self.JUMP = self.kb_input[K_SPACE] or self.a_button
-        self.ATTACK = self.kb_input[K_a] or self.x_button
-        self.RESPAWN = self.kb_input[K_r] or self.y_button
-        self.DEBUG = self.kb_input[K_F12] or (self.start_button and self.back_button)
-        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or self.back_button
+        self.LEFT = self.kb_input[K_LEFT]# or self.gp_input[GP_LEFT]
+        self.RIGHT = self.kb_input[K_RIGHT]# or self.gp_input[GP_RIGHT]
+        self.UP = self.kb_input[K_UP]# or self.gp_input[GP_UP]
+        self.DOWN = self.kb_input[K_DOWN]# or self.gp_input[GP_DOWN]
+        self.JUMP = self.kb_input[K_SPACE]# or self.gp_input[GP_A]
+        self.ATTACK = self.kb_input[K_a]# or self.gp_input[GP_X]
+        self.RESPAWN = self.kb_input[K_r]# or self.gp_input[GP_Y]
+        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE]# or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
         self.SKILL1 = self.kb_input[K_s]
         self.SKILL2 = self.kb_input[K_d]
         self.SKILL3 = self.kb_input[K_f]
@@ -490,7 +514,6 @@ class Particle(Rect2):
             self.on_expire_f = SKILLS_TABLE[sid]['on_expire_f']
         if 'on_terrain_f' in SKILLS_TABLE[sid].keys():
             self.on_terrain_f = SKILLS_TABLE[sid]['on_terrain_f']
-
 
 # -------------------------------------------------------------------------
 class MeleeParticle(Particle):

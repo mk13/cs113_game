@@ -42,6 +42,18 @@ DEATH = 'DEATH'
 ATTACK = 'ATTACK'  # Might neeed attack1, cast1, etc
 CAST = 'CAST'
 
+# Gamepad Buttons
+GP_LEFT = 'GP_LEFT'
+GP_RIGHT = 'GP_RIGHT'
+GP_UP = 'GP_UP'
+GP_DOWN = 'GP_DOWN'
+GP_Y = 3
+GP_X = 0
+GP_B = 2
+GP_A = 1
+GP_START = 9
+GP_BACK = 8
+
 # Inputs
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
