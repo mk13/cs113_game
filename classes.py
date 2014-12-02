@@ -96,7 +96,7 @@ class Player(Rect2):
         self.attack_id = 1
         self.skill1_id = 105
         self.skill2_id = 108
-        self.skill3_id = 110
+        self.skill3_id = 109
         self.ult_id = 1000
 
         # attacking
@@ -538,7 +538,7 @@ class MeleeParticle(Particle):
                 target.dx *= -1
 
             if self.on_hit_f:
-                self.on_hit_f(target)
+                self.on_hit_f(self,target,time)
 
 # -------------------------------------------------------------------------
 class RangeParticle(Particle):
@@ -608,7 +608,7 @@ class RangeParticle(Particle):
                 target.dx *= -1
 
             if self.on_hit_f:
-                self.on_hit_f(self, target)
+                self.on_hit_f(self, target, time)
 
 # -------------------------------------------------------------------------
 class GameTime:

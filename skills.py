@@ -66,7 +66,7 @@ SKILLS_TABLE = {}
 #   whether player pressed up or down.
 #   Melee particles do not care about up or down.
 
-#   "on_hit_f(current_particle, target)": Is the additional effects it will do on the
+#   "on_hit_f(current_particle, target, time)": Is the additional effects it will do on the
 #   player instantly. All particle hits already deal damage
 #   and place debuffs without 'on_hit_f'. Should be used for
 #   instantaneous effects such as knock-back. Keep as 'None'
@@ -193,7 +193,7 @@ def ADD_BIG_HAMMER(i):
 def big_hammer(sid, player, up=False, down=False):
     return [classes.MeleeParticle("bighammer0", player),
             classes.MeleeParticle("bighammer1", player), classes.MeleeParticle(sid, player)]
-def knock_back(target):
+def knock_back(particle,target,time):
     if target.dx >= 0:
         target.x -= 50
     else:
@@ -290,7 +290,7 @@ def shrapnel_trigger_start(sid, player, up=False, down=False):
         return [p0,p1,p2,p3,p4,p5,p6,p7]
     else:
         return None
-def shrapnel_on_hit(particle,target):
+def shrapnel_on_hit(particle,target,time):
     p = particle.belongs_to
     if p.skill1_id == "shrapnel_trigger":
         p.skill1_id = 105
