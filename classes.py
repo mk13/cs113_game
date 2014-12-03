@@ -470,14 +470,15 @@ class Input:
 # -------------------------------------------------------------------------
 class Arena:
     def __init__(self, arena_info):
+        self.background = arena_info.background
         self.max_monsters = arena_info.max_monsters
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
 
-        required = [Rect2(65, 0, 1150, 475, color=SKYBLUE),  # play_area
-                    Rect2(0, 475, 1280, 50, color=None),  # floor
-                    Rect2(15, 0, 50, 600, color=None),  # left wall
-                    Rect2(1215, 0, 50, 600, color=None)]  # right wall
+        required = [Rect2(65, 0, 1150, 475, color=None),  # play_area
+                    Rect2(0, 458, 1280, 50, color=None),  # floor
+                    Rect2(20, 0, 50, 600, color=None),  # left wall
+                    Rect2(1210, 0, 50, 600, color=None)]  # right wall
 
         part2 = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.all_terr]
         rects = required + part2

@@ -158,7 +158,7 @@ def get_music_on():
     return MUSIC_ON
 
 # Arenas
-arena_nt = namedtuple('arena_nt', 'all_terr, max_monsters, possible_monsters')
+arena_nt = namedtuple('arena_nt', 'all_terr, max_monsters, possible_monsters, background')
 terrain_nt = namedtuple('terrain_nt', 'left, top, width, height, color, hits_to_destroy, spawn_point')
 
 arena1 = arena_nt(
@@ -172,7 +172,8 @@ arena1 = arena_nt(
         terrain_nt(1145, 465, -5, 5, RED, -1, True),
         terrain_nt(15, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
-    possible_monsters=(WEAK, MEDIUM))
+    possible_monsters=(WEAK, MEDIUM),
+    background = None)
 
 arena2 = arena_nt(
     all_terr=[
@@ -187,7 +188,26 @@ arena2 = arena_nt(
         terrain_nt(150, 465, -5, 5, RED, -1, True),
         terrain_nt(930, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
-    possible_monsters=ALL)
+    possible_monsters=ALL,
+    background = None)
+
+arena3 = arena_nt(
+    all_terr=[
+        terrain_nt(425, 80, 73, 40, None, -1, False),
+        terrain_nt(555, 80, 100, 40, None, -1, False),
+        terrain_nt(85, 140, 228, 40, None, -1, False),
+        terrain_nt(85, 180, 40, 142, None, -1, False),
+        terrain_nt(85, 322, 95, 40, None, -1, False),
+        terrain_nt(332, 241, 220, 40, None, -1, False),
+        terrain_nt(595, 319, 417, 40, None, -1, False),
+        terrain_nt(972, 156, 40, 163, None, -1, False),
+        terrain_nt(785, 120, 227, 40, None, -1, False),
+        terrain_nt(150, 465, -5, 5, RED, -1, True),
+        terrain_nt(930, 465, -5, 5, RED, -1, True), ],
+    max_monsters=1,
+    possible_monsters=ALL,
+    background='data/vines-copy2.png')
+
 
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'w, h, dx, dy, hp, chase, idle')

@@ -149,7 +149,7 @@ class GameLoop:
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
-            self.arena = Arena(random.choice((arena1, arena2)))
+            self.arena = Arena(arena3)#Arena(random.choice((arena1, arena2, arena3)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -374,7 +374,15 @@ class GameLoop:
     # -------------------------------------------------------------------------
     def draw_screen(self):
         def _draw_ui():
-            self.surface.fill(DGREY)  # fill background dark grey
+
+            self.surface.fill(DGREY)
+
+            self.background_image = self.arena.background
+
+            if self.background_image is not None:
+                self.image = pygame.image.load(self.background_image)
+                self.screen.blit(self.image, (65, 0))
+
 
             #font for player's health and energy
             #health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
