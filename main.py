@@ -53,7 +53,7 @@ class StartMenu:
             self.fps = 5
 
         def _setup_input():
-            self.input = Input()
+            self.input = Input(inside_menu=True)
 
         pygame.init()
         _setup_display()
@@ -124,6 +124,8 @@ class GameLoop:
             self.screen = pygame.display.set_mode((1280, 600))
             pygame.display.set_caption('Famished Tournament')
             self.surface = pygame.display.get_surface()
+            # main menu button at bottom middle of screen
+            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
 
         def _setup_time():
             self.clock = pygame.time.Clock()
@@ -199,9 +201,6 @@ class GameLoop:
             self.make_rain = False
             pygame.event.post(pygame.event.Event(MORE_RAIN_EVENT))
 
-        def _setup_mouse():
-            pygame.mouse.set_visible(False)
-
         def _setup_player_sprites():  # load player sprites here
             # Will later need some value to tell the game what sprite
             # to load based on player choice, since we don't want to
@@ -248,7 +247,6 @@ class GameLoop:
         _setup_particles()
         _setup_music()
         _setup_rain()
-        _setup_mouse()
         _setup_player_sprites()
 
     # ------------------------------------------------------------------------
@@ -452,8 +450,6 @@ class GameLoop:
             self.skill_box10 = Rect((1150, 500), (40, 40))
             pygame.draw.rect(self.surface, DKRED, self.skill_box10)
 
-            #main menu button at bottom middle of screen
-            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.return_button.draw(self.surface)
 
         def _draw_timer():
@@ -681,7 +677,7 @@ class GameLoop:
         def _handle_return_to_main_menu():
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
-                    start_menu()
+                    self.start_menu()
             if self.input.ENTER_LEAVE:
                 self.input.ENTER_LEAVE = False
                 self.start_menu()
@@ -782,7 +778,6 @@ class GameLoop:
             _handle_monster_spawn_event()
             _handle_quit_event()
             _handle_return_to_main_menu()
-            pygame.event.clear()
         else:
             _handle_quit_event()
             self.input._handle_keyboard_updown_events()

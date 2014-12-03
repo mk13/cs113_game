@@ -378,17 +378,18 @@ class AI_Input():
 
 # -------------------------------------------------------------------------
 class Input:
-    def __init__(self):
+    def __init__(self, inside_menu=False):
         try:
             self.gamepad = pygame.joystick.Joystick(0)
             self.gamepad.init()
             self.gamepad_found = True
         except pygame.error:
             self.gamepad_found = False
-        self.DEBUG_VIEW = True
+        self.DEBUG_VIEW = False
         self.PAUSED = False
         self.ENTER_LEAVE = False
         self.gp_input = defaultdict(bool)
+        self.inside_menu = inside_menu
 
     def refresh(self):
         self._get_gamepad_axis_buttons_pressed()
@@ -396,6 +397,7 @@ class Input:
         self._handle_gamepad_updown_events()
         self._handle_keyboard_updown_events()
         self._update_attributes()
+        self._handle_mouse_visibility()
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
@@ -455,6 +457,12 @@ class Input:
         self.MEDITATE = self.kb_input[K_w]
         self.ENTER = self.kb_input[K_RETURN]
         self.KILLALL = self.kb_input[K_k]
+
+    def _handle_mouse_visibility(self):
+        if self.DEBUG_VIEW and not self.inside_menu:
+            pygame.mouse.set_visible(False)
+        else:
+            pygame.mouse.set_visible(True)
 
     def __getattr__(self, name):
         return None

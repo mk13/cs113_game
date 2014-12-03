@@ -61,12 +61,12 @@ class HelpPage:
         self.bkg_title = self.section_font.render('Background', True, WHITE)
         self.screen.blit(self.bkg_title, (800, 40))
 
-        self.bkg_text = textwrap.wrap('Under the tyranny of the dark overloard, the world' +
-                                      ' is in chaos and all the resources are nearly depleted. ' +
+        self.bkg_text = textwrap.wrap('Under the tyranny of the dark overlord, the world' +
+                                      'is in chaos and all the resources are nearly depleted. ' +
                                       'Entire populations have been subjugated to life in labor ' +
                                       'camps, brutally policed by the overlord\'s military forces. ' +
-                                      'As your people\'s champion, fight to the death in the battle ' +
-                                      'arena to win much needed resources.', width=50)
+                                      'As your people\'s champion, you must fight to the death in the ' +
+                                      'battle arena to win much needed resources.', width=50)
         i = 0
         for t in self.bkg_text:
             self.line = self.font.render(t, True, DKRED)
@@ -76,11 +76,11 @@ class HelpPage:
         self.goals_title = self.section_font.render('Goals', True, WHITE)
         self.screen.blit(self.goals_title, (800, 250))
 
-        self.goals_text = textwrap.wrap('Ultimatley, you want to kill your opponent. ' +
+        self.goals_text = textwrap.wrap('Ultimately, you want to slay your opponent. ' +
                                         'To become a better fighter, kill the monsters, gain ' +
                                         'experience, and pick up skills. The player to land ' +
-                                        'the last hit on the monster will get the experience ' +
-                                        'points. An ultimate boss will spawn every couple of ' +
+                                        'the last hit on the monster will receives the experience ' +
+                                        'points. An ultimate boss will spawn every few ' +
                                         'minutes. These bosses drop ultimate skills which ' +
                                         'will help you humiliate and destroy your opponent.', width=50)
 
@@ -101,13 +101,13 @@ class OptionsPage:
             self.bkg_image = pygame.image.load('data/temp_start_bkg.png')
             self.screen.blit(self.bkg_image, (0, 0))
 
-            self.music_on_button = pygbutton.PygButton((650, 200, 60, 50), 'On')
+            self.music_on_button = pygbutton.PygButton((650, 200, 60, 50), 'ON')
             self.music_on_button.draw(self.screen)
-            self.music_off_button = pygbutton.PygButton((730, 200, 80, 50), 'Off')
+            self.music_off_button = pygbutton.PygButton((730, 200, 80, 50), 'OFF')
             self.music_off_button.draw(self.screen)
-            self.effects_on_button = pygbutton.PygButton((770, 260, 60, 50), 'On')
+            self.effects_on_button = pygbutton.PygButton((770, 260, 60, 50), 'ON')
             self.effects_on_button.draw(self.screen)
-            self.effects_off_button = pygbutton.PygButton((850, 260, 80, 50), 'Off')
+            self.effects_off_button = pygbutton.PygButton((850, 260, 80, 50), 'OFF')
             self.effects_off_button.draw(self.screen)
 
             self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
