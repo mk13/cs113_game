@@ -163,6 +163,8 @@ terrain_nt = namedtuple('terrain_nt', 'left, top, width, height, color, hits_to_
 
 arena1 = arena_nt(
     all_terr=[
+        terrain_nt(65, 0, 1150, 475, SKYBLUE, -1, False),  # play_area
+        terrain_nt(0, 475, 1280, 50, None, -1, False),  # floor
         terrain_nt(0, 270, 300, 60, DKGREEN, -1, False),
         terrain_nt(850, 270, 300, 60, DKGREEN, -1, False),
         terrain_nt(545, 150, 60, 230, DKGREEN, -1, False),
@@ -177,6 +179,8 @@ arena1 = arena_nt(
 
 arena2 = arena_nt(
     all_terr=[
+        terrain_nt(65, 0, 1150, 475, SKYBLUE, -1, False),  # play_area
+        terrain_nt(0, 475, 1280, 50, None, -1, False),  # floor
         terrain_nt(50, 100, 50, 300, DKGREEN, -1, False),
         terrain_nt(240, 40, 50, 300, DKGREEN, -1, False),
         terrain_nt(500, 135, 100, 25, DKGREEN, -1, False),
@@ -189,10 +193,12 @@ arena2 = arena_nt(
         terrain_nt(930, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
     possible_monsters=ALL,
-    background = None)
+    background=None)
 
 arena3 = arena_nt(
     all_terr=[
+        terrain_nt(65, 0, 1150, 475, None, -1, False),  # play_area
+        terrain_nt(0, 458, 1280, 50, None, -1, False),  # floor
         terrain_nt(425, 80, 73, 40, None, -1, False),
         terrain_nt(555, 80, 100, 40, None, -1, False),
         terrain_nt(85, 140, 228, 40, None, -1, False),

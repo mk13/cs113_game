@@ -475,15 +475,13 @@ class Arena:
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
 
-        required = [Rect2(65, 0, 1150, 475, color=None),  # play_area
-                    Rect2(0, 458, 1280, 50, color=None),  # floor
-                    Rect2(20, 0, 50, 600, color=None),  # left wall
-                    Rect2(1210, 0, 50, 600, color=None)]  # right wall
+        walls = [Rect2(20, 0, 50, 600, color=None),  # left wall
+                 Rect2(1210, 0, 50, 600, color=None)]  # right wall
 
         part2 = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.all_terr]
-        rects = required + part2
+        rects = part2[0:2] + walls + part2[2:]
 
-        for rect in rects[4:]:  # don't shift amazthe first 4 rects
+        for rect in rects[4:]:  # don't shift the first 4 rects
             rect.move_ip((65, 0))  # to account for play area starting 65 pixels from left
         self.play_area_rect = rects[0]
         self.rects = rects[1:]

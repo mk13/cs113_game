@@ -11,13 +11,13 @@ def get_collision_data(player, arena):
 
     def _determine_collision_points(player, terr):
         return collision_points(terr.collidepoint(player.midtop),
-                             terr.collidepoint(player.topright),
-                             terr.collidepoint(player.midright),
-                             terr.collidepoint(player.bottomright),
-                             terr.collidepoint(player.midbottom),
-                             terr.collidepoint(player.bottomleft),
-                             terr.collidepoint(player.midleft),
-                             terr.collidepoint(player.topleft))
+                                terr.collidepoint(player.topright),
+                                terr.collidepoint(player.midright),
+                                terr.collidepoint(player.bottomright),
+                                terr.collidepoint(player.midbottom),
+                                terr.collidepoint(player.bottomleft),
+                                terr.collidepoint(player.midleft),
+                                terr.collidepoint(player.topleft))
 
     def _determine_collision_sides(player, terr):
         return collision_sides(int(terr.top < player.top < terr.bottom),

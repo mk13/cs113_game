@@ -149,7 +149,8 @@ class GameLoop:
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
-            self.arena = Arena(arena3)#Arena(random.choice((arena1, arena2, arena3)))
+            # self.arena = Arena(arena3)#Arena(random.choice((arena1, arena2, arena3)))
+            self.arena = Arena(random.choice((arena1, arena2, arena3)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
