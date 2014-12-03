@@ -454,6 +454,7 @@ class Input:
         self.DROP_SKILL = self.kb_input[K_q]
         self.MEDITATE = self.kb_input[K_w]
         self.ENTER = self.kb_input[K_RETURN]
+        self.KILLALL = self.kb_input[K_k]
 
     def __getattr__(self, name):
         return None

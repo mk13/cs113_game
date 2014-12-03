@@ -3,9 +3,18 @@ import os
 import random
 import sys
 
+from collections import deque
+
 # pygame
 import pygame
 from pygame.locals import *
+
+# psutil  (download here:  http://www.lfd.uci.edu/~gohlke/pythonlibs/#psutil)
+try:
+    import psutil
+    psutil_found = True
+except ImportError:
+    psutil_found = False
 
 # our modules
 from classes import *
@@ -155,15 +164,17 @@ class GameLoop:
             self.debug_font_small = pygame.font.SysFont('consolas', 10)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
-            self.debug_font_xy1 = 1000, 505
-            self.debug_font_xy2 = 1000, 520
-            self.debug_font_xy3 = 1000, 540
-            self.debug_font_xy4 = 1000, 560
-            self.debug_font_xy5 = 725, 505
-            self.debug_font_xy6 = 725, 520
-            self.debug_font_xy7 = 725, 535
+            self.debug_font_xy1 = 1075, 505
+            self.debug_font_xy2 = 1075, 520
+            self.debug_font_xy3 = 1075, 540
+            self.debug_font_xy4 = 1075, 560
+            self.debug_font_xy5 = 800, 505
+            self.debug_font_xy6 = 800, 520
+            self.debug_font_xy7 = 800, 540
             # Scrolling text font
             self.st_font = pygame.font.Font(main_font, 30)
+            self.cpu_avg = 0.0
+            self.cpu_deque = deque((0,), maxlen=5)
 
         def _setup_particles():
             self.active_particles = []
@@ -267,6 +278,9 @@ class GameLoop:
 
             if self.input.RESPAWN and not self.input.PAUSED:
                 self.player1.topleft = self.player1.topleft_initial
+
+            if self.input.KILLALL and not self.input.PAUSED:
+                self.active_monsters = []
 
             if self.input.EXIT:
                 # Add the QUIT event to the pygame event queue to be handled
@@ -590,12 +604,17 @@ class GameLoop:
             self.surface.blit(debug_font_3, self.debug_font_xy3)
             self.surface.blit(debug_font_4, self.debug_font_xy4)
 
-            num_monsters = '|curr num monsters:{:>2}|'.format(len(self.active_monsters))
-            max_monsters = '| max num monsters:{:>2}|'.format(self.arena.max_monsters)
+            num_monsters = '|curr num monsters:{:>4}|'.format(len(self.active_monsters))
+            max_monsters = '| max num monsters:{:>4}|'.format(self.arena.max_monsters)
             debug_font_m1 = self.debug_font.render(num_monsters, True, GREEN)
             debug_font_m2 = self.debug_font.render(max_monsters, True, GREEN)
             self.surface.blit(debug_font_m1, self.debug_font_xy5)
             self.surface.blit(debug_font_m2, self.debug_font_xy6)
+
+        def _draw_cpu_usage():
+            cpu_text = '|CPU Utilization:{:>5.1f}%|'.format(self.cpu_avg) if psutil_found else '|CPU Utilization:  ????|'
+            cpu_font = self.debug_font.render(cpu_text, True, RED)
+            self.surface.blit(cpu_font, self.debug_font_xy7)
 
         def _draw_destructible_terrain_debug_text():
             for rect in filter(lambda x: x.hits_to_destroy > 0, self.arena):
@@ -606,11 +625,13 @@ class GameLoop:
         def _draw_mouse_text():
             mouse_pos = pygame.mouse.get_pos()
             play_area_mouse_pos = mouse_pos[0] - self.arena.play_area_rect.left, mouse_pos[1]
-            if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and \
-                    0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
-                pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
-                rendered_debug_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
-                self.surface.blit(rendered_debug_font, mouse_pos)
+            pygame.draw.circle(self.surface, WHITE, mouse_pos, 2, 0)
+            pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
+            if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and 0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
+                offset_pos_mouse_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
+                self.surface.blit(offset_pos_mouse_font, mouse_pos)
+            real_pos_mouse_font = self.debug_font_small.render(str(mouse_pos), True, DKYELLOW)
+            self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
 
         def _draw_players_debug():
             pygame.draw.rect(self.surface, LBLUE, self.player1)
@@ -642,6 +663,7 @@ class GameLoop:
 
         if self.input.DEBUG_VIEW:
             _draw_debug_text()
+            _draw_cpu_usage()
             _draw_destructible_terrain_debug_text()
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
@@ -667,7 +689,14 @@ class GameLoop:
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
                 if event.type == TIME_TICK_EVENT:
+
                     self.game_time.inc()
+
+                    # for CPU usage debug text
+                    if psutil_found and self.input.DEBUG_VIEW:
+                        new_cpu = psutil.cpu_percent(interval=None)
+                        self.cpu_deque.append(new_cpu)
+                        self.cpu_avg = sum(self.cpu_deque) / len(self.cpu_deque)
 
                     # Player 1 conditions
                     for k, v in self.player1.conditions.items():
@@ -683,7 +712,7 @@ class GameLoop:
 
                     # Monster conditions
                     for m in self.active_monsters:
-                        for k,v in m.conditions.items():
+                        for k, v in m.conditions.items():
                             for e in v:
                                 if e.is_expired(self.game_time.msec):
                                     m.conditions[k].remove(e)

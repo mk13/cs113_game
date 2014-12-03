@@ -17,6 +17,8 @@ BLUE = Color(0, 0, 255)
 LBLUE = Color(0, 128, 255)
 SKYBLUE = Color(128, 223, 223)
 YELLOW = Color(255, 255, 0)
+DKYELLOW = Color(153, 153, 0)
+DKDKYELLOW = Color(128, 128, 0)
 PURPLE = Color(255, 0, 255)
 ORANGE = Color(255, 153, 0)
 
