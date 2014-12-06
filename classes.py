@@ -99,8 +99,8 @@ class Player(Rect2):
         #self.skill2_id = random.randint(100,115)
         #self.skill3_id = random.randint(100,115)
         #self.ult_id = random.randint(1000,1003)
-        
-        
+
+
         #specific testing:
         self.attack_id = 1
         self.skill1_id = 100
@@ -336,7 +336,7 @@ class Monster(Player):
             if d1 > d2:
                 self.target = self.p1
             elif d2 < d2:
-                self.target = self.p2 
+                self.target = self.p2
         else:
             if random.randint(1, 2) == 1:
                 self.target = self.p1
@@ -460,14 +460,14 @@ class Input:
                     self.DEBUG_VIEW = not self.DEBUG_VIEW
 
     def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT]# or self.gp_input[GP_LEFT]
-        self.RIGHT = self.kb_input[K_RIGHT]# or self.gp_input[GP_RIGHT]
-        self.UP = self.kb_input[K_UP]# or self.gp_input[GP_UP]
-        self.DOWN = self.kb_input[K_DOWN]# or self.gp_input[GP_DOWN]
-        self.JUMP = self.kb_input[K_SPACE]# or self.gp_input[GP_A]
-        self.ATTACK = self.kb_input[K_a]# or self.gp_input[GP_X]
-        self.RESPAWN = self.kb_input[K_r]# or self.gp_input[GP_Y]
-        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE]# or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
+        self.LEFT = self.kb_input[K_LEFT] or self.gp_input[GP_LEFT]
+        self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
+        self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
+        self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
+        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A]
+        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X]
+        self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
+        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
         self.SKILL1 = self.kb_input[K_s]
         self.SKILL2 = self.kb_input[K_d]
         self.SKILL3 = self.kb_input[K_f]
@@ -569,13 +569,13 @@ class MeleeParticle(Particle):
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
-        
+
         if self.extend:
             self.width += self.dradius
             self.radius += self.dradius/2
         else:
             self.radius += self.dradius
-        
+
         if self.belongs_to.facing_direction == RIGHT:
             self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
         else:
