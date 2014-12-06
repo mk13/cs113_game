@@ -3,9 +3,18 @@ import os
 import random
 import sys
 
+from collections import deque
+
 # pygame
 import pygame
 from pygame.locals import *
+
+# psutil  (download here:  http://www.lfd.uci.edu/~gohlke/pythonlibs/#psutil)
+try:
+    import psutil
+    psutil_found = True
+except ImportError:
+    psutil_found = False
 
 # our modules
 from classes import *
@@ -44,7 +53,7 @@ class StartMenu:
             self.fps = 5
 
         def _setup_input():
-            self.input = Input()
+            self.input = Input(inside_menu=True)
 
         pygame.init()
         _setup_display()
@@ -115,6 +124,8 @@ class GameLoop:
             self.screen = pygame.display.set_mode((1280, 600))
             pygame.display.set_caption('Famished Tournament')
             self.surface = pygame.display.get_surface()
+            # main menu button at bottom middle of screen
+            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
 
         def _setup_time():
             self.clock = pygame.time.Clock()
@@ -138,7 +149,7 @@ class GameLoop:
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
-            self.arena = Arena(random.choice((arena1, arena2)))
+            self.arena = Arena(arena3)#Arena(random.choice((arena1, arena2, arena3)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -155,15 +166,17 @@ class GameLoop:
             self.debug_font_small = pygame.font.SysFont('consolas', 10)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
-            self.debug_font_xy1 = 1000, 505
-            self.debug_font_xy2 = 1000, 520
-            self.debug_font_xy3 = 1000, 540
-            self.debug_font_xy4 = 1000, 560
-            self.debug_font_xy5 = 725, 505
-            self.debug_font_xy6 = 725, 520
-            self.debug_font_xy7 = 725, 535
+            self.debug_font_xy1 = 1075, 505
+            self.debug_font_xy2 = 1075, 520
+            self.debug_font_xy3 = 1075, 540
+            self.debug_font_xy4 = 1075, 560
+            self.debug_font_xy5 = 800, 505
+            self.debug_font_xy6 = 800, 520
+            self.debug_font_xy7 = 800, 540
             # Scrolling text font
             self.st_font = pygame.font.Font(main_font, 30)
+            self.cpu_avg = 0.0
+            self.cpu_deque = deque((0,), maxlen=5)
 
         def _setup_particles():
             self.active_particles = []
@@ -187,9 +200,6 @@ class GameLoop:
             self.rain = Rect2(left=0, top=0, width=1, height=3)
             self.make_rain = False
             pygame.event.post(pygame.event.Event(MORE_RAIN_EVENT))
-
-        def _setup_mouse():
-            pygame.mouse.set_visible(False)
 
         def _setup_player_sprites():  # load player sprites here
             # Will later need some value to tell the game what sprite
@@ -237,7 +247,6 @@ class GameLoop:
         _setup_particles()
         _setup_music()
         _setup_rain()
-        _setup_mouse()
         _setup_player_sprites()
 
     # ------------------------------------------------------------------------
@@ -267,6 +276,9 @@ class GameLoop:
 
             if self.input.RESPAWN and not self.input.PAUSED:
                 self.player1.topleft = self.player1.topleft_initial
+
+            if self.input.KILLALL and not self.input.PAUSED:
+                self.active_monsters = []
 
             if self.input.EXIT:
                 # Add the QUIT event to the pygame event queue to be handled
@@ -362,7 +374,15 @@ class GameLoop:
     # -------------------------------------------------------------------------
     def draw_screen(self):
         def _draw_ui():
-            self.surface.fill(DGREY)  # fill background dark grey
+
+            self.surface.fill(DGREY)
+
+            self.background_image = self.arena.background
+
+            if self.background_image is not None:
+                self.image = pygame.image.load(self.background_image)
+                self.screen.blit(self.image, (65, 0))
+
 
             #font for player's health and energy
             #health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -438,8 +458,6 @@ class GameLoop:
             self.skill_box10 = Rect((1150, 500), (40, 40))
             pygame.draw.rect(self.surface, DKRED, self.skill_box10)
 
-            #main menu button at bottom middle of screen
-            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.return_button.draw(self.surface)
 
         def _draw_timer():
@@ -464,72 +482,7 @@ class GameLoop:
             flip = False  # value for flipping sprite
 
             # Draw player 2
-            pygame.draw.rect(self.surface, BLUE, self.player2)
-
-
-            # Animations that still need to be implemented
-            # if (self.player1.state == DEATH):
-            # if (self.player1.state == ATTACK):
-            # if (self.player1.state == CAST):
-            # if (self.player1.state == SLIDE):
-
-            # JUMP
-            if self.player1.state == JUMP:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 5
-                    if self.p1_animation_key <= 0:
-                        self.p1_animation_key += 1
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 30], flip, False), (self.player1.left-17,self.player1.top-22))
-            # FALL
-            elif self.player1.state == FALL:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 5
-                    if self.p1_animation_key <= 0:
-                        self.p1_animation_key += 1
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 32], flip, False), (self.player1.left-17,self.player1.top-22))
-            # WALK
-            elif self.player1.state == RWALK or self.player1.state == LWALK:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.player1.state == RWALK and self.player1.previous_state != RWALK:
-                    self.p1_animation_key = -8  # Transition sprites loaded before walk
-                elif self.player1.state == LWALK and self.player1.previous_state != LWALK:
-                    self.p1_animation_key = -8
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 2
-                    self.p1_animation_key += 1
-                    if self.p1_animation_key > 0:
-                        self.p1_animation_key %= 16  # Loops the key
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 14], flip, False), (self.player1.left - 17, self.player1.top - 22))
-            # STAND (default animation)
-            else:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                # Currently only have 1 standing sprite
-                self.screen.blit(
-                    pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 1], flip, False), (self.player1.left - 17, self.player1.top - 22))
-            self.p1_wait_frames += -1
-            # Draw player 2 here
-
-        def _draw_players():
-            # Draw player using wait_frames and animation_key
-            # wait_frames = frames waited before key is incremented
-            # animation_key = index for the sprite list
-
-            # Draw player 1
-            if self.player1.state != self.player1.previous_state:
-                self.p1_wait_frames = 0
-                self.p1_animation_key = -1  # -1 because it will always get
-                                            # incremented at the start of each check
-            flip = False  # value for flipping sprite
-            
-            # Draw player 2
-            pygame.draw.rect(self.surface, LBLUE, self.player2)
-            
+            # pygame.draw.rect(self.surface, BLUE, self.player2)
 
             # Animations that still need to be implemented
             # if (self.player1.state == DEATH):
@@ -655,12 +608,17 @@ class GameLoop:
             self.surface.blit(debug_font_3, self.debug_font_xy3)
             self.surface.blit(debug_font_4, self.debug_font_xy4)
 
-            num_monsters = '|curr num monsters:{:>2}|'.format(len(self.active_monsters))
-            max_monsters = '| max num monsters:{:>2}|'.format(self.arena.max_monsters)
+            num_monsters = '|curr num monsters:{:>4}|'.format(len(self.active_monsters))
+            max_monsters = '| max num monsters:{:>4}|'.format(self.arena.max_monsters)
             debug_font_m1 = self.debug_font.render(num_monsters, True, GREEN)
             debug_font_m2 = self.debug_font.render(max_monsters, True, GREEN)
             self.surface.blit(debug_font_m1, self.debug_font_xy5)
             self.surface.blit(debug_font_m2, self.debug_font_xy6)
+
+        def _draw_cpu_usage():
+            cpu_text = '|CPU Utilization:{:>5.1f}%|'.format(self.cpu_avg) if psutil_found else '|CPU Utilization:  ????|'
+            cpu_font = self.debug_font.render(cpu_text, True, RED)
+            self.surface.blit(cpu_font, self.debug_font_xy7)
 
         def _draw_destructible_terrain_debug_text():
             for rect in filter(lambda x: x.hits_to_destroy > 0, self.arena):
@@ -671,11 +629,13 @@ class GameLoop:
         def _draw_mouse_text():
             mouse_pos = pygame.mouse.get_pos()
             play_area_mouse_pos = mouse_pos[0] - self.arena.play_area_rect.left, mouse_pos[1]
-            if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and \
-                    0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
-                pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
-                rendered_debug_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
-                self.surface.blit(rendered_debug_font, mouse_pos)
+            pygame.draw.circle(self.surface, WHITE, mouse_pos, 2, 0)
+            pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
+            if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and 0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
+                offset_pos_mouse_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
+                self.surface.blit(offset_pos_mouse_font, mouse_pos)
+            real_pos_mouse_font = self.debug_font_small.render(str(mouse_pos), True, DKYELLOW)
+            self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
 
         def _draw_players_debug():
             pygame.draw.rect(self.surface, LBLUE, self.player1)
@@ -707,6 +667,7 @@ class GameLoop:
 
         if self.input.DEBUG_VIEW:
             _draw_debug_text()
+            _draw_cpu_usage()
             _draw_destructible_terrain_debug_text()
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
@@ -724,7 +685,7 @@ class GameLoop:
         def _handle_return_to_main_menu():
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
-                    start_menu()
+                    self.start_menu()
             if self.input.ENTER_LEAVE:
                 self.input.ENTER_LEAVE = False
                 self.start_menu()
@@ -732,7 +693,14 @@ class GameLoop:
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
                 if event.type == TIME_TICK_EVENT:
+
                     self.game_time.inc()
+
+                    # for CPU usage debug text
+                    if psutil_found and self.input.DEBUG_VIEW:
+                        new_cpu = psutil.cpu_percent(interval=None)
+                        self.cpu_deque.append(new_cpu)
+                        self.cpu_avg = sum(self.cpu_deque) / len(self.cpu_deque)
 
                     # Player 1 conditions
                     for k, v in self.player1.conditions.items():
@@ -748,7 +716,7 @@ class GameLoop:
 
                     # Monster conditions
                     for m in self.active_monsters:
-                        for k,v in m.conditions.items():
+                        for k, v in m.conditions.items():
                             for e in v:
                                 if e.is_expired(self.game_time.msec):
                                     m.conditions[k].remove(e)
@@ -818,7 +786,6 @@ class GameLoop:
             _handle_monster_spawn_event()
             _handle_quit_event()
             _handle_return_to_main_menu()
-            pygame.event.clear()
         else:
             _handle_quit_event()
             self.input._handle_keyboard_updown_events()

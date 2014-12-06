@@ -1,6 +1,7 @@
 import copy
 import math
 import random
+from collections import defaultdict
 from collections import namedtuple
 
 import pygame
@@ -292,9 +293,9 @@ class Player(Rect2):
         elif input.RIGHT:
             self.state = RWALK
         elif input.LEFT:
-            self.state = LWALK        
+            self.state = LWALK
         else:
-            self.state = STAND   
+            self.state = STAND
 
 # -------------------------------------------------------------------------
 class Monster(Player):
@@ -377,17 +378,18 @@ class AI_Input():
 
 # -------------------------------------------------------------------------
 class Input:
-    def __init__(self):
+    def __init__(self, inside_menu=False):
         try:
             self.gamepad = pygame.joystick.Joystick(0)
             self.gamepad.init()
             self.gamepad_found = True
         except pygame.error:
             self.gamepad_found = False
-        self.DEBUG_VIEW = True
+        self.DEBUG_VIEW = False
         self.PAUSED = False
         self.ENTER_LEAVE = False
-
+        self.gp_input = defaultdict(bool)
+        self.inside_menu = inside_menu
 
     def refresh(self):
         self._get_gamepad_axis_buttons_pressed()
@@ -395,23 +397,23 @@ class Input:
         self._handle_gamepad_updown_events()
         self._handle_keyboard_updown_events()
         self._update_attributes()
- 
+        self._handle_mouse_visibility()
+
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
-            self.gp_input = {
-                GP_LEFT: round(self.gamepad.get_axis(0)) == -1,
-                GP_RIGHT: round(self.gamepad.get_axis(0)) == +1,
-                GP_UP: round(self.gamepad.get_axis(1)) == -1,
-                GP_DOWN: round(self.gamepad.get_axis(1)) == +1,
+            self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
+            self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
+            self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
+            self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
                 #     Y
                 #   X   B
                 #     A
-                GP_Y: self.gamepad.get_button(3),
-                GP_X: self.gamepad.get_button(0),
-                GP_B: self.gamepad.get_button(2),
-                GP_A: self.gamepad.get_button(1),
-                GP_START: self.gamepad.get_button(9),
-                GP_BACK: self.gamepad.get_button(8), }
+            self.gp_input[GP_Y] = self.gamepad.get_button(3)
+            self.gp_input[GP_X] = self.gamepad.get_button(0)
+            self.gp_input[GP_B] = self.gamepad.get_button(2)
+            self.gp_input[GP_A] = self.gamepad.get_button(1)
+            self.gp_input[GP_START] = self.gamepad.get_button(9)
+            self.gp_input[GP_BACK] = self.gamepad.get_button(8)
 
     def _get_keyboard_keys_pressed(self):
         self.kb_input = pygame.key.get_pressed()
@@ -454,6 +456,13 @@ class Input:
         self.DROP_SKILL = self.kb_input[K_q]
         self.MEDITATE = self.kb_input[K_w]
         self.ENTER = self.kb_input[K_RETURN]
+        self.KILLALL = self.kb_input[K_k]
+
+    def _handle_mouse_visibility(self):
+        if self.DEBUG_VIEW and not self.inside_menu:
+            pygame.mouse.set_visible(False)
+        else:
+            pygame.mouse.set_visible(True)
 
     def __getattr__(self, name):
         return None
@@ -461,14 +470,15 @@ class Input:
 # -------------------------------------------------------------------------
 class Arena:
     def __init__(self, arena_info):
+        self.background = arena_info.background
         self.max_monsters = arena_info.max_monsters
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
 
-        required = [Rect2(65, 0, 1150, 475, color=SKYBLUE),  # play_area
-                    Rect2(0, 475, 1280, 50, color=None),  # floor
-                    Rect2(15, 0, 50, 600, color=None),  # left wall
-                    Rect2(1215, 0, 50, 600, color=None)]  # right wall
+        required = [Rect2(65, 0, 1150, 475, color=None),  # play_area
+                    Rect2(0, 458, 1280, 50, color=None),  # floor
+                    Rect2(20, 0, 50, 600, color=None),  # left wall
+                    Rect2(1210, 0, 50, 600, color=None)]  # right wall
 
         part2 = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.all_terr]
         rects = required + part2
