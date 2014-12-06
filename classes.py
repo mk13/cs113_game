@@ -94,10 +94,18 @@ class Player(Rect2):
         self.skill1_id = self.skill2_id = self.skill3_id = self.ult_id = 0
 
         # for debugging/testing:
+        #self.attack_id = random.randint(1,3)
+        #self.skill1_id = random.randint(100,115)
+        #self.skill2_id = random.randint(100,115)
+        #self.skill3_id = random.randint(100,115)
+        #self.ult_id = random.randint(1000,1003)
+        
+        
+        #specific testing:
         self.attack_id = 1
-        self.skill1_id = 103
-        self.skill2_id = 108
-        self.skill3_id = 110
+        self.skill1_id = 100
+        self.skill2_id = 106
+        self.skill3_id = 107
         self.ult_id = 1000
 
         # attacking
@@ -117,11 +125,13 @@ class Player(Rect2):
 
     # Handles how shield works
     # Call this after any damage is taken
-    def shield_trigger(self):
+    def shield_trigger(self,damage_taken):
         if self.hit_points < self.hit_points_max and self.conditions[SHIELD]:
             sorted(self.conditions[SHIELD], key=lambda k: k.remaining)  # Will subtract from lowest remaining time shield first
             for s in self.conditions[SHIELD]:
-                s.exchange()
+                damage_taken = s.exchange(damage_taken)
+                if damage_taken == 0:
+                    break
 
     def is_dead(self):
         return self.hit_points <= 0
@@ -170,8 +180,10 @@ class Player(Rect2):
                             else -self.dx_wall_jump if self.hit_wall_from == RIGHT \
                             else 0
                 else:
-                    self.dy -= self.dy_jump if self.touching_ground \
-                        else 0
+                    if self.touching_ground:
+                        self.dy -= self.dy_jump
+                    #self.dy -= self.dy_jump if self.touching_ground \
+                    #    else 0
 
         def _apply_gravity():
             if (-5 < self.dy < 8): # This helps make the jump arc smoother at the top
@@ -214,11 +226,15 @@ class Player(Rect2):
             self.hit_wall_from, self.touching_ground = None, False  # reset every frame
             for terrain in arena.rects:
                 if not terrain.spawn_point:
+                    #Check if touching ground
                     if (terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right) or (self.left < terrain.left < self.right or self.left < terrain.right < self.right):
                         if self.top < terrain.top < self.bottom:
                             if self.ptop + self.height - 5 <= terrain.top:
                                 self.bottom = terrain.top
                                 self.dy, self.touching_ground = 0, True
+                            if isinstance(self, Monster):
+                                self.hit_wall_from = False
+                                self.touching_ground = True
                         if self.top < terrain.bottom < self.bottom and self.dy < 0:
                             if self.ptop >= terrain.bottom:
                                 self.top = terrain.bottom
@@ -228,13 +244,15 @@ class Player(Rect2):
                             self.left = terrain.right
                             self.hit_wall_from = LEFT
                             self.dx = 0
-                            if self.dy > 0:
+                            #Sliding
+                            if self.dy > 0 and not isinstance(self,Monster):
                                 self.dy = 0
                         elif self.left < terrain.left < self.right and self.dx >= 0:
                             self.right = terrain.left
                             self.hit_wall_from = RIGHT
                             self.dx = 0
-                            if self.dy > 0:
+                            #Sliding
+                            if self.dy > 0 and not isinstance(self,Monster):
                                 self.dy = 0
 
         _move()  # move then check for collisions
@@ -314,10 +332,11 @@ class Monster(Player):
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
         d2 = self.distance_from(self.p2)
-        if d1 > d2:
-            self.target = self.p1
-        elif d2 < d2:
-            self.target = self.p2
+        if d1 != d2 and random.randint(1, 50) <= 30:
+            if d1 > d2:
+                self.target = self.p1
+            elif d2 < d2:
+                self.target = self.p2 
         else:
             if random.randint(1, 2) == 1:
                 self.target = self.p1
@@ -329,7 +348,6 @@ class Monster(Player):
         if self.status == CHASING and time_spent_in_status > self.chasing_time:
             self.last_status_change = time
             self.status = IDLE
-            self.target = None
         elif self.status == IDLE and time_spent_in_status > self.idle_time:
             self.last_status_change = time
             self.status = CHASING
@@ -337,7 +355,7 @@ class Monster(Player):
 
     def _ai(self,time):
         self._switch_mode(time)
-        if self.status == CHASING:
+        if self.status == CHASING and self.target != None:
             self.ai_input.refresh()
             if self.target.centerx >= self.centerx:
                 self.ai_input.RIGHT = True
@@ -345,8 +363,9 @@ class Monster(Player):
                 self.ai_input.LEFT = True
 
             if self.target.centery < self.centery:
-                if random.randint(1, 10) == 1:
+                if random.randint(1, 50) == 1:
                     self.ai_input.JUMP = True
+
 
         else:
             self.ai_input.JUMP = False
@@ -357,7 +376,7 @@ class Monster(Player):
                 else:
                     self.ai_input.RIGHT = True
                     self.ai_input.LEFT = False
-            if random.randint(1, 10) == 2:
+            if random.randint(1, 100) == 2:
                 self.ai_input.JUMP = True
 
     def __call__(self, time, arena_map):
@@ -441,14 +460,14 @@ class Input:
                     self.DEBUG_VIEW = not self.DEBUG_VIEW
 
     def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT] or self.gp_input[GP_LEFT]
-        self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
-        self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
-        self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
-        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A]
-        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X]
-        self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
-        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
+        self.LEFT = self.kb_input[K_LEFT]# or self.gp_input[GP_LEFT]
+        self.RIGHT = self.kb_input[K_RIGHT]# or self.gp_input[GP_RIGHT]
+        self.UP = self.kb_input[K_UP]# or self.gp_input[GP_UP]
+        self.DOWN = self.kb_input[K_DOWN]# or self.gp_input[GP_DOWN]
+        self.JUMP = self.kb_input[K_SPACE]# or self.gp_input[GP_A]
+        self.ATTACK = self.kb_input[K_a]# or self.gp_input[GP_X]
+        self.RESPAWN = self.kb_input[K_r]# or self.gp_input[GP_Y]
+        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE]# or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
         self.SKILL1 = self.kb_input[K_s]
         self.SKILL2 = self.kb_input[K_d]
         self.SKILL3 = self.kb_input[K_f]
@@ -529,12 +548,15 @@ class MeleeParticle(Particle):
         # super().__init__(particle.width, particle.height, particle.radius, particle.cooldown, particle.duration, particle.color)
         super().__init__(sid, player)
         self.arc = SKILLS_TABLE[sid]['arc']
-        self.radius = SKILLS_TABLE[sid]['radius']
+        self.radius = SKILLS_TABLE[sid]['start_radius']
+        self.max_radius = SKILLS_TABLE[sid]['max_radius']
         self.has_hit = []  # Need this to keep track of what it has hit;
                            # melee particles are not delete upon hitting
                            # a target, so we need to know who it has hit
                            # to prevent the same target being hit multiple
                            # times
+        self.extend = SKILLS_TABLE[sid]['extend']
+        self.dradius = (self.max_radius - self.radius)*35/self.duration
 
     # def update(self, time, player):
     # Let the particle know how it belongs to so it can
@@ -547,13 +569,19 @@ class MeleeParticle(Particle):
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
-
+        
+        if self.extend:
+            self.width += self.dradius
+            self.radius += self.dradius/2
+        else:
+            self.radius += self.dradius
+        
         if self.belongs_to.facing_direction == RIGHT:
             self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
         else:
             self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
-        self.centery = self.belongs_to.centery - self.radius * math.sin((1 - r) * self.arc)
+        self.centery = self.belongs_to.centery - 10 - self.radius * math.sin((1 - r) * self.arc)
 
     def on_hit(self, target, time):  # DON'T delete time; will use later
         if target != self.belongs_to and target not in self.has_hit:
@@ -774,11 +802,18 @@ class Shield(Condition):
             return True
         return False
 
-    def exchange(self):
-        if self.magnitude > 0 and (self.target.hit_points != self.target.hit_points_max):
-            diff = min(self.target.hit_points_max - self.target.hit_points, self.magnitude)
-            self.target.hit_points += diff
-            self.magnitude -= diff
+    def exchange(self,damage_taken):
+        if self.magnitude > 0:
+            if self.magnitude > damage_taken:
+                self.target.hit_points += damage_taken
+                self.magnitude -= damage_taken
+                return 0
+            elif self.magnitude <= damage_taken:
+                self.target.hit_points += self.magnitude
+                temp = damage_taken - self.magnitude
+                self.magnitude -= damage_taken
+                return temp
+
 
 # Increases HP regen
 class Invigorated(Condition):
