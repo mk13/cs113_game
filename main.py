@@ -289,6 +289,7 @@ class GameLoop:
         def _handle_player_input():
             if not self.input.PAUSED:
                 self.player1(self.input, self.arena)
+                self.player2(self.input, self.arena)
 
         self.input.refresh()
         _handle_player_input()
@@ -305,8 +306,14 @@ class GameLoop:
                 else:
                     self.active_particles.append(self.player1.new_particle)
                 self.player1.new_particle = None
-                # Added this part into player inputs; causing bugs if skill doesn't create particle
-                # pygame.time.set_timer(USEREVENT + 2, self.player1.new_particle.cooldown)
+            if self.player2.new_particle:
+                if isinstance(self.player2.new_particle, list):
+                    for p in self.player2.new_particle:
+                        self.active_particles.append(p)
+                else:
+                    self.active_particles.append(self.player2.new_particle)
+                self.player2.new_particle = None
+                
 
         def _update_particles():
             for p in self.active_particles:
@@ -320,7 +327,9 @@ class GameLoop:
         def _check_particle_collisions():
             for p in self.active_particles:
                 opposite = self.player2 if p.belongs_to == self.player1 else self.player1
+                #Ranged Particle
                 if isinstance(p, RangeParticle):
+                    #Check Terrains
                     all_terrain_hit_i = p.p_collidelistall(self.arena.rects)
                     if all_terrain_hit_i:  # False if empty list
                         if p.on_terrain_f:
@@ -330,16 +339,20 @@ class GameLoop:
                             self.arena.rects[i].hits_to_destroy -= 1
                             if self.arena.rects[i].hits_to_destroy == 0:
                                 self.arena.rects.pop(i)
+                    #Check Monsters 
                     else:
                         first_hit = p.collidelist(self.active_monsters)
                         if first_hit != -1:  # If hit a monsters
                             p.on_hit(self.active_monsters[first_hit], self.game_time.msec)
                             self.active_particles.remove(p)
-                        else:  # If didn't hit a monster, check player
+                    # If didn't hit a monster, check player
+                        else:
                             if p.colliderect(opposite):
                                 p.on_hit(opposite, self.game_time.msec)
                                 self.active_particles.remove(p)
-                else:  # if MeleeParticle
+                #Melee Particle
+                else:
+                    #Check Monsters
                     all_monsters_hit_i = p.collidelistall(self.active_monsters)
                     for i in all_monsters_hit_i:
                         p.on_hit(self.active_monsters[i], self.game_time.msec)
@@ -349,6 +362,7 @@ class GameLoop:
                         self.arena.rects[first_terrain_hit_i].hits_to_destroy -= 1
                         if self.arena.rects[first_terrain_hit_i].hits_to_destroy == 0:
                             self.arena.rects.pop(first_terrain_hit_i)
+                    #Check Player
                     if p.colliderect(opposite):
                         p.on_hit(opposite, self.game_time.msec)
 
@@ -361,7 +375,7 @@ class GameLoop:
         if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
             spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
             monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
-            self.active_monsters.append(Monster(monster_info, spawn_point.left, spawn_point.top, self.player1, self.player1))
+            self.active_monsters.append(Monster(monster_info, spawn_point.left, spawn_point.top, self.player1, self.player2))
 
         for m in self.active_monsters:
             if m.is_dead():
@@ -482,7 +496,7 @@ class GameLoop:
             flip = False  # value for flipping sprite
 
             # Draw player 2
-            # pygame.draw.rect(self.surface, BLUE, self.player2)
+            pygame.draw.rect(self.surface, BLUE, self.player2)
 
             # Animations that still need to be implemented
             # if (self.player1.state == DEATH):
@@ -724,6 +738,7 @@ class GameLoop:
         def _handle_regeneration_event():
             for event in pygame.event.get(REGENERATION_EVENT):
                 if event.type == REGENERATION_EVENT:
+                    #Player 1
                     if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
                         self.player1.hit_points += self.player1.level / 20
                     elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
@@ -741,6 +756,24 @@ class GameLoop:
                         self.player1.energy += self.player1.level / 5
                     if self.player1.energy > 10:
                         self.player1.energy = 10
+                    #Player 2
+                    if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
+                        self.player2.hit_points += self.player2.level / 20
+                    elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
+                        self.player2.hit_points += self.player2.level / 5
+                    else:
+                        self.player2.hit_points += self.player2.level / 10
+                    if self.player2.hit_points > 100:
+                        self.player2.hit_points = 100
+                    
+                    if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
+                        self.player2.energy += self.player2.level / 10
+                    elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:
+                        self.player2.energy += self.player2.level / 2.5
+                    else:
+                        self.player2.energy += self.player2.level / 5
+                    if self.player2.energy > 10:
+                        self.player2.energy = 10
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):
@@ -748,6 +781,11 @@ class GameLoop:
                 if event.type == PLAYER1_LOCK_EVENT:
                     self.player1.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER1_LOCK_EVENT, 0)
+                # player 2 skill lock timer
+            for event in pygame.event.get(PLAYER2_LOCK_EVENT):
+                if event.type == PLAYER2_LOCK_EVENT:
+                    self.player2.attack_cooldown_expired = True
+                    pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
 
         def _handle_player_meditate_events():
             for event in pygame.event.get(PLAYER1_MEDITATE_EVENT):

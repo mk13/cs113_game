@@ -128,7 +128,7 @@ def out_of_arena_fix(r):
 def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
-        target.shield_trigger()
+        target.shield_trigger(value)
         target.st_buffer.append((value, time + 2000))
 
 def turn_off_music():

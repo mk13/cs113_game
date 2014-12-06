@@ -1,5 +1,5 @@
 import math
-
+import random
 import pygame
 from pygame.locals import *
 
@@ -16,6 +16,7 @@ SKILLS_TABLE = {}
 # 1000+  : for ultimate
 
 # IMPORTANT:: These attributes are MANDATORY
+#   Name: Used later for scrolling texts
 #   Cooldown: How long it locks your character
 #   Duration: How long the particle lives
 #   Energy: How much energy it costs; put 0 if no cost
@@ -86,54 +87,75 @@ def initialize_skill_table():
     #-----------------------------------------------------------------------------------------
 
     # Slap (Default auto attack)
-    SKILLS_TABLE[1] = _auto_melee(30, 30, math.pi / 2, 35, 500, 500, YELLOW, 10, 0)
+    SKILLS_TABLE[1] = _auto_melee('Slap',30, 30, math.pi / 2, 35, 35, 500, 500, YELLOW, 10, 0)
     # Peashooter
-    SKILLS_TABLE[2] = _auto_range(10, 10, 20, 0, 500, 5000, GREEN, 10, 0)
+    SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 500, 5000, GREEN, 5, 0)
+    # Spear
+    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, True)  
 
     #-----------------------------------------------------------------------------------------
     # SKILLS 100-999
     #-----------------------------------------------------------------------------------------
 
     # Teleport
-    SKILLS_TABLE[100] = {'type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
+    SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
     # Fireball
-    SKILLS_TABLE[101] = _auto_range(50, 50, 5, 2, 500, 10000, RED, 10, 2)
+    SKILLS_TABLE[101] = _auto_range('Fireball',50, 50, 5, 2, 500, 10000, RED, 10, 2)
     # Static Bolt
-    SKILLS_TABLE[102] = _auto_range(50, 50, 5, 2, 500, 10000, BLUE, 10, 2)
+    SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2)
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_path
     # Boulder Toss
     ADD_BOULDER_TOSS(103)
     # Mines
-    SKILLS_TABLE[104] = _auto_range(40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3)
+    SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3)
     # Shrapnel Bomb
     ADD_SHRAPNEL_BOMB(105)
     # Shield
     ADD_SHIELD(106)
-    # Revolving Yo-yo
-    SKILLS_TABLE[107] = _auto_melee(20, 20, math.pi*10, 35, 200, 5000, RED, 3, 5)
+    # Flailing Flail
+    SKILLS_TABLE[107] = _auto_melee('Flailing Flail',20, 20, math.pi*10, 35, 35, 200, 5000, RED, 3, 5)
     # Napalm
     ADD_NAPALM(108)
     # Fire and Ice
     ADD_FIRE_AND_ICE(109)
     # Machine Gun
-    SKILLS_TABLE[110] = _auto_range(10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0)
-
+    SKILLS_TABLE[110] = _auto_range('Machine Gun',10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0)
+    # Vile Breath
+    ADD_VILE_BREATH(111)
+    # Ice Bolt
+    SKILLS_TABLE[112] = _auto_range('Ice Bolt',25, 25, 10, 0, 500, 5000, BLUE, 3, 4)
+    SKILLS_TABLE[112]['conditions'] = [classes.Snare(2500)]
+    # Shatter
+    SKILLS_TABLE[113] = _auto_range('Shatter',25, 25, 15, 0, 250, 5000, LBLUE, 10, 3)
+    SKILLS_TABLE[113]['on_hit_f'] = shatter_on_hit    
+    # Cropdust
+    ADD_CROP_DUST(114)
+        # Redirect Monster
+    SKILLS_TABLE[115] = _auto_range('Redirect Monster', 25, 25, 15, 0, 250, 5000, GREEN, 5, 3)
+    SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
     #-----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     #-----------------------------------------------------------------------------------------
 
     # Big-Hammer
     ADD_BIG_HAMMER(1000)
+    # Silver Bullet
+    SKILLS_TABLE[1001] = _auto_range('Silver Bullet', 10, 10, 20, 1, 1500, 5000, WHITE, 10, 5)
+    SKILLS_TABLE[1001]['on_hit_f'] = silver_bullet_on_hit
+    # Electric Field
+    ADD_ELECTRIC_FIELD(1002)
+    # Polarity Shift
+    ADD_POLARITY_SHIFT(1003)
 
 # Templates=================================================
-def _auto_melee(width, height, arc, radius, cooldown, duration, color, dmg, energy):
-    return {'type': MELEE, 'start': (lambda sid, p, u, d: classes.MeleeParticle(sid, p)),
-            'width': width, 'height': height, 'arc': arc, 'radius': radius, 'cooldown': cooldown,
-            'duration': duration, 'color': color, 'dmg': dmg, 'energy': energy}
+def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
+    return {'name': name, 'type': MELEE, 'start': (lambda sid, p, u, d: classes.MeleeParticle(sid, p)),
+            'width': width, 'height': height, 'arc': arc, 'start_radius': start_radius, 'max_radius':max_radius, 'cooldown': cooldown,
+            'duration': duration, 'color': color, 'dmg': dmg, 'energy': energy, 'extend':extend}
 
 
-def _auto_range(width, height, speed, acceleration, cooldown, duration, color, dmg, energy):
-    return {'type': RANGE,
+def _auto_range(name, width, height, speed, acceleration, cooldown, duration, color, dmg, energy):
+    return {'name': name, 'type': RANGE,
             'start': (lambda sid, player, up, down: classes.RangeParticle(sid, player, up, down)),
             'width': width, 'height': height, 'speed': speed, 'acceleration': acceleration,
             'cooldown': cooldown, 'duration': duration, 'color': color, 'dmg': dmg,
@@ -182,12 +204,12 @@ def lob_motion(particle, time):
     return x,y
 
 def ADD_BIG_HAMMER(i):
-    SKILLS_TABLE[i] = _auto_melee(75, 75, math.pi / 2, 125, 500, 500, DGREY, 20, 5)
+    SKILLS_TABLE[i] = _auto_melee("Big Hammer",75, 75, math.pi / 2, 125, 125, 500, 500, DGREY, 20, 5)
     SKILLS_TABLE[i]['on_hit_f'] = knock_back
     SKILLS_TABLE[i]['conditions'] = [classes.Stun(3000)]
     SKILLS_TABLE[i]['start'] = big_hammer
-    SKILLS_TABLE["bighammer0"] = _auto_melee(30, 30, math.pi / 2, 30, 500, 500, BROWN, 10, 0)
-    SKILLS_TABLE["bighammer1"] = _auto_melee(30, 30, math.pi / 2, 60, 500, 500, BROWN, 10, 0)
+    SKILLS_TABLE["bighammer0"] = _auto_melee('',30, 30, math.pi / 2, 30, 30, 500, 500, BROWN, 10, 0)
+    SKILLS_TABLE["bighammer1"] = _auto_melee('',30, 30, math.pi / 2, 60, 60, 500, 500, BROWN, 10, 0)
 def big_hammer(sid, player, up=False, down=False):
     return [classes.MeleeParticle("bighammer0", player),
             classes.MeleeParticle("bighammer1", player), classes.MeleeParticle(sid, player)]
@@ -200,8 +222,8 @@ def knock_back(particle,target,time):
 
 
 def ADD_BOULDER_TOSS(i):
-    SKILLS_TABLE[i] = {'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6}
-    SKILLS_TABLE["boulder_toss"] = _auto_range(30, 30, 5, 0, 500, 3000, BLACK, 2, 0)
+    SKILLS_TABLE[i] = {'name': "Boulder Toss", 'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6}
+    SKILLS_TABLE["boulder_toss"] = _auto_range('',30, 30, 5, 0, 500, 3000, BLACK, 2, 0)
     SKILLS_TABLE["boulder_toss"]["conditions"] = [classes.Stun(2000)]
     SKILLS_TABLE["boulder_toss"]["special_path"] = lob_motion
 def boulder_toss_start(sid, player, up=False, down=False):
@@ -215,25 +237,25 @@ def boulder_toss_start(sid, player, up=False, down=False):
     return obj
 
 def ADD_SHRAPNEL_BOMB(i):
-    SKILLS_TABLE[i] = {'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2}
-    SKILLS_TABLE["shrapnel_base"] = _auto_range(25, 25, 5, 0, 200, 3000, DGREY, 10, 0)
+    SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2}
+    SKILLS_TABLE["shrapnel_base"] = _auto_range('',25, 25, 5, 0, 200, 3000, DGREY, 10, 0)
     SKILLS_TABLE["shrapnel_base"]["special_path"] = lob_motion
     SKILLS_TABLE["shrapnel_base"]["on_hit_f"] = shrapnel_on_hit
     SKILLS_TABLE["shrapnel_base"]["on_expire_f"] = shrapnel_on_expire
     SKILLS_TABLE["shrapnel_base"]["on_terrain_f"] = shrapnel_on_terrain
-    SKILLS_TABLE["shrapnel_trigger"] = {'type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0}
-    SKILLS_TABLE["shrapnel0"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0}
+    SKILLS_TABLE["shrapnel0"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel0"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery))
-    SKILLS_TABLE["shrapnel1"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel1"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel1"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery))
-    SKILLS_TABLE["shrapnel2"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel2"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel2"]["special_path"] = (lambda p,t: (p.centerx, p.centery+10))
-    SKILLS_TABLE["shrapnel3"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel3"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel3"]["special_path"] = (lambda p,t: (p.centerx, p.centery-10))
-    SKILLS_TABLE["shrapnel4"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
-    SKILLS_TABLE["shrapnel5"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
-    SKILLS_TABLE["shrapnel6"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
-    SKILLS_TABLE["shrapnel7"] = _auto_range(10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel4"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel5"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel6"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
+    SKILLS_TABLE["shrapnel7"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel4"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery+10))
     SKILLS_TABLE["shrapnel5"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery-10))
     SKILLS_TABLE["shrapnel6"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery+10))
@@ -317,17 +339,17 @@ def shrapnel_on_terrain(particle):
 
 
 def ADD_SHIELD(i):
-    SKILLS_TABLE[i] = {'type': None, 'start': shield_start, 'cooldown': 200, 'energy':2}
+    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':2}
 def shield_start(sid, player, up=False, down=False):
     sh = classes.Shield(10000,10)
     sh.begin(-1,player)
     return None
 def ADD_NAPALM(i):
-    SKILLS_TABLE[i] = {'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5}
-    SKILLS_TABLE['napalm_main'] = _auto_range(30, 30, 2, 0, 500, 500, RED, 10, 0)
-    SKILLS_TABLE['napalm0'] = _auto_range(20, 20, 2, 0, 500, 3000, RED, 10, 0)
-    SKILLS_TABLE['napalm1'] = _auto_range(20, 20, 2, 0, 500, 3000, RED, 10, 0)
-    SKILLS_TABLE['napalm2'] = _auto_range(20, 20, 2, 0, 500, 3000, RED, 10, 0)
+    SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5}
+    SKILLS_TABLE['napalm_main'] = _auto_range('',30, 30, 2, 0, 500, 500, RED, 10, 0)
+    SKILLS_TABLE['napalm0'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
+    SKILLS_TABLE['napalm1'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
+    SKILLS_TABLE['napalm2'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
     SKILLS_TABLE['napalm_main']['special_path'] = lob_motion
     SKILLS_TABLE['napalm_main']['conditions'] = [classes.Dot(3, 5, 1000)]
     SKILLS_TABLE['napalm_main']['on_expire_f'] = napalm_on_expire
@@ -376,11 +398,11 @@ def napalm_on_expire(p):
         p.belongs_to.new_particle = [temp, obj0, obj1, obj2]
 
 def ADD_FIRE_AND_ICE(i):
-    SKILLS_TABLE[i] = {'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5}
-    SKILLS_TABLE['fai_fire'] = _auto_range(20, 20, 5, 2, 500, 10000, RED, 10, 2)
+    SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5}
+    SKILLS_TABLE['fai_fire'] = _auto_range('',20, 20, 5, 2, 500, 10000, RED, 10, 2)
     SKILLS_TABLE['fai_fire']['special_path'] = fai_fire_path
     SKILLS_TABLE['fai_fire']['conditions'] = [classes.Dot(5, 3, 1000)]
-    SKILLS_TABLE['fai_ice']  = _auto_range(20, 20, 5, 2, 500, 10000, LBLUE, 10, 2)
+    SKILLS_TABLE['fai_ice']  = _auto_range('',20, 20, 5, 2, 500, 10000, LBLUE, 10, 2)
     SKILLS_TABLE['fai_ice']['special_path'] = fai_ice_path
     SKILLS_TABLE['fai_ice']['conditions'] = [classes.Snare(2500)]
 def fai_start(sid,player,up=False,down=False):
@@ -403,3 +425,89 @@ def fai_ice_path(particle, time):
         x -= 10
     y = particle.originy + 20 * math.sin(x / 50)
     return x, y
+
+    
+def ADD_VILE_BREATH(i):
+    SKILLS_TABLE[i] = {'name':'Vile Breath','type': None, 'start': vile_breath_start, 'cooldown':20, 'energy': 1}
+    SKILLS_TABLE['vbreath'] = _auto_range('',10,10,5,0,500,1000,GREEN,2,1)
+    SKILLS_TABLE['vbreath']['special_path'] = vile_breath_path
+    SKILLS_TABLE['vbreath']['conditions'] = [classes.Weakened(random.randint(1,3)*1000),
+                                             classes.Slow(random.randint(1,3)*1000, 0.5)]
+def vile_breath_start(sid,player,up=False, down=False):
+    b0 = classes.RangeParticle('vbreath',player,up,down)
+    b1 = classes.RangeParticle('vbreath',player,up,down)
+    b2 = classes.RangeParticle('vbreath',player,up,down)
+    b0.centery = b0.belongs_to.top
+    b1.centery = b1.belongs_to.top
+    b2.centery = b2.belongs_to.top
+    return [b0,b1,b2]
+def vile_breath_path(particle, time):
+    x = particle.centerx
+    if particle.direction == RIGHT:
+        x += 5 + random.randint(0,5)
+    else:
+        x -= 5 + random.randint(0,5)
+    y = particle.centery + random.randint(-5,5)
+    return x,y
+    
+def shatter_on_hit(particle,target,time):
+    if target.conditions[SNARE]:
+        handle_damage(target, 10, time+500)
+        
+def ADD_CROP_DUST(i):
+    SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1}
+    SKILLS_TABLE['cropdust'] = _auto_range('',10,10,5,0,500,1000,BROWN,1,1)
+    SKILLS_TABLE['cropdust']['special_path'] = crop_dust_path
+    SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.50)]
+def crop_dust_start(sid,player,up=False,down=False):
+    c0 = classes.RangeParticle('cropdust',player,up,down)
+    c1 = classes.RangeParticle('cropdust',player,up,down)
+    c2 = classes.RangeParticle('cropdust',player,up,down)
+    c0.centery = c0.belongs_to.bottom-5
+    c1.centery = c1.belongs_to.bottom-5
+    c2.centery = c2.belongs_to.bottom-5
+    return [c0,c1,c2]
+def crop_dust_path(particle,time):
+    x = particle.centerx
+    if particle.direction == RIGHT:
+        x -= 5 + random.randint(0,5)
+    else:
+        x += 5 + random.randint(0,5)
+    y = particle.centery + random.randint(-5,5)
+    return x,y
+    
+def silver_bullet_on_hit(particle,target,time):
+    diff = target.hit_points_max - target.hit_points
+    diff = int(diff/4)
+    handle_damage(target,diff,time+500)
+    
+def redirect_on_hit(particle, target, time):
+    if isinstance(target, classes.Monster):
+        if target.status == IDLE:
+            target.last_status_change = -10000 #Force hard reset
+        target.target = particle.belongs_to.opposite
+            
+def ADD_ELECTRIC_FIELD(i):
+    SKILLS_TABLE[i] = {'name':'Electric Field', 'type':None, 'start':electric_field_start, 'cooldown': 200, 'energy':4}
+    SKILLS_TABLE['ef0'] = _auto_melee('', 20, 20, math.pi*3, 100, 100, 100, 5000, BLUE, 10, 1)
+    SKILLS_TABLE['ef1'] = _auto_melee('', 10, 10, math.pi*4, 50, 50, 100, 5000, BLUE, 10, 1)
+    SKILLS_TABLE['ef2'] = _auto_melee('', 5, 5, math.pi*5, 25, 25, 100, 5000, BLUE, 10, 1)
+def electric_field_start(sid,player,up=False,down=False):
+    ef0 = classes.MeleeParticle('ef0', player)
+    ef1 = classes.MeleeParticle('ef1', player)
+    ef2 = classes.MeleeParticle('ef2', player)
+    return [ef0, ef1, ef2]
+    
+def ADD_POLARITY_SHIFT(i):
+    SKILLS_TABLE[i] = {'name':'Polarity Shift', 'type':None, 'start':polarity_shift_start, 'cooldown': 200, 'energy':7}
+def polarity_shift_start(sid, player,up=False, down =False):
+    tar = player.opposite
+    d = player.distance_from(tar)
+    if d <= 500:
+        if tar.facing_direction == RIGHT:
+            tar.dx -= 100
+        else:
+            tar.dx += 100
+        c = classes.Stun(2000)
+        c.begin(-1, tar)
+    return None
