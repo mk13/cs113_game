@@ -111,17 +111,17 @@ def font_position_center(rect, font, text):
     y = (rect.height - font.size(text)[1]) // 2
     return rect.left + x, rect.top + y
 
-def out_of_arena_fix(r):
+def out_of_arena_fix(player, play_area):
     """Global to handle players from reaching out of arena."""
     fixed = False  # Can be used for out-of-bounds checking since it returns true
-    if r.left < 65:
-        r.left = 65
+    if player.left < play_area.left:
+        player.left = play_area.left
         fixed = True
-    if r.bottom > 475:
-        r.bottom = 475
+    if player.bottom > play_area.bottom:
+        player.bottom = play_area.bottom
         fixed = True
-    if r.right > 1215:
-        r.right = 1215
+    if player.right > play_area.right:
+        player.right = play_area.right
         fixed = True
     return fixed
 
@@ -158,13 +158,12 @@ def get_music_on():
     return MUSIC_ON
 
 # Arenas
-arena_nt = namedtuple('arena_nt', 'all_terr, max_monsters, possible_monsters, background')
+arena_nt = namedtuple('arena_nt', 'left_wall_x, right_wall_x, floor_y, platforms, max_monsters, possible_monsters, background')
 terrain_nt = namedtuple('terrain_nt', 'left, top, width, height, color, hits_to_destroy, spawn_point')
 
 arena1 = arena_nt(
-    all_terr=[
-        terrain_nt(65, 0, 1150, 475, SKYBLUE, -1, False),  # play_area
-        terrain_nt(0, 475, 1280, 50, None, -1, False),  # floor
+    left_wall_x=65, right_wall_x=1215, floor_y=475,
+    platforms=[
         terrain_nt(0, 270, 300, 60, DKGREEN, -1, False),
         terrain_nt(850, 270, 300, 60, DKGREEN, -1, False),
         terrain_nt(545, 150, 60, 230, DKGREEN, -1, False),
@@ -175,12 +174,11 @@ arena1 = arena_nt(
         terrain_nt(15, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
     possible_monsters=(WEAK, MEDIUM),
-    background = None)
+    background=None)
 
 arena2 = arena_nt(
-    all_terr=[
-        terrain_nt(65, 0, 1150, 475, SKYBLUE, -1, False),  # play_area
-        terrain_nt(0, 475, 1280, 50, None, -1, False),  # floor
+    left_wall_x=65, right_wall_x=1215, floor_y=475,
+    platforms=[
         terrain_nt(50, 100, 50, 300, DKGREEN, -1, False),
         terrain_nt(240, 40, 50, 300, DKGREEN, -1, False),
         terrain_nt(500, 135, 100, 25, DKGREEN, -1, False),
@@ -196,9 +194,8 @@ arena2 = arena_nt(
     background=None)
 
 arena3 = arena_nt(
-    all_terr=[
-        terrain_nt(65, 0, 1150, 475, None, -1, False),  # play_area
-        terrain_nt(0, 458, 1280, 50, None, -1, False),  # floor
+    left_wall_x=65, right_wall_x=1215, floor_y=458,
+    platforms=[
         terrain_nt(425, 80, 73, 40, None, -1, False),
         terrain_nt(555, 80, 100, 40, None, -1, False),
         terrain_nt(85, 140, 228, 40, None, -1, False),
@@ -210,7 +207,7 @@ arena3 = arena_nt(
         terrain_nt(785, 120, 227, 40, None, -1, False),
         terrain_nt(150, 465, -5, 5, RED, -1, True),
         terrain_nt(930, 465, -5, 5, RED, -1, True), ],
-    max_monsters=1,
+    max_monsters=0,
     possible_monsters=ALL,
     background='data/vines-copy2.png')
 

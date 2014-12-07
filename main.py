@@ -149,8 +149,8 @@ class GameLoop:
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
-            # self.arena = Arena(arena3)#Arena(random.choice((arena1, arena2, arena3)))
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
+            # self.arena = Arena(random.choice((arena3,)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -314,7 +314,7 @@ class GameLoop:
                 else:
                     self.active_particles.append(self.player2.new_particle)
                 self.player2.new_particle = None
-                
+
 
         def _update_particles():
             for p in self.active_particles:
@@ -340,7 +340,7 @@ class GameLoop:
                             self.arena.rects[i].hits_to_destroy -= 1
                             if self.arena.rects[i].hits_to_destroy == 0:
                                 self.arena.rects.pop(i)
-                    #Check Monsters 
+                    #Check Monsters
                     else:
                         first_hit = p.collidelist(self.active_monsters)
                         if first_hit != -1:  # If hit a monsters
@@ -389,15 +389,10 @@ class GameLoop:
     # -------------------------------------------------------------------------
     def draw_screen(self):
         def _draw_ui():
-
             self.surface.fill(DGREY)
-
-            self.background_image = self.arena.background
-
-            if self.background_image is not None:
-                self.image = pygame.image.load(self.background_image)
-                self.screen.blit(self.image, (65, 0))
-
+            if self.arena.background is not None:
+                self.image = pygame.image.load(self.arena.background)
+                self.screen.blit(self.image, (self.arena.play_area_rect.left, 0))
 
             #font for player's health and energy
             #health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -609,6 +604,14 @@ class GameLoop:
     # -------------------------------------------------------------------------
     def draw_debug(self):
 
+        def _draw_play_area_debug_border():
+            old_play_area = Rect2(65, 0, 1150, 475)
+            pygame.draw.rect(self.surface, YELLOW, old_play_area, 1)
+            pygame.draw.rect(self.surface, GREEN, self.arena.play_area_rect, 1)
+            pygame.draw.rect(self.surface, RED, self.arena.left_wall, 1)
+            pygame.draw.rect(self.surface, RED, self.arena.floor, 1)
+            pygame.draw.rect(self.surface, RED, self.arena.right_wall, 1)
+
         def _draw_debug_text():
             x = '| x:{:>8.2f}|'.format(self.player1.x)
             y = '| y:{:>8.2f}|'.format(self.player1.y)
@@ -681,6 +684,7 @@ class GameLoop:
                     pygame.draw.circle(self.surface, ORANGE, l, 3, 0)
 
         if self.input.DEBUG_VIEW:
+            _draw_play_area_debug_border()
             _draw_debug_text()
             _draw_cpu_usage()
             _draw_destructible_terrain_debug_text()
@@ -766,7 +770,7 @@ class GameLoop:
                         self.player2.hit_points += self.player2.level / 10
                     if self.player2.hit_points > 100:
                         self.player2.hit_points = 100
-                    
+
                     if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
                         self.player2.energy += self.player2.level / 10
                     elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:

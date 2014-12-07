@@ -257,7 +257,7 @@ class Player(Rect2):
 
         _move()  # move then check for collisions
         _check_for_collisions()
-        out_of_arena_fix(self)  # otherwise, player can jump up and over arena
+        out_of_arena_fix(self, arena.play_area_rect)  # otherwise, player can jump up and over arena
 
 
     # Handles attacks, skill buttons, and meditate
@@ -494,14 +494,21 @@ class Arena:
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
 
-        walls = [Rect2(20, 0, 50, 600, color=None),  # left wall
-                 Rect2(1210, 0, 50, 600, color=None)]  # right wall
+        floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
+        left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)
+        right_wall = Rect2(arena_info.right_wall_x, 0, 1280 - arena_info.right_wall_x, 600, color=None)
+        self.floor = floor
+        self.left_wall = left_wall
+        self.right_wall = right_wall
 
-        part2 = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.all_terr]
-        rects = part2[0:2] + walls + part2[2:]
+        play_area_color = SKYBLUE if arena_info.background is None else None
+        play_area = Rect2(left_wall.right, 0, right_wall.left - left_wall.right, floor.top, color=play_area_color)
+        platforms = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.platforms]
 
+        rects = [play_area, floor, left_wall, right_wall] + platforms
         for rect in rects[4:]:  # don't shift the first 4 rects
-            rect.move_ip((65, 0))  # to account for play area starting 65 pixels from left
+            rect.move_ip((play_area.left, 0))  # to account for play area starting 65 pixels from left
+
         self.play_area_rect = rects[0]
         self.rects = rects[1:]
 
