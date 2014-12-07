@@ -224,8 +224,8 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/p1_human.png')
-            p2_sprite = _setup_player_sprites('data/p2_human.png')
+            p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
+            p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
 
             self.player1 = Player(id=1, left=200, top=150, width=30, height=40, sprite=p1_sprite)
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
