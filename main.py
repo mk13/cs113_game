@@ -17,6 +17,7 @@ except ImportError:
     psutil_found = False
 
 # our modules
+import globals as GL
 from classes import *
 from debug import *
 from globals import *
@@ -145,7 +146,7 @@ class GameLoop:
 
         def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
-            # self.arena = Arena(random.choice((arena3,)))
+            GL.arena_in_use = self.arena
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -226,13 +227,10 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/p1_human.png')
             p2_sprite = _setup_player_sprites('data/p2_human.png')
 
-            # self.p2_sprite, self.p2_wait_frames, self.p2_animation_key  = \
-            #     __setup_player_sprites('data/p2_human.png')
             self.player1 = Player(id=1, left=200, top=150, width=30, height=40, sprite=p1_sprite)
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
             self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
 
-            # self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
             self.player2 = Player(id=1, left=1080, top=150, width=30, height=40, sprite=p2_sprite)
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
 
@@ -543,7 +541,6 @@ class GameLoop:
 
             _draw_player(self.player1)
             _draw_player(self.player2)
-
 
         def _draw_monsters():
             for m in self.active_monsters:

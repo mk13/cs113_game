@@ -111,7 +111,9 @@ def font_position_center(rect, font, text):
     y = (rect.height - font.size(text)[1]) // 2
     return rect.left + x, rect.top + y
 
-def out_of_arena_fix(player, play_area):
+def out_of_arena_fix(player):
+    global arena_in_use  # set in GameLoop._setup_arena of main.py
+    play_area = arena_in_use.play_area_rect
     """Global to handle players from reaching out of arena."""
     fixed = False  # Can be used for out-of-bounds checking since it returns true
     if player.left < play_area.left:
@@ -210,7 +212,6 @@ arena3 = arena_nt(
     max_monsters=0,
     possible_monsters=ALL,
     background='data/vines-copy2.png')
-
 
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'w, h, dx, dy, hp, chase, idle')

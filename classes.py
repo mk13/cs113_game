@@ -259,7 +259,7 @@ class Player(Rect2):
 
         _move()  # move then check for collisions
         _check_for_collisions()
-        out_of_arena_fix(self, arena.play_area_rect)  # otherwise, player can jump up and over arena
+        out_of_arena_fix(self)  # otherwise, player can jump up and over arena
 
 
     # Handles attacks, skill buttons, and meditate
