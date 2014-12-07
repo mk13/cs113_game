@@ -57,7 +57,7 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, left, top, width, height):
+    def __init__(self, id, left, top, width, height, sprite=None):
         # id = 1 if player 1, id = 2 if player 2
         self.id = id
 
@@ -100,7 +100,6 @@ class Player(Rect2):
         #self.skill3_id = random.randint(100,115)
         #self.ult_id = random.randint(1000,1003)
 
-
         #specific testing:
         self.attack_id = 1
         self.skill1_id = 100
@@ -116,9 +115,12 @@ class Player(Rect2):
         # scrolling text
         self.st_buffer = []
 
-        # Player State
+        # sprite information
         self.state = STAND
         self.previous_state = STAND
+        self.sprite = sprite
+        self.wait_frames = 0
+        self.animation_key = -1
 
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)

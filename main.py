@@ -138,24 +138,18 @@ class GameLoop:
             self.start_menu = start_menu
             self.input = Input()
 
-        def _setup_Rects():
+        def _setup_ui():
             self.window = self.surface.get_rect()
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
-            self.player1 = Player(id=1, left=200, top=150, width=30, height=40)
-            self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
-            self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
-            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
-            self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
-            self.player1.opposite = self.player2  # Makes things a lot easier
-            self.player2.opposite = self.player1  # Makes things a lot easier
+
+        def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
             # self.arena = Arena(random.choice((arena3,)))
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
             main_font = 'data/Kremlin.ttf'
-
             self.timer_font = pygame.font.Font(main_font, 36)
             self.timer_font_xy = 605, 500
             self.health_font = pygame.font.Font(main_font, 55)
@@ -174,8 +168,7 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            # Scrolling text font
-            self.st_font = pygame.font.Font(main_font, 30)
+            self.st_font = pygame.font.Font(main_font, 30)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
 
@@ -202,53 +195,63 @@ class GameLoop:
             self.make_rain = False
             pygame.event.post(pygame.event.Event(MORE_RAIN_EVENT))
 
-        def _setup_player_sprites():  # load player sprites here
-            # Will later need some value to tell the game what sprite
-            # to load based on player choice, since we don't want to
-            # just load everything possible
+        def _setup_players():
 
-            # Load sprites for player 1
-            try:
-                spritesheet1 = pygame.image.load("data/pl_human.png")
-            except:
-                raise (UserWarning, "Unable to load sprites")  # error msg and exit
-            spritesheet1.convert()
-            m1 = []
+            def _setup_player_sprites(spritesheet):
+                try:
+                    spritesheet1 = pygame.image.load(spritesheet)
+                except:
+                    raise (UserWarning, "Unable to load sprites")  # error msg and exit
+                spritesheet1.convert()
 
-            # Put spritesheet into list, each sprite is 64x64 pixels large
-            for num in range(1, 7, 1):  # Standing
-                m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
-            for num in range(7, 15, 1):  # Walk Transition
-                m1.append(spritesheet1.subsurface((64 * (num - 7), 64, 64, 64)))
-            for num in range(15, 23, 1):  # Walk Part 1
-                m1.append(spritesheet1.subsurface((64 * (num - 15), 128, 64, 64)))
-            for num in range(23, 31, 1):  # Walk Part 2
-                m1.append(spritesheet1.subsurface((64 * (num - 23), 192, 64, 64)))
-            for num in range(31, 35, 1):  # Jump and Fall
-                m1.append(spritesheet1.subsurface((64 * (num - 31), 256, 64, 64)))
+                m1 = []
+                # Put spritesheet into list, each sprite is 64x64 pixels large
+                for num in range(1, 7, 1):  # Standing
+                    m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
+                for num in range(7, 15, 1):  # Walk Transition
+                    m1.append(spritesheet1.subsurface((64 * (num - 7), 64, 64, 64)))
+                for num in range(15, 23, 1):  # Walk Part 1
+                    m1.append(spritesheet1.subsurface((64 * (num - 15), 128, 64, 64)))
+                for num in range(23, 31, 1):  # Walk Part 2
+                    m1.append(spritesheet1.subsurface((64 * (num - 23), 192, 64, 64)))
+                for num in range(31, 35, 1):  # Jump and Fall
+                    m1.append(spritesheet1.subsurface((64 * (num - 31), 256, 64, 64)))
 
-            for num in range(len(m1)):
-                m1[num].set_colorkey((0, 0, 0))  # sprite bg rgb is (0,0,0)
-                m1[num] = m1[num].convert_alpha()
+                for num in range(len(m1)):
+                    m1[num].set_colorkey((0, 0, 0))  # sprite bg rgb is (0,0,0)
+                    m1[num] = m1[num].convert_alpha()
 
-            self.p1_sprite = m1
-            self.p1_wait_frames = 0
-            self.p1_animation_key = -1
+                return m1
 
-            # Player 2 will be the same thing with a different spritesheet
+            p1_sprite = _setup_player_sprites('data/p1_human.png')
+            p2_sprite = _setup_player_sprites('data/p2_human.png')
+
+            # self.p2_sprite, self.p2_wait_frames, self.p2_animation_key  = \
+            #     __setup_player_sprites('data/p2_human.png')
+            self.player1 = Player(id=1, left=200, top=150, width=30, height=40, sprite=p1_sprite)
+            self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
+            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
+
+            # self.player2 = Player(id=2, left=1080, top=150, width=30, height=40)
+            self.player2 = Player(id=1, left=1080, top=150, width=30, height=40, sprite=p2_sprite)
+            self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
+
+            self.player1.opposite = self.player2  # Makes things a lot easier
+            self.player2.opposite = self.player1  # Makes things a lot easier
 
         pygame.init()
         _setup_display()
         _setup_time()
         _setup_input()
-        _setup_Rects()
+        _setup_ui()
+        _setup_arena()
         initialize_skill_table()
         _setup_monsters()
         _setup_fonts()
         _setup_particles()
         _setup_music()
         _setup_rain()
-        _setup_player_sprites()
+        _setup_players()
 
     # ------------------------------------------------------------------------
     def __call__(self):
@@ -314,7 +317,6 @@ class GameLoop:
                 else:
                     self.active_particles.append(self.player2.new_particle)
                 self.player2.new_particle = None
-
 
         def _update_particles():
             for p in self.active_particles:
@@ -480,67 +482,68 @@ class GameLoop:
                     pygame.draw.rect(self.surface, rect.color, rect)
 
         def _draw_players():
-            # Draw player using wait_frames and animation_key
-            # wait_frames = frames waited before key is incremented
-            # animation_key = index for the sprite list
+            def _draw_player(p):
+                # Draw player using wait_frames and animation_key
+                # wait_frames = frames waited before key is incremented
+                # animation_key = index for the sprite list
 
-            # Draw player 1
-            if self.player1.state != self.player1.previous_state:
-                self.p1_wait_frames = 0
-                self.p1_animation_key = -1  # -1 because it will always get
-                                            # incremented at the start of each check
-            flip = False  # value for flipping sprite
+                # Draw player 1
+                if p.state != p.previous_state:
+                    p.wait_frames = 0
+                    p.animation_key = -1  # -1 because it will always get
+                                                # incremented at the start of each check
+                flip = False  # value for flipping sprite
 
-            # Draw player 2
-            pygame.draw.rect(self.surface, BLUE, self.player2)
+                # Animations that still need to be implemented
+                # if (p.state == DEATH):
+                # if (p.state == ATTACK):
+                # if (p.state == CAST):
+                # if (p.state == SLIDE):
 
-            # Animations that still need to be implemented
-            # if (self.player1.state == DEATH):
-            # if (self.player1.state == ATTACK):
-            # if (self.player1.state == CAST):
-            # if (self.player1.state == SLIDE):
+                # JUMP
+                if p.state == JUMP:
+                    if p.facing_direction == LEFT:
+                        flip = True
+                    if p.wait_frames <= 0:
+                        p.wait_frames = 5
+                        if p.animation_key <= 0:
+                            p.animation_key += 1
+                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 30], flip, False), (p.left-17,p.top-22))
+                # FALL
+                elif p.state == FALL:
+                    if p.facing_direction == LEFT:
+                        flip = True
+                    if p.wait_frames <= 0:
+                        p.wait_frames = 5
+                        if p.animation_key <= 0:
+                            p.animation_key += 1
+                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 32], flip, False), (p.left-17,p.top-22))
+                # WALK
+                elif p.state == RWALK or p.state == LWALK:
+                    if p.facing_direction == LEFT:
+                        flip = True
+                    if p.state == RWALK and p.previous_state != RWALK:
+                        p.animation_key = -8  # Transition sprites loaded before walk
+                    elif p.state == LWALK and p.previous_state != LWALK:
+                        p.animation_key = -8
+                    if p.wait_frames <= 0:
+                        p.wait_frames = 2
+                        p.animation_key += 1
+                        if p.animation_key > 0:
+                            p.animation_key %= 16  # Loops the key
+                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 14], flip, False), (p.left - 17, p.top - 22))
+                # STAND (default animation)
+                else:
+                    if p.facing_direction == LEFT:
+                        flip = True
+                    # Currently only have 1 standing sprite
+                    self.screen.blit(
+                        pygame.transform.flip(p.sprite[p.animation_key + 1], flip, False), (p.left - 17, p.top - 22))
+                p.wait_frames += -1
 
-            # JUMP
-            if self.player1.state == JUMP:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 5
-                    if self.p1_animation_key <= 0:
-                        self.p1_animation_key += 1
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 30], flip, False), (self.player1.left-17,self.player1.top-22))
-            # FALL
-            elif self.player1.state == FALL:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 5
-                    if self.p1_animation_key <= 0:
-                        self.p1_animation_key += 1
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 32], flip, False), (self.player1.left-17,self.player1.top-22))
-            # WALK
-            elif self.player1.state == RWALK or self.player1.state == LWALK:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                if self.player1.state == RWALK and self.player1.previous_state != RWALK:
-                    self.p1_animation_key = -8  # Transition sprites loaded before walk
-                elif self.player1.state == LWALK and self.player1.previous_state != LWALK:
-                    self.p1_animation_key = -8
-                if self.p1_wait_frames <= 0:
-                    self.p1_wait_frames = 2
-                    self.p1_animation_key += 1
-                    if self.p1_animation_key > 0:
-                        self.p1_animation_key %= 16  # Loops the key
-                self.screen.blit(pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 14], flip, False), (self.player1.left - 17, self.player1.top - 22))
-            # STAND (default animation)
-            else:
-                if self.player1.facing_direction == LEFT:
-                    flip = True
-                # Currently only have 1 standing sprite
-                self.screen.blit(
-                    pygame.transform.flip(self.p1_sprite[self.p1_animation_key + 1], flip, False), (self.player1.left - 17, self.player1.top - 22))
-            self.p1_wait_frames += -1
-            # Draw player 2 here
+            _draw_player(self.player1)
+            _draw_player(self.player2)
+
 
         def _draw_monsters():
             for m in self.active_monsters:
@@ -656,15 +659,19 @@ class GameLoop:
             self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
 
         def _draw_players_debug():
-            pygame.draw.rect(self.surface, LBLUE, self.player1)
-            pygame.draw.rect(self.surface, LBLUE, self.player2)
-            if self.player1.facing_direction == LEFT:
-                self.player1_eyeball.topleft = self.player1.topleft
-                self.player1_eyeball.move_ip((+3, 3))
-            else:
-                self.player1_eyeball.topright = self.player1.topright
-                self.player1_eyeball.move_ip((-3, 3))
-            pygame.draw.rect(self.surface, DKRED, self.player1_eyeball)
+
+            def _draw_player_debug(p, eye, c1, c2):
+                pygame.draw.rect(self.surface, c1, p)
+                if p.facing_direction == LEFT:
+                    eye.topleft = p.topleft
+                    eye.move_ip((+3, 3))
+                else:
+                    eye.topright = p.topright
+                    eye.move_ip((-3, 3))
+                pygame.draw.rect(self.surface, c2, eye)
+
+            _draw_player_debug(self.player1, self.player1_eyeball, DKRED, BLUE)
+            _draw_player_debug(self.player2, self.player2_eyeball, LBLUE, DKRED)
 
         def _draw_player_collision_points_for_debugging():
             coll_data = get_collision_data(self.player1, self.arena)
