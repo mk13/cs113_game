@@ -14,13 +14,16 @@ DKRED = Color(128, 0, 0)
 DKGREEN = Color(0, 128, 0)
 GREEN = Color(0, 255, 0)
 BLUE = Color(0, 0, 255)
+LLBLUE = Color(0, 0, 128)
 LBLUE = Color(0, 128, 255)
 SKYBLUE = Color(128, 223, 223)
 YELLOW = Color(255, 255, 0)
 DKYELLOW = Color(153, 153, 0)
 DKDKYELLOW = Color(128, 128, 0)
 PURPLE = Color(255, 0, 255)
+DKPURPLE = Color(153, 0, 153)
 ORANGE = Color(255, 153, 0)
+DKORANGE = Color(153, 92, 0)
 
 # Music Flags
 MUSIC_ON = False

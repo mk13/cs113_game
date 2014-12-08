@@ -168,7 +168,7 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            self.st_font = pygame.font.Font(main_font, 30)  # Scrolling text font
+            self.st_font = pygame.font.Font(main_font, 18)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
 
@@ -293,8 +293,10 @@ class GameLoop:
             if self.input.RESPAWN and not self.input.PAUSED:
                 self.player1.topleft = self.player1.topleft_initial
                 self.player1.dx = self.player1.dx_initial
+                self.player1.facing_direction = self.player1.facing_direction_initial
                 self.player2.topleft = self.player2.topleft_initial
                 self.player2.dx = self.player2.dx_initial
+                self.player2.facing_direction = self.player2.facing_direction_initial
 
             if self.input.KILLALL and not self.input.PAUSED:
                 for m in self.active_monsters:
@@ -396,7 +398,7 @@ class GameLoop:
         def _handle_monster_spawning():
             if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
                 spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
-                color = random.choice((DKRED, DKGREEN, BLUE, DKYELLOW, PURPLE, ORANGE))  # pick a random color
+                color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
                 monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
                 self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2, color))
             self.spawn_monsters = False
@@ -673,7 +675,7 @@ class GameLoop:
                     eye.move_ip((-3, 3))
                 pygame.draw.rect(self.surface, c2, eye)
 
-            _draw_player_debug(self.player1, DKRED, BLUE)
+            _draw_player_debug(self.player1, DKRED, LBLUE)
             _draw_player_debug(self.player2, LBLUE, DKRED)
 
         def _draw_player_collision_points_for_debugging():

@@ -111,6 +111,7 @@ class Player(Rect2):
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
+        self.facing_direction_initial = self.facing_direction
         self.attack_cooldown_expired = True
         self.new_particle = None
 
