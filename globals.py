@@ -172,8 +172,8 @@ arena1 = arena_nt(
         terrain_nt(140, 100, 150, 20, DKGREEN, -1, False),
         terrain_nt(860, 100, 150, 20, DKGREEN, -1, False),
         terrain_nt(30, 240, 40, 20, WHITE, 5, False),
-        terrain_nt(1145, 465, -5, 5, RED, -1, True),
-        terrain_nt(15, 465, -5, 5, RED, -1, True), ],
+        terrain_nt(1145, 465, -5, 5, None, -1, True),
+        terrain_nt(15, 465, -5, 5, None, -1, True), ],
     max_monsters=1, possible_monsters=(WEAK, MEDIUM),
     background=None, p1_spawn=(200,150), p2_spawn=(1050,150))
 
@@ -188,8 +188,8 @@ arena2 = arena_nt(
         terrain_nt(400, 434, 300, 41, DKGREEN, -1, False),
         terrain_nt(485, 394, 300, 41, DKGREEN, -1, False),
         terrain_nt(970, 65, 80, 10, DKGREEN, -1, False),
-        terrain_nt(150, 465, -5, 5, RED, -1, True),
-        terrain_nt(930, 465, -5, 5, RED, -1, True), ],
+        terrain_nt(150, 465, -5, 5, None, -1, True),
+        terrain_nt(930, 465, -5, 5, None, -1, True), ],
     max_monsters=1, possible_monsters=ALL,
     background=None, p1_spawn=(200,150), p2_spawn=(1050,150))
 
@@ -205,8 +205,8 @@ arena3 = arena_nt(
         terrain_nt(595, 319, 417, 40, None, -1, False),
         terrain_nt(972, 156, 40, 163, None, -1, False),
         terrain_nt(785, 120, 227, 40, None, -1, False),
-        terrain_nt(150, 465, -5, 5, RED, -1, True),
-        terrain_nt(930, 465, -5, 5, RED, -1, True), ],
+        terrain_nt(150, 465, -5, 5, None, -1, True),
+        terrain_nt(930, 465, -5, 5, None, -1, True), ],
     max_monsters=0, possible_monsters=ALL,
     background='data/vines-copy2.png', p1_spawn=(200,150), p2_spawn=(1050,150))
 

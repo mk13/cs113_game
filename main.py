@@ -475,7 +475,7 @@ class GameLoop:
             time_display = self.timer_font.render(str(self.game_time), True, BLUE)
             self.surface.blit(time_display, self.timer_font_xy)
 
-        def _draw_map():
+        def _draw_arena():
             for rect in self.arena:
                 if rect.color is not None:
                     pygame.draw.rect(self.surface, rect.color, rect)
@@ -594,7 +594,7 @@ class GameLoop:
 
         _draw_ui()
         _draw_timer()
-        _draw_map()
+        _draw_arena()
         _draw_monsters()
         if not self.input.DEBUG_VIEW:
             _draw_players()
@@ -604,6 +604,10 @@ class GameLoop:
 
     # -------------------------------------------------------------------------
     def draw_debug(self):
+
+        def _draw_spawn_point_rects():
+            for rect in filter(lambda x: x.spawn_point, self.arena):
+                pygame.draw.rect(self.surface, RED, rect)
 
         def _draw_play_area_debug_border():
             old_play_area = Rect2(65, 0, 1150, 475)
@@ -690,6 +694,7 @@ class GameLoop:
                     pygame.draw.circle(self.surface, ORANGE, l, 3, 0)
 
         if self.input.DEBUG_VIEW:
+            _draw_spawn_point_rects()
             _draw_play_area_debug_border()
             _draw_debug_text()
             _draw_cpu_usage()
