@@ -228,11 +228,9 @@ class GameLoop:
             p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
 
             self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30,40), sprite=p1_sprite)
-            self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
-            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
-
             self.player2 = Player(id=1, topleft=self.arena.p2_spawn, size=(30,40), sprite=p2_sprite)
-            self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
+
+            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -657,8 +655,9 @@ class GameLoop:
 
         def _draw_players_debug():
 
-            def _draw_player_debug(p, eye, c1, c2):
+            def _draw_player_debug(p, c1, c2):
                 pygame.draw.rect(self.surface, c1, p)
+                eye = Rect2(topleft=p.topleft, size=(5,5))
                 if p.facing_direction == LEFT:
                     eye.topleft = p.topleft
                     eye.move_ip((+3, 3))
@@ -667,8 +666,8 @@ class GameLoop:
                     eye.move_ip((-3, 3))
                 pygame.draw.rect(self.surface, c2, eye)
 
-            _draw_player_debug(self.player1, self.player1_eyeball, DKRED, BLUE)
-            _draw_player_debug(self.player2, self.player2_eyeball, LBLUE, DKRED)
+            _draw_player_debug(self.player1, DKRED, BLUE)
+            _draw_player_debug(self.player2, LBLUE, DKRED)
 
         def _draw_player_collision_points_for_debugging():
             coll_data = get_collision_data(self.player1, self.arena)
