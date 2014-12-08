@@ -41,7 +41,7 @@ RWALK = 'RWALK'
 JUMP = 'JUMP'
 FALL = 'FALL'
 DEATH = 'DEATH'
-ATTACK = 'ATTACK'  # Might neeed attack1, cast1, etc
+ATTACK = 'ATTACK'
 CAST = 'CAST'
 
 # Gamepad Buttons
@@ -112,9 +112,9 @@ def font_position_center(rect, font, text):
     return rect.left + x, rect.top + y
 
 def out_of_arena_fix(player):
+    """Global to handle players from reaching out of arena."""
     global arena_in_use  # set in GameLoop._setup_arena of main.py
     play_area = arena_in_use.play_area_rect
-    """Global to handle players from reaching out of arena."""
     fixed = False  # Can be used for out-of-bounds checking since it returns true
     if player.left < play_area.left:
         player.left = play_area.left
@@ -174,8 +174,8 @@ arena1 = arena_nt(
         terrain_nt(30, 240, 40, 20, WHITE, 5, False),
         terrain_nt(1145, 465, -5, 5, None, -1, True),
         terrain_nt(15, 465, -5, 5, None, -1, True), ],
-    max_monsters=1, possible_monsters=(WEAK, MEDIUM),
-    background=None, p1_spawn=(200,150), p2_spawn=(1050,150))
+    max_monsters=5, possible_monsters=(WEAK, MEDIUM),
+    background=None, p1_spawn=(200, 150), p2_spawn=(1050, 150))
 
 arena2 = arena_nt(
     left_wall_x=65, right_wall_x=1215, floor_y=475,
@@ -190,8 +190,8 @@ arena2 = arena_nt(
         terrain_nt(970, 65, 80, 10, DKGREEN, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=1, possible_monsters=ALL,
-    background=None, p1_spawn=(200,150), p2_spawn=(1050,150))
+    max_monsters=5, possible_monsters=ALL,
+    background=None, p1_spawn=(200, 150), p2_spawn=(1050, 150))
 
 arena3 = arena_nt(
     left_wall_x=65, right_wall_x=1215, floor_y=458,
@@ -207,8 +207,8 @@ arena3 = arena_nt(
         terrain_nt(785, 120, 227, 40, None, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=0, possible_monsters=ALL,
-    background='data/vines-copy2.png', p1_spawn=(200,150), p2_spawn=(1050,150))
+    max_monsters=5, possible_monsters=ALL,
+    background='data/vines-copy2.png', p1_spawn=(200, 150), p2_spawn=(1050, 150))
 
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'w, h, dx, dy, hp, chase, idle')

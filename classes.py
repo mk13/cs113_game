@@ -321,7 +321,7 @@ class Player(Rect2):
 
 # -------------------------------------------------------------------------
 class Monster(Player):
-    def __init__(self, info, topleft, player1, player2):
+    def __init__(self, info, topleft, player1, player2, color=ORANGE):
         super().__init__(0, topleft, (info.w, info.h))
         self.dx_max, self.dy_max = info.dx, info.dy
         self.hit_points = self.hit_points_max = info.hp
@@ -332,6 +332,7 @@ class Monster(Player):
         self.target, self.status = None, IDLE
         self.last_status_change = 0
         self.ai_input = AI_Input()
+        self.color = color
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)

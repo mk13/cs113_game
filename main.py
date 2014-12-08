@@ -2,7 +2,6 @@
 import os
 import random
 import sys
-
 from collections import deque
 
 # pygame
@@ -178,6 +177,7 @@ class GameLoop:
 
         def _setup_monsters():
             self.active_monsters = []
+            self.dropped_skills = []
             self.spawn_monsters = False
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
 
@@ -281,7 +281,8 @@ class GameLoop:
                 self.player2.dx = self.player2.dx_initial
 
             if self.input.KILLALL and not self.input.PAUSED:
-                self.active_monsters = []
+                for m in self.active_monsters:
+                    m.hit_points = 0
 
             if self.input.EXIT:
                 # Add the QUIT event to the pygame event queue to be handled
@@ -309,6 +310,7 @@ class GameLoop:
                 else:
                     self.active_particles.append(self.player1.new_particle)
                 self.player1.new_particle = None
+
             if self.player2.new_particle:
                 if isinstance(self.player2.new_particle, list):
                     for p in self.player2.new_particle:
@@ -374,18 +376,27 @@ class GameLoop:
 
     # -------------------------------------------------------------------------
     def handle_monsters(self):
-        if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
-            spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
-            monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
-            self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2))
 
-        for m in self.active_monsters:
-            if m.is_dead():
-                self.active_monsters.remove(m)
-            else:
+        def _handle_monster_spawning():
+            if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
+                spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
+                color = random.choice((DKRED, DKGREEN, BLUE, DKYELLOW, PURPLE, ORANGE))  # pick a random color
+                monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
+                self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2, color))
+            self.spawn_monsters = False
+
+        def _handle_dead_monsters():
+            for m in self.active_monsters:
+                if m.is_dead():
+                    self.active_monsters.remove(m)
+
+        def _update_monsters():
+            for m in self.active_monsters:
                 m(self.game_time.msec, self.arena)
 
-        self.spawn_monsters = False
+        _handle_monster_spawning()
+        _handle_dead_monsters()
+        _update_monsters()
 
     # -------------------------------------------------------------------------
     def draw_screen(self):
@@ -545,7 +556,7 @@ class GameLoop:
 
         def _draw_monsters():
             for m in self.active_monsters:
-                pygame.draw.rect(self.surface, ORANGE, m)
+                pygame.draw.rect(self.surface, m.color, m)
                 health_bar = Rect2(left=m.left, top=m.top - 8, width=m.width, height=6)
                 health_bar_width = round(m.width * (m.hit_points / m.hit_points_max))
                 health_bar_life = Rect2(left=m.left, top=m.top - 8, width=health_bar_width, height=6)
