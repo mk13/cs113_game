@@ -130,9 +130,11 @@ def initialize_skill_table():
     SKILLS_TABLE[113]['on_hit_f'] = shatter_on_hit    
     # Cropdust
     ADD_CROP_DUST(114)
-        # Redirect Monster
+    # Redirect Monster
     SKILLS_TABLE[115] = _auto_range('Redirect Monster', 25, 25, 15, 0, 250, 5000, GREEN, 5, 3)
     SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
+    # Personal Faerie
+    ADD_SKILL_PERSONAL_FAERIE(116)
     #-----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     #-----------------------------------------------------------------------------------------
@@ -146,6 +148,8 @@ def initialize_skill_table():
     ADD_ELECTRIC_FIELD(1002)
     # Polarity Shift
     ADD_POLARITY_SHIFT(1003)
+    # Bee Hive
+    ADD_BEE_HIVE(1004)
 
 # Templates=================================================
 def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
@@ -339,7 +343,7 @@ def shrapnel_on_terrain(particle):
 
 
 def ADD_SHIELD(i):
-    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':2}
+    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6}
 def shield_start(sid, player, up=False, down=False):
     sh = classes.Shield(10000,10)
     sh.begin(-1,player)
@@ -511,3 +515,104 @@ def polarity_shift_start(sid, player,up=False, down =False):
         c = classes.Stun(2000)
         c.begin(-1, tar)
     return None
+    
+    
+def ADD_BEE_HIVE(i):
+    SKILLS_TABLE[i] = {'name':'Bee Hive', 'type': None, 'start':bee_hive_start, 'cooldown':300, 'energy':8}
+    SKILLS_TABLE['beehive'] = _auto_range('',40,40, 3, 0, 500, 5000, WHITE, 4, 0)
+    SKILLS_TABLE['beehive']['special_path'] = bee_hive_path
+    SKILLS_TABLE['beehive']['conditions'] = [classes.Dot(3,5,1000)]
+    SKILLS_TABLE['bee1'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee2'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee3'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee4'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee5'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    
+    SKILLS_TABLE["bee1"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery-10))
+    SKILLS_TABLE["bee2"]["special_path"] = (lambda p,t: (p.centerx, p.centery-10))
+    SKILLS_TABLE["bee3"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery-10))
+    SKILLS_TABLE["bee4"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery))
+    SKILLS_TABLE["bee5"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery+10))
+    SKILLS_TABLE["bee6"]["special_path"] = (lambda p,t: (p.centerx, p.centery+10))
+    SKILLS_TABLE["bee7"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery+10))
+    SKILLS_TABLE["bee8"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery))
+def bee_hive_start(sid, player, up=False, down=False):
+    obj = classes.RangeParticle('beehive', player, up, down)
+    obj.dx = 4 if player.facing_direction == RIGHT else -4
+    obj.beeUpdate = -1
+    return obj
+def bee_hive_path(particle,time):
+    if particle.beeUpdate == -1:
+        particle.beeUpdate = time
+        
+    if time - particle.beeUpdate >= 250:
+        particle.beeUpdate = time
+        li = [classes.RangeParticle("bee1",particle.belongs_to,False,False),
+              classes.RangeParticle("bee2",particle.belongs_to,False,False),
+              classes.RangeParticle("bee3",particle.belongs_to,False,False),
+              classes.RangeParticle("bee4",particle.belongs_to,False,False),
+              classes.RangeParticle("bee5",particle.belongs_to,False,False),
+              classes.RangeParticle("bee6",particle.belongs_to,False,False),
+              classes.RangeParticle("bee7",particle.belongs_to,False,False),
+              classes.RangeParticle("bee8",particle.belongs_to,False,False)]
+        for i in range(0,8):
+            li[i].centerx = particle.centerx
+            li[i].centery = particle.centery
+        
+        if particle.belongs_to.new_particle == None:
+            particle.belongs_to.new_particle = li
+        elif isinstance(particle.belongs_to.new_particle,list):
+            particle.belongs_to.new_particle += li
+        else:
+            temp = p.belongs_to.new_particle
+            particle.belongs_to.new_particle = [temp] + li
+        
+    return particle.centerx + particle.dx, particle.centery
+    
+def ADD_SKILL_PERSONAL_FAERIE(i):
+    SKILLS_TABLE[i] = {'name':'Personal Faerie', 'type': None, 'start':personal_faerie_start, 'cooldown':300, 'energy':5}
+    SKILLS_TABLE['personal_faerie'] = _auto_melee('', 10, 10, 0, 5, 5, 300, 5000, LBLUE, 0, 6)
+    SKILLS_TABLE['personal_faerie']['special_path'] = faerie_path
+    SKILLS_TABLE['faerie_shoot'] = _auto_range('', 10, 10, 5, 0.5, 100, 1000, BLUE, 4, 0)
+    SKILLS_TABLE['faerie_shoot']['special_path'] = faerie_shot_path
+def personal_faerie_start(sid, player, up = False, down = False):
+    obj = classes.MeleeParticle('personal_faerie',player)
+    obj.timer = -1
+    obj.centery = player.centery - 20
+    obj.direction = player.facing_direction
+    if player.facing_direction == RIGHT:
+        obj.centerx = player.centerx + 15
+    else:
+        obj.centerx = player.centery - 15
+    return obj
+def faerie_path(p,t):
+    if p.timer == -1:
+        p.timer = t
+        
+    if t - p.timer >= 500:
+        p.timer = t
+        shot = classes.RangeParticle('faerie_shoot', p.belongs_to, False, False)
+        shot.direction = p.direction
+        shot.centerx = p.centerx
+        shot.centery = p.centery
+        shot.dx = 5
+        shot.ddx = 0.5
+        if shot.direction == LEFT:
+            shot.dx *= -1
+            shot.ddx *= -1
+        force_add_particle_to_player(shot, p.belongs_to)
+    
+    y = p.belongs_to.centery - 20
+    if p.direction == RIGHT:
+        x = p.belongs_to.centerx + 15
+    else:
+        x = p.belongs_to.centerx - 15
+    return x,y
+def faerie_shot_path(p,t):
+    y = p.centery
+    x = p.centerx + p.dx
+    p.dx += p.ddx
+    return x,y

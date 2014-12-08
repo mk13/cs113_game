@@ -84,6 +84,8 @@ SPEED = 'SPEED'
 SHIELD = 'SHIELD'
 INVIGORATED = 'INVIGORATED'
 EMPOWERED = 'EMPOWERED'
+BUFFS = [SPEED, SHIELD, INVIGORATED, EMPOWERED]
+DEBUFFS = [STUN, SLOW, SNARE, DOT, SILENCE, WOUNDED, WEAKENED]
 
 # Events
 TIME_TICK_EVENT = USEREVENT + 0
@@ -134,7 +136,35 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
-        target.st_buffer.append((value, time + 2000))
+        target.st_buffer.append((value, time + 2000)) 
+        
+def condition_string(cond, value):
+    st = cond + ": "
+    left = 0 + int(value/1000)
+    right = 0 + int( (value%1000) / 100)
+    st += str(left)
+    st += "."
+    st += str(right)
+    return st
+    
+def force_add_particle_to_player(particle,player):
+    if isinstance(particle,list):
+        if player.new_particle == None:
+            player.new_particle = particle
+        elif isinstance(player.new_particle, list):
+            player.new_particle += particle
+        else:
+            player.new_particle = [player.new_particle] + particle
+    
+    else:
+        if player.new_particle == None:
+            player.new_particle = particle
+        elif isinstance(player.new_particle, list):
+            player.new_particle.append(particle)
+        else:
+            player.new_particle = [player.new_particle, particle]
+        
+        
 
 def turn_off_music():
     global MUSIC_ON
