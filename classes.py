@@ -105,7 +105,7 @@ class Player(Rect2):
         self.skill1_id = 100
         self.skill2_id = 106
         self.skill3_id = 107
-        self.ult_id = 1000
+        self.ult_id = 1004
 
         # attacking
         self.facing_direction = RIGHT
@@ -566,8 +566,10 @@ class MeleeParticle(Particle):
                            # a target, so we need to know who it has hit
                            # to prevent the same target being hit multiple
                            # times
+        self.has_hit_time = []
         self.extend = SKILLS_TABLE[sid]['extend']
         self.dradius = (self.max_radius - self.radius)*35/self.duration
+        self.direction = player.facing_direction
 
     # def update(self, time, player):
     # Let the particle know how it belongs to so it can
@@ -577,6 +579,12 @@ class MeleeParticle(Particle):
         if self.spawn_time == 0:
             self.spawn_time = time
 
+        for i,v in enumerate(self.has_hit_time):
+            if (v+1000) <= time:
+                del self.has_hit[i]
+                del self.has_hit_time[i]
+        
+            
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
@@ -587,7 +595,7 @@ class MeleeParticle(Particle):
         else:
             self.radius += self.dradius
 
-        if self.belongs_to.facing_direction == RIGHT:
+        if self.direction == RIGHT:
             self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
         else:
             self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
@@ -597,6 +605,8 @@ class MeleeParticle(Particle):
     def on_hit(self, target, time):  # DON'T delete time; will use later
         if target != self.belongs_to and target not in self.has_hit:
             self.has_hit.append(target)
+            self.has_hit_time.append(time)
+            
             handle_damage(target, self.dmg, time)
 
             for c in self.conditions:
@@ -722,6 +732,8 @@ class Condition:
         c.start = time
         c.target = target
         target.conditions[c.type].append(c)
+        if not isinstance(self, Shield):
+            target.st_buffer.append((condition_string(self.type,self.duration),time+2000))
 
     def is_expired(self,time):
         if self.start == -1:
@@ -763,6 +775,7 @@ class Dot(Condition):
         c.target = target
         c.last_tick = time
         target.conditions[c.type].append(c)
+        target.st_buffer.append((condition_string(self.type, self.frequency * self.ticks),time+2000))
 
     def is_expired(self, time):
         t = time - self.last_tick
@@ -806,6 +819,7 @@ class Shield(Condition):
     def is_expired(self,time):
         if self.start == -1:
             self.start = time
+            self.target.st_buffer.append((condition_string(self.type,self.duration),time+2000))
         self.remaining = self.duration - time - self.start
         if self.duration <= (time - self.start):
             return True

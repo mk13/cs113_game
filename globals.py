@@ -81,6 +81,8 @@ SPEED = 'SPEED'
 SHIELD = 'SHIELD'
 INVIGORATED = 'INVIGORATED'
 EMPOWERED = 'EMPOWERED'
+BUFFS = [SPEED, SHIELD, INVIGORATED, EMPOWERED]
+DEBUFFS = [STUN, SLOW, SNARE, DOT, SILENCE, WOUNDED, WEAKENED]
 
 # Events
 TIME_TICK_EVENT = USEREVENT + 0
@@ -131,7 +133,17 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
-        target.st_buffer.append((value, time + 2000))
+        target.st_buffer.append((value, time + 2000)) 
+        
+def condition_string(cond, value):
+    st = cond + ": "
+    left = 0 + int(value/1000)
+    right = 0 + int( (value%1000) / 100)
+    st += str(left)
+    st += "."
+    st += str(right)
+    return st
+        
 
 def turn_off_music():
     global MUSIC_ON
