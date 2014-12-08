@@ -168,7 +168,7 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            self.st_font = pygame.font.Font(main_font, 18)  # Scrolling text font
+            self.st_font = pygame.font.Font(main_font, 20)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
 
@@ -561,22 +561,16 @@ class GameLoop:
                 pygame.draw.rect(self.surface, p.color, p)
 
         def _draw_scrolling_text():
-            for t in self.player1.st_buffer:
-                self.surface.blit(self.st_font.render('-' + str(int(t[0])), True, RED),
-                (self.player1.centerx, self.player1.top - (3000 - t[1] + self.game_time.msec) / 50))
-                if t[1] <= self.game_time.msec:
-                    self.player1.st_buffer.remove(t)
-            for t in self.player2.st_buffer:
-                self.surface.blit(self.st_font.render("-"+str(int(t[0])), True, RED), \
-                (self.player2.centerx, self.player2.top - (3000 - t[1] + self.game_time.msec)/50))
-                if t[1] <= self.game_time.msec:
-                    self.player2.st_buffer.remove(t)
-            for m in self.active_monsters:
-                for t in m.st_buffer:
-                    self.surface.blit(self.st_font.render('-' + str(int(t[0])), True, RED),
-                    (m.centerx, m.top - (3000 - t[1] + self.game_time.msec) / 50))
+            for unit in self.active_monsters + [self.player1, self.player2]:
+                for t in unit.st_buffer:
+                    text = t[0] if isinstance(t[0],str) else ("-" + str(int(t[0])))
+                    color = RED
+                    if isinstance(t[0],str) and t[0] in BUFFS:
+                        color = GREEN
+                    self.surface.blit(self.st_font.render(text, True, color),
+                    (unit.centerx, unit.top - (3000 - t[1] + self.game_time.msec)/50))
                     if t[1] <= self.game_time.msec:
-                        m.st_buffer.remove(t)
+                        unit.st_buffer.remove(t)
 
         def _draw_rain():
             if self.make_rain:
@@ -804,7 +798,6 @@ class GameLoop:
                 if event.type == PLAYER2_LOCK_EVENT:
                     self.player2.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
-
         def _handle_player_meditate_events():
             for event in pygame.event.get(PLAYER1_MEDITATE_EVENT):
                 if event.type == PLAYER1_MEDITATE_EVENT:
