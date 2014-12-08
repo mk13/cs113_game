@@ -66,7 +66,9 @@ class Player(Rect2):
         self.topleft_initial = self.topleft
 
         # speed
-        self.dx, self.dy = 10, 4  # initial rates
+        self.dx = 10 if self.id == 1 else -10
+        self.dx_initial = self.dx
+        self.dy = 4  # initial fall rate
         self.dx_max, self.dy_max = 12, 15  # max speed, max fall rate
 
         # acceleration - player input
@@ -108,7 +110,7 @@ class Player(Rect2):
         self.ult_id = 1000
 
         # attacking
-        self.facing_direction = RIGHT
+        self.facing_direction = RIGHT if self.id == 1 else LEFT
         self.attack_cooldown_expired = True
         self.new_particle = None
 
