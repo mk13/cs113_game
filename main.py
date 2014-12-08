@@ -388,6 +388,8 @@ class GameLoop:
         def _handle_dead_monsters():
             for m in self.active_monsters:
                 if m.is_dead():
+                    dropped_skill = Rect2(topleft=m.topleft, size=(10,10), id=100, color=BLACK)
+                    self.arena.dropped_skills.append(dropped_skill)
                     self.active_monsters.remove(m)
 
         def _update_monsters():

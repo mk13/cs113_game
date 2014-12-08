@@ -259,8 +259,15 @@ class Player(Rect2):
                             if self.dy > 0 and not isinstance(self,Monster):
                                 self.dy = 0
 
+        def _check_for_skill_pick_ups(arena):
+            for skill in arena.dropped_skills:
+                if self.colliderect(skill):
+                    self.skill1_id = skill.id
+                    arena.dropped_skills.remove(skill)
+
         _move()  # move then check for collisions
         _check_for_collisions()
+        _check_for_skill_pick_ups(arena)
         out_of_arena_fix(self)  # otherwise, player can jump up and over arena
 
 
@@ -518,10 +525,11 @@ class Arena:
 
         self.play_area_rect = rects[0]
         self.rects = rects[1:]
+        self.dropped_skills = []
 
     def __iter__(self):
         # currently only time iteration is used is when the rects are drawn
-        for rect in [self.play_area_rect] + self.rects:
+        for rect in [self.play_area_rect] + self.rects + self.dropped_skills:
             yield rect
 
 # -------------------------------------------------------------------------
