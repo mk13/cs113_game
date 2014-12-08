@@ -484,7 +484,7 @@ class Input:
         self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A]
         self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X]
         self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
-        self.EXIT = self.kb_input[K_q] or self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
+        self.EXIT = self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
         self.SKILL1 = self.kb_input[K_s]
         self.SKILL2 = self.kb_input[K_d]
         self.SKILL3 = self.kb_input[K_f]
