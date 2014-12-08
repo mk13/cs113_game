@@ -420,6 +420,7 @@ class GameLoop:
 
     # -------------------------------------------------------------------------
     def draw_screen(self):
+
         def _draw_ui():
             self.surface.fill(DGREY)
             if self.arena.background is not None:
@@ -651,7 +652,7 @@ class GameLoop:
             pygame.draw.circle(self.surface, WHITE, mouse_pos, 2, 0)
             pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
             if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and 0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
-                offset_pos_mouse_font = self.debug_font_small.render(str(play_area_mouse_pos), True, BLACK)
+                offset_pos_mouse_font = self.debug_font_small.render(str(play_area_mouse_pos), True, DGREY)
                 self.surface.blit(offset_pos_mouse_font, mouse_pos)
             real_pos_mouse_font = self.debug_font_small.render(str(mouse_pos), True, DKYELLOW)
             self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))

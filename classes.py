@@ -275,7 +275,6 @@ class Player(Rect2):
         _check_for_skill_pick_ups(arena)
         out_of_arena_fix(self)  # otherwise, player can jump up and over arena
 
-
     # Handles attacks, skill buttons, and meditate
     # If multiple pushed, priority is:
     #   ultimate > skill3 > skill2 > skill1 > attack > meditate
@@ -360,7 +359,7 @@ class Monster(Player):
             else:
                 self.target = self.p2
 
-    def _switch_mode(self,time):
+    def _switch_mode(self, time):
         time_spent_in_status = time - self.last_status_change
         if self.status == CHASING and time_spent_in_status > self.chasing_time:
             self.last_status_change = time
@@ -370,7 +369,7 @@ class Monster(Player):
             self.status = CHASING
             self._pick_new_target()
 
-    def _ai(self,time):
+    def _ai(self, time):
         self._switch_mode(time)
         if self.status == CHASING and self.target != None:
             self.ai_input.refresh()
@@ -510,8 +509,7 @@ class Arena:
         self.max_monsters = arena_info.max_monsters
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
-        self.p1_spawn = arena_info.p1_spawn
-        self.p2_spawn = arena_info.p2_spawn
+
 
         self.floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
         self.left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)
@@ -519,6 +517,10 @@ class Arena:
 
         play_area_color = SKYBLUE if arena_info.background is None else None
         play_area = Rect2(self.left_wall.right, 0, self.right_wall.left - self.left_wall.right, self.floor.top, color=play_area_color)
+        self.p1_spawn = (arena_info.p1_spawn[0] + play_area.left, arena_info.p1_spawn[1])
+        self.p2_spawn = (arena_info.p2_spawn[0] + play_area.left, arena_info.p1_spawn[1])
+        print(self.p1_spawn)
+        print(self.p2_spawn)
         platforms = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.platforms]
 
         rects = [play_area, self.floor, self.left_wall, self.right_wall] + platforms
