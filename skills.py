@@ -133,6 +133,8 @@ def initialize_skill_table():
     # Redirect Monster
     SKILLS_TABLE[115] = _auto_range('Redirect Monster', 25, 25, 15, 0, 250, 5000, GREEN, 5, 3)
     SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
+    # Personal Faerie
+    ADD_SKILL_PERSONAL_FAERIE(116)
     #-----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     #-----------------------------------------------------------------------------------------
@@ -537,14 +539,11 @@ def ADD_BEE_HIVE(i):
     SKILLS_TABLE["bee6"]["special_path"] = (lambda p,t: (p.centerx, p.centery+10))
     SKILLS_TABLE["bee7"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery+10))
     SKILLS_TABLE["bee8"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery))
-    
-    
 def bee_hive_start(sid, player, up=False, down=False):
     obj = classes.RangeParticle('beehive', player, up, down)
     obj.dx = 4 if player.facing_direction == RIGHT else -4
     obj.beeUpdate = -1
     return obj
-    
 def bee_hive_path(particle,time):
     if particle.beeUpdate == -1:
         particle.beeUpdate = time
@@ -572,3 +571,48 @@ def bee_hive_path(particle,time):
             particle.belongs_to.new_particle = [temp] + li
         
     return particle.centerx + particle.dx, particle.centery
+    
+def ADD_SKILL_PERSONAL_FAERIE(i):
+    SKILLS_TABLE[i] = {'name':'Personal Faerie', 'type': None, 'start':personal_faerie_start, 'cooldown':300, 'energy':5}
+    SKILLS_TABLE['personal_faerie'] = _auto_melee('', 10, 10, 0, 5, 5, 300, 5000, LBLUE, 0, 6)
+    SKILLS_TABLE['personal_faerie']['special_path'] = faerie_path
+    SKILLS_TABLE['faerie_shoot'] = _auto_range('', 10, 10, 5, 0.5, 100, 1000, BLUE, 4, 0)
+    SKILLS_TABLE['faerie_shoot']['special_path'] = faerie_shot_path
+def personal_faerie_start(sid, player, up = False, down = False):
+    obj = classes.MeleeParticle('personal_faerie',player)
+    obj.timer = -1
+    obj.centery = player.centery - 20
+    obj.direction = player.facing_direction
+    if player.facing_direction == RIGHT:
+        obj.centerx = player.centerx + 15
+    else:
+        obj.centerx = player.centery - 15
+    return obj
+def faerie_path(p,t):
+    if p.timer == -1:
+        p.timer = t
+        
+    if t - p.timer >= 500:
+        p.timer = t
+        shot = classes.RangeParticle('faerie_shoot', p.belongs_to, False, False)
+        shot.direction = p.direction
+        shot.centerx = p.centerx
+        shot.centery = p.centery
+        shot.dx = 5
+        shot.ddx = 0.5
+        if shot.direction == LEFT:
+            shot.dx *= -1
+            shot.ddx *= -1
+        force_add_particle_to_player(shot, p.belongs_to)
+    
+    y = p.belongs_to.centery - 20
+    if p.direction == RIGHT:
+        x = p.belongs_to.centerx + 15
+    else:
+        x = p.belongs_to.centerx - 15
+    return x,y
+def faerie_shot_path(p,t):
+    y = p.centery
+    x = p.centerx + p.dx
+    p.dx += p.ddx
+    return x,y

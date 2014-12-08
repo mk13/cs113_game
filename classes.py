@@ -102,8 +102,8 @@ class Player(Rect2):
 
         #specific testing:
         self.attack_id = 1
-        self.skill1_id = 100
-        self.skill2_id = 106
+        self.skill1_id = 116
+        self.skill2_id = 109
         self.skill3_id = 107
         self.ult_id = 1004
 
@@ -542,6 +542,8 @@ class Particle(Rect2):
         self.on_hit_f = None
         self.on_expire_f = None
         self.on_terrain_f = None
+        self.persistent_f = None
+        self.special_f = None
 
         if 'conditions' in SKILLS_TABLE[sid].keys():
             for c in SKILLS_TABLE[sid]['conditions']:
@@ -552,6 +554,10 @@ class Particle(Rect2):
             self.on_expire_f = SKILLS_TABLE[sid]['on_expire_f']
         if 'on_terrain_f' in SKILLS_TABLE[sid].keys():
             self.on_terrain_f = SKILLS_TABLE[sid]['on_terrain_f']
+        if 'persistent_f' in SKILLS_TABLE[sid].keys():
+            self.persistent_f = SKILLS_TABLE[sid]['persistent_f']
+        if 'special_path' in SKILLS_TABLE[sid].keys():
+            self.special_f = SKILLS_TABLE[sid]['special_path']
 
 # -------------------------------------------------------------------------
 class MeleeParticle(Particle):
@@ -584,23 +590,28 @@ class MeleeParticle(Particle):
                 del self.has_hit[i]
                 del self.has_hit_time[i]
         
-            
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
 
-        if self.extend:
-            self.width += self.dradius
-            self.radius += self.dradius/2
+        if self.special_f:
+            self.centerx, self.centery = self.special_f(self,time)
         else:
-            self.radius += self.dradius
+            if self.extend:
+                self.width += self.dradius
+                self.radius += self.dradius/2
+            else:
+                self.radius += self.dradius
 
-        if self.direction == RIGHT:
-            self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
-        else:
-            self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
+            if self.direction == RIGHT:
+                self.centerx = self.belongs_to.centerx + self.radius * math.cos((1 - r) * self.arc)
+            else:
+                self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
-        self.centery = self.belongs_to.centery - 10 - self.radius * math.sin((1 - r) * self.arc)
+            self.centery = self.belongs_to.centery - 10 - self.radius * math.sin((1 - r) * self.arc)
+            
+        if self.persistent_f:
+            self.persistent_f(self,time)
 
     def on_hit(self, target, time):  # DON'T delete time; will use later
         if target != self.belongs_to and target not in self.has_hit:
@@ -630,23 +641,19 @@ class RangeParticle(Particle):
         self.originy = player.centery  # These might be useful later on
 
         # If has special path, upload function to special_f
-        if 'special_path' in SKILLS_TABLE[sid].keys():
-            self.has_special = True
-            self.special_f = SKILLS_TABLE[sid]['special_path']
-        else:  # Using standard linear path
-            self.dx = SKILLS_TABLE[sid]['speed']
-            self.ddx = SKILLS_TABLE[sid]['acceleration']
+        self.dx = SKILLS_TABLE[sid]['speed']
+        self.ddx = SKILLS_TABLE[sid]['acceleration']
 
-            # if player pressed up
-            if up:
-                self.dy = SKILLS_TABLE[sid]['speed'] * -1
-                self.ddy = SKILLS_TABLE[sid]['acceleration'] * -1
-            elif down:
-                self.dy = SKILLS_TABLE[sid]['speed']
-                self.ddy = SKILLS_TABLE[sid]['acceleration']
-            elif not up and not down:
-                self.dy = 0
-                self.ddy = 0
+        # if player pressed up
+        if up:
+            self.dy = SKILLS_TABLE[sid]['speed'] * -1
+            self.ddy = SKILLS_TABLE[sid]['acceleration'] * -1
+        elif down:
+            self.dy = SKILLS_TABLE[sid]['speed']
+            self.ddy = SKILLS_TABLE[sid]['acceleration']
+        elif not up and not down:
+            self.dy = 0
+            self.ddy = 0
 
         # initial position
         if player.facing_direction == RIGHT:
@@ -659,9 +666,8 @@ class RangeParticle(Particle):
             self.centerx -= 30
         else:
             self.centerx += 30
-            if not self.has_special:
-                self.dx *= -1
-                self.ddx *= -1
+            self.dx *= -1
+            self.ddx *= -1
 
     def update(self, time):
         if self.spawn_time == 0:
@@ -670,13 +676,16 @@ class RangeParticle(Particle):
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
 
-        if self.has_special:
+        if self.special_f:
             self.centerx,self.centery = self.special_f(self,time)
         else:
             self.dx += self.ddx
             self.dy += self.ddy
             self.centerx += self.dx
             self.centery += self.dy
+        
+        if self.persistent_f:
+            self.persistent_f(self,time)
 
     def on_hit(self, target, time):  # DONT delete time; will use later
         if target != self.belongs_to:

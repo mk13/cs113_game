@@ -143,6 +143,24 @@ def condition_string(cond, value):
     st += "."
     st += str(right)
     return st
+    
+def force_add_particle_to_player(particle,player):
+    if isinstance(particle,list):
+        if player.new_particle == None:
+            player.new_particle = particle
+        elif isinstance(player.new_particle, list):
+            player.new_particle += particle
+        else:
+            player.new_particle = [player.new_particle] + particle
+    
+    else:
+        if player.new_particle == None:
+            player.new_particle = particle
+        elif isinstance(player.new_particle, list):
+            player.new_particle.append(particle)
+        else:
+            player.new_particle = [player.new_particle, particle]
+        
         
 
 def turn_off_music():
