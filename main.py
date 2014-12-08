@@ -34,7 +34,6 @@ if os.environ['COMPUTERNAME'] == 'MAX-LT':
 
 # -------------------------------------------------------------------------
 class StartMenu:
-
     def __init__(self):
         def _setup_display():
             pygame.display.set_mode((1280, 600))
@@ -145,7 +144,7 @@ class GameLoop:
 
         def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
-            GL.arena_in_use = self.arena
+            GL.arena_in_use = self.arena  # used for out_of_arena_fix within global.py
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -349,9 +348,10 @@ class GameLoop:
         def _check_particle_collisions():
             for p in self.active_particles:
                 opposite = self.player2 if p.belongs_to == self.player1 else self.player1
-                #Ranged Particle
+
+                # Ranged Particle
                 if isinstance(p, RangeParticle):
-                    #Check Terrains
+                    # Check Terrains
                     all_terrain_hit_i = p.p_collidelistall(self.arena.rects)
                     if all_terrain_hit_i:  # False if empty list
                         if p.on_terrain_f:
@@ -361,7 +361,7 @@ class GameLoop:
                             self.arena.rects[i].hits_to_destroy -= 1
                             if self.arena.rects[i].hits_to_destroy == 0:
                                 self.arena.rects.pop(i)
-                    #Check Monsters
+                    # Check Monsters
                     else:
                         first_hit = p.collidelist(self.active_monsters)
                         if first_hit != -1:  # If hit a monsters
@@ -372,9 +372,9 @@ class GameLoop:
                             if p.colliderect(opposite):
                                 p.on_hit(opposite, self.game_time.msec)
                                 self.active_particles.remove(p)
-                #Melee Particle
+                # Melee Particle
                 else:
-                    #Check Monsters
+                    # Check Monsters
                     all_monsters_hit_i = p.collidelistall(self.active_monsters)
                     for i in all_monsters_hit_i:
                         p.on_hit(self.active_monsters[i], self.game_time.msec)
@@ -384,7 +384,7 @@ class GameLoop:
                         self.arena.rects[first_terrain_hit_i].hits_to_destroy -= 1
                         if self.arena.rects[first_terrain_hit_i].hits_to_destroy == 0:
                             self.arena.rects.pop(first_terrain_hit_i)
-                    #Check Player
+                    # Check Player
                     if p.colliderect(opposite):
                         p.on_hit(opposite, self.game_time.msec)
 
@@ -397,16 +397,16 @@ class GameLoop:
 
         def _handle_monster_spawning():
             if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
-                spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
+                spawn_point = self.arena.random_spawn_point  # pick a random spawn point
                 color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
-                monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
+                monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]  # pick a random monster
                 self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2, color))
             self.spawn_monsters = False
 
         def _handle_dead_monsters():
             for m in self.active_monsters:
                 if m.is_dead():
-                    dropped_skill = Rect2(topleft=m.topleft, size=(10,10), id=100, color=BLACK)
+                    dropped_skill = Rect2(topleft=m.topleft, size=(10, 10), id=100, color=BLACK)
                     self.arena.dropped_skills.append(dropped_skill)
                     self.active_monsters.remove(m)
 
@@ -426,21 +426,21 @@ class GameLoop:
                 self.image = pygame.image.load(self.arena.background)
                 self.screen.blit(self.image, (self.arena.play_area_rect.left, 0))
 
-            #font for player's health and energy
-            #health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
-            #energy_display = self.energy_font.render(str(int(self.player1.energy)), True, YELLOW)
-            #self.surface.blit(health_display, self.health_font_xy)
-            #self.surface.blit(energy_display, self.energy_font_xy)
+            # font for player's health and energy
+            # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
+            # energy_display = self.energy_font.render(str(int(self.player1.energy)), True, YELLOW)
+            # self.surface.blit(health_display, self.health_font_xy)
+            # self.surface.blit(energy_display, self.energy_font_xy)
 
-            #health bars
-            #currently only goes off of one player's health
-            #left health bar outline image
+            # health bars
+            # currently only goes off of one player's health
+            # left health bar outline image
             self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
             self.surface.blit(self.health_bar_outline, (5, 20))
             self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
             self.surface.blit(self.health_bar_outline2, (1239, 20))
-            #right health bar outline image
-            #dynamic health bars
+            # right health bar outline image
+            # dynamic health bars
             self.damage_taken1 = self.player1.hit_points_max - self.player1.hit_points
             self.damage_taken2 = self.player2.hit_points_max - self.player2.hit_points
             self.health_bar1 = Rect((20, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
@@ -449,13 +449,13 @@ class GameLoop:
             pygame.draw.rect(self.surface, YELLOW, self.health_bar2)
 
             # need to add dynamic aspect of energy bars
-            #left energy bar outline image
+            # left energy bar outline image
             self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
             self.surface.blit(self.energy_bar_outline, (5, 280))
-            #right energy bar outline image
+            # right energy bar outline image
             self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
             self.surface.blit(self.energy_bar_outline2, (1239, 280))
-            #dynamic energy bars
+            # dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
             self.energy_used2 = 10 - self.player2.energy
             self.energy_bar1 = Rect((20, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
@@ -491,8 +491,8 @@ class GameLoop:
                 # Draw player 1
                 if p.state != p.previous_state:
                     p.wait_frames = 0
-                    p.animation_key = -1  # -1 because it will always get
-                                                # incremented at the start of each check
+                    p.animation_key = -1
+                    # -1 because it will always get incremented at the start of each check
                 flip = False  # value for flipping sprite
 
                 # Animations that still need to be implemented
@@ -602,7 +602,7 @@ class GameLoop:
     def draw_debug(self):
 
         def _draw_spawn_point_rects():
-            for rect in filter(lambda x: x.spawn_point, self.arena):
+            for rect in self.arena.spawn_points:
                 pygame.draw.rect(self.surface, RED, rect)
 
         def _draw_play_area_debug_border():
@@ -640,7 +640,7 @@ class GameLoop:
             self.surface.blit(cpu_font, self.debug_font_xy7)
 
         def _draw_destructible_terrain_debug_text():
-            for rect in filter(lambda x: x.hits_to_destroy > 0, self.arena):
+            for rect in self.arena.destructible_terrain:
                 rendered_debug_font = self.debug_font_small_2.render(str(rect.hits_to_destroy), True, BLACK)
                 pos = font_position_center(rect, self.debug_font_small_2, str(rect.hits_to_destroy))
                 self.surface.blit(rendered_debug_font, pos)
@@ -750,7 +750,7 @@ class GameLoop:
         def _handle_regeneration_event():
             for event in pygame.event.get(REGENERATION_EVENT):
                 if event.type == REGENERATION_EVENT:
-                    #Player 1
+                    # Player 1
                     if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
                         self.player1.hit_points += self.player1.level / 20
                     elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
@@ -768,7 +768,7 @@ class GameLoop:
                         self.player1.energy += self.player1.level / 5
                     if self.player1.energy > 10:
                         self.player1.energy = 10
-                    #Player 2
+                    # Player 2
                     if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
                         self.player2.hit_points += self.player2.level / 20
                     elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
@@ -798,6 +798,7 @@ class GameLoop:
                 if event.type == PLAYER2_LOCK_EVENT:
                     self.player2.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
+
         def _handle_player_meditate_events():
             for event in pygame.event.get(PLAYER1_MEDITATE_EVENT):
                 if event.type == PLAYER1_MEDITATE_EVENT:
@@ -841,14 +842,14 @@ class GameLoop:
             self.input._handle_gamepad_updown_events()
             pygame.event.clear()
 
-# -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def play_next_random_song(self):
-        self.next_song = random.choice([s for s in self.songs if s != self.curr_song])
-        self.curr_song = self.next_song
-        pygame.mixer.music.load(self.next_song)
+        next_song = random.choice([s for s in self.songs if s != self.curr_song])
+        self.curr_song = next_song
+        pygame.mixer.music.load(next_song)
         pygame.mixer.music.play()
         pygame.mixer.music.set_endevent(SONG_END_EVENT)
-        print('new song: {}'.format(self.next_song.replace('data/', '').replace('.mp3', '')))
+        print('new song: {}'.format(next_song.replace('data/', '').replace('.mp3', '')))
 
 # -------------------------------------------------------------------------
 if __name__ == '__main__':

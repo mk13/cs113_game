@@ -513,18 +513,15 @@ class Arena:
         self.p1_spawn = arena_info.p1_spawn
         self.p2_spawn = arena_info.p2_spawn
 
-        floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
-        left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)
-        right_wall = Rect2(arena_info.right_wall_x, 0, 1280 - arena_info.right_wall_x, 600, color=None)
-        self.floor = floor
-        self.left_wall = left_wall
-        self.right_wall = right_wall
+        self.floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
+        self.left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)
+        self.right_wall = Rect2(arena_info.right_wall_x, 0, 1280 - arena_info.right_wall_x, 600, color=None)
 
         play_area_color = SKYBLUE if arena_info.background is None else None
-        play_area = Rect2(left_wall.right, 0, right_wall.left - left_wall.right, floor.top, color=play_area_color)
+        play_area = Rect2(self.left_wall.right, 0, self.right_wall.left - self.left_wall.right, self.floor.top, color=play_area_color)
         platforms = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.platforms]
 
-        rects = [play_area, floor, left_wall, right_wall] + platforms
+        rects = [play_area, self.floor, self.left_wall, self.right_wall] + platforms
         for rect in rects[4:]:  # don't shift the first 4 rects
             rect.move_ip((play_area.left, 0))  # to account for play area starting 65 pixels from left
 
@@ -536,6 +533,18 @@ class Arena:
         # currently only time iteration is used is when the rects are drawn
         for rect in [self.play_area_rect] + self.rects + self.dropped_skills:
             yield rect
+
+    @property
+    def spawn_points(self):
+        return filter(lambda x: x.spawn_point, self)
+
+    @property
+    def destructible_terrain(self):
+        return filter(lambda x: x.hits_to_destroy > 0, self)
+
+    @property
+    def random_spawn_point(self):
+        return random.choice(list(self.spawn_points))
 
 # -------------------------------------------------------------------------
 class Particle(Rect2):
@@ -605,7 +614,7 @@ class MeleeParticle(Particle):
             if (v+1000) <= time:
                 del self.has_hit[i]
                 del self.has_hit_time[i]
-        
+
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
@@ -625,7 +634,7 @@ class MeleeParticle(Particle):
                 self.centerx = self.belongs_to.centerx - self.radius * math.cos((1 - r) * self.arc)
 
             self.centery = self.belongs_to.centery - 10 - self.radius * math.sin((1 - r) * self.arc)
-            
+
         if self.persistent_f:
             self.persistent_f(self,time)
 
@@ -633,7 +642,7 @@ class MeleeParticle(Particle):
         if target != self.belongs_to and target not in self.has_hit:
             self.has_hit.append(target)
             self.has_hit_time.append(time)
-            
+
             handle_damage(target, self.dmg, time)
 
             for c in self.conditions:
@@ -699,7 +708,7 @@ class RangeParticle(Particle):
             self.dy += self.ddy
             self.centerx += self.dx
             self.centery += self.dy
-        
+
         if self.persistent_f:
             self.persistent_f(self,time)
 
