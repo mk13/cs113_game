@@ -200,21 +200,21 @@ class GameLoop:
             def _setup_player_sprites(spritesheet):
                 try:
                     spritesheet1 = pygame.image.load(spritesheet)
-                except:
-                    raise (UserWarning, "Unable to load sprites")  # error msg and exit
-                spritesheet1.convert()
+                    spritesheet1.convert()
+                except pygame.error:
+                    return None
 
                 m1 = []
                 # Put spritesheet into list, each sprite is 64x64 pixels large
-                for num in range(1, 7, 1):  # Standing
+                for num in range(1, 7):  # Standing
                     m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
-                for num in range(7, 15, 1):  # Walk Transition
+                for num in range(7, 15):  # Walk Transition
                     m1.append(spritesheet1.subsurface((64 * (num - 7), 64, 64, 64)))
-                for num in range(15, 23, 1):  # Walk Part 1
+                for num in range(15, 23):  # Walk Part 1
                     m1.append(spritesheet1.subsurface((64 * (num - 15), 128, 64, 64)))
-                for num in range(23, 31, 1):  # Walk Part 2
+                for num in range(23, 31):  # Walk Part 2
                     m1.append(spritesheet1.subsurface((64 * (num - 23), 192, 64, 64)))
-                for num in range(31, 35, 1):  # Jump and Fall
+                for num in range(31, 35):  # Jump and Fall
                     m1.append(spritesheet1.subsurface((64 * (num - 31), 256, 64, 64)))
 
                 for num in range(len(m1)):
@@ -237,13 +237,13 @@ class GameLoop:
         def _setup_skill_boxes():
             self.skill_boxes = [
                 # player 1 skill boxes
-                Rect2(topleft=(90, 500),  size=(40, 40), color=BLACK),
+                Rect2(topleft=(90, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
                 # player 2 skill boxes
-                Rect2(topleft=(950, 500),  size=(40, 40), color=DKRED),
+                Rect2(topleft=(950, 500), size=(40, 40), color=DKRED),
                 Rect2(topleft=(1000, 500), size=(40, 40), color=DKRED),
                 Rect2(topleft=(1050, 500), size=(40, 40), color=DKRED),
                 Rect2(topleft=(1100, 500), size=(40, 40), color=DKRED),
@@ -543,8 +543,10 @@ class GameLoop:
                         pygame.transform.flip(p.sprite[p.animation_key + 1], flip, False), (p.left - 17, p.top - 22))
                 p.wait_frames += -1
 
-            _draw_player(self.player1)
-            _draw_player(self.player2)
+            if self.player1.sprite is not None:
+                _draw_player(self.player1)
+            if self.player2.sprite is not None:
+                _draw_player(self.player2)
 
         def _draw_monsters():
             for m in self.active_monsters:
@@ -657,7 +659,7 @@ class GameLoop:
             real_pos_mouse_font = self.debug_font_small.render(str(mouse_pos), True, DKYELLOW)
             self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
 
-        def _draw_players_debug():
+        def _draw_players_debug(draw_p1=True, draw_p2=True):
 
             def _draw_player_debug(p, c1, c2):
                 pygame.draw.rect(self.surface, c1, p)
@@ -670,8 +672,10 @@ class GameLoop:
                     eye.move_ip((-3, 3))
                 pygame.draw.rect(self.surface, c2, eye)
 
-            _draw_player_debug(self.player1, DKRED, LBLUE)
-            _draw_player_debug(self.player2, LBLUE, DKRED)
+            if draw_p1:
+                _draw_player_debug(self.player1, DKRED, LBLUE)
+            if draw_p2:
+                _draw_player_debug(self.player2, LBLUE, DKRED)
 
         def _draw_player_collision_points_for_debugging():
             coll_data = get_collision_data(self.player1, self.arena)
@@ -699,6 +703,11 @@ class GameLoop:
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
             _draw_mouse_text()
+        elif not self.input.DEBUG_VIEW:
+            if self.player1.sprite is None:
+                _draw_players_debug(draw_p1=True, draw_p2=False)
+            if self.player2.sprite is None:
+                _draw_players_debug(draw_p1=False, draw_p2=True)
 
     # -------------------------------------------------------------------------
     def handle_event_queue(self):
