@@ -235,6 +235,21 @@ class GameLoop:
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
 
+        def _setup_skill_boxes():
+            self.skill_boxes = [
+                #player 1 skill boxes
+                Rect2(topleft=(90, 500),  size=(40, 40), color=BLACK),
+                Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
+                #player 2 skill boxes
+                Rect2(topleft=(950, 500),  size=(40, 40), color=DKRED),
+                Rect2(topleft=(1000, 500), size=(40, 40), color=DKRED),
+                Rect2(topleft=(1050, 500), size=(40, 40), color=DKRED),
+                Rect2(topleft=(1100, 500), size=(40, 40), color=DKRED),
+                Rect2(topleft=(1150, 500), size=(40, 40), color=DKRED), ]
+
         pygame.init()
         _setup_display()
         _setup_time()
@@ -248,6 +263,7 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_players()
+        _setup_skill_boxes()
 
     # ------------------------------------------------------------------------
     def __call__(self):
@@ -445,42 +461,13 @@ class GameLoop:
             pygame.draw.rect(self.surface, GREEN, self.energy_bar1)
             pygame.draw.rect(self.surface, GREEN, self.energy_bar2)
 
-            #player 1 skill boxes
-            #each skill will have an image associated with it - stored in skill table?
-            self.skill_box1 = Rect((90, 500), (40, 40))
-            pygame.draw.rect(self.surface, BLACK, self.skill_box1)
-
-            self.skill_box2 = Rect((140, 500), (40, 40))
-            pygame.draw.rect(self.surface, BLACK, self.skill_box2)
-            #self.image_box2 = pygame.image.load('assets/temp_skill.PNG')
-            #self.surface.blit(self.image_box2, (150,510))
-
-            self.skill_box3 = Rect((190, 500), (40, 40))
-            pygame.draw.rect(self.surface, BLACK, self.skill_box3)
-
-            self.skill_box4 = Rect((240, 500), (40, 40))
-            pygame.draw.rect(self.surface, BLACK, self.skill_box4)
-
-            self.skill_box5 = Rect((290, 500), (40, 40))
-            pygame.draw.rect(self.surface, BLACK, self.skill_box5)
-
-            #player 2 skill boxes
-            self.skill_box6 = Rect((950, 500), (40, 40))
-            pygame.draw.rect(self.surface, DKRED, self.skill_box6)
-
-            self.skill_box7 = Rect((1000, 500), (40, 40))
-            pygame.draw.rect(self.surface, DKRED, self.skill_box7)
-            #self.image_box2 = pygame.image.load('assets/temp_skill.PNG')
-            #self.surface.blit(self.image_box2, (150,510))
-
-            self.skill_box8 = Rect((1050, 500), (40, 40))
-            pygame.draw.rect(self.surface, DKRED, self.skill_box8)
-
-            self.skill_box9 = Rect((1100, 500), (40, 40))
-            pygame.draw.rect(self.surface, DKRED, self.skill_box9)
-
-            self.skill_box10 = Rect((1150, 500), (40, 40))
-            pygame.draw.rect(self.surface, DKRED, self.skill_box10)
+            skill_ids = self.player1.skills + self.player2.skills
+            for i, skill_box in enumerate(self.skill_boxes):
+                pygame.draw.rect(self.surface, skill_box.color, skill_box)
+                skill_text = str(skill_ids[i])
+                skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
+                skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
+                self.surface.blit(skill_font, skill_text_xy)
 
             self.return_button.draw(self.surface)
 
@@ -861,14 +848,12 @@ class GameLoop:
 
 # -------------------------------------------------------------------------
     def play_next_random_song(self):
-        print('self.songs', self.songs)
-        print('self.curr_song', self.curr_song)
         self.next_song = random.choice([s for s in self.songs if s != self.curr_song])
         self.curr_song = self.next_song
-        print('self.next_song', self.next_song)
         pygame.mixer.music.load(self.next_song)
         pygame.mixer.music.play()
         pygame.mixer.music.set_endevent(SONG_END_EVENT)
+        print('new song: {}'.format(self.next_song.replace('data/', '').replace('.mp3', '')))
 
 # -------------------------------------------------------------------------
 if __name__ == '__main__':

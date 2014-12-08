@@ -66,7 +66,7 @@ class Player(Rect2):
         self.topleft_initial = self.topleft
 
         # speed
-        self.dx = 10 if self.id == 1 else -10
+        self.dx = 10 if self.id == 1 else -10  # initial speed
         self.dx_initial = self.dx
         self.dy = 4  # initial fall rate
         self.dx_max, self.dy_max = 12, 15  # max speed, max fall rate
@@ -123,6 +123,10 @@ class Player(Rect2):
         self.sprite = sprite
         self.wait_frames = 0
         self.animation_key = -1
+
+    @property
+    def skills(self):
+        return [self.attack_id, self.skill1_id, self.skill2_id, self.skill3_id, self.ult_id]
 
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)
