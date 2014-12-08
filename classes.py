@@ -57,12 +57,12 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, left, top, width, height, sprite=None):
+    def __init__(self, id, topleft, size, sprite=None):
         # id = 1 if player 1, id = 2 if player 2
         self.id = id
 
         # position
-        super().__init__(left, top, width, height)
+        super().__init__(topleft, size)
         self.topleft_initial = self.topleft
 
         # speed
@@ -319,8 +319,8 @@ class Player(Rect2):
 
 # -------------------------------------------------------------------------
 class Monster(Player):
-    def __init__(self, info, left, top, player1, player2):
-        super().__init__(0, left, top, info.w, info.h)
+    def __init__(self, info, topleft, player1, player2):
+        super().__init__(0, topleft, (info.w, info.h))
         self.dx_max, self.dy_max = info.dx, info.dy
         self.hit_points = self.hit_points_max = info.hp
         self.chasing_time = info.chase
@@ -495,6 +495,8 @@ class Arena:
         self.max_monsters = arena_info.max_monsters
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
+        self.p1_spawn = arena_info.p1_spawn
+        self.p2_spawn = arena_info.p2_spawn
 
         floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
         left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)

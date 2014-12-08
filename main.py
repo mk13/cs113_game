@@ -227,11 +227,11 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
             p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
 
-            self.player1 = Player(id=1, left=200, top=150, width=30, height=40, sprite=p1_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30,40), sprite=p1_sprite)
             self.player1_eyeball = Rect2(left=200, top=150, width=5, height=5)
             self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
 
-            self.player2 = Player(id=1, left=1080, top=150, width=30, height=40, sprite=p2_sprite)
+            self.player2 = Player(id=1, topleft=self.arena.p2_spawn, size=(30,40), sprite=p2_sprite)
             self.player2_eyeball = Rect2(left=1080, top=150, width=5, height=5)
 
             self.player1.opposite = self.player2  # Makes things a lot easier
@@ -376,7 +376,7 @@ class GameLoop:
         if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
             spawn_point = random.choice(list(filter(lambda x: x.spawn_point, self.arena)))  # pick a random spawn point
             monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]
-            self.active_monsters.append(Monster(monster_info, spawn_point.left, spawn_point.top, self.player1, self.player2))
+            self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2))
 
         for m in self.active_monsters:
             if m.is_dead():

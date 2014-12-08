@@ -160,7 +160,7 @@ def get_music_on():
     return MUSIC_ON
 
 # Arenas
-arena_nt = namedtuple('arena_nt', 'left_wall_x, right_wall_x, floor_y, platforms, max_monsters, possible_monsters, background')
+arena_nt = namedtuple('arena_nt', 'left_wall_x, right_wall_x, floor_y, platforms, max_monsters, possible_monsters, background, p1_spawn, p2_spawn')
 terrain_nt = namedtuple('terrain_nt', 'left, top, width, height, color, hits_to_destroy, spawn_point')
 
 arena1 = arena_nt(
@@ -176,7 +176,7 @@ arena1 = arena_nt(
         terrain_nt(15, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
     possible_monsters=(WEAK, MEDIUM),
-    background=None)
+    background=None, p1_spawn=(200,150), p2_spawn=(1080,150))
 
 arena2 = arena_nt(
     left_wall_x=65, right_wall_x=1215, floor_y=475,
@@ -193,7 +193,7 @@ arena2 = arena_nt(
         terrain_nt(930, 465, -5, 5, RED, -1, True), ],
     max_monsters=1,
     possible_monsters=ALL,
-    background=None)
+    background=None, p1_spawn=(200,150), p2_spawn=(1080,150))
 
 arena3 = arena_nt(
     left_wall_x=65, right_wall_x=1215, floor_y=458,
@@ -211,7 +211,7 @@ arena3 = arena_nt(
         terrain_nt(930, 465, -5, 5, RED, -1, True), ],
     max_monsters=0,
     possible_monsters=ALL,
-    background='data/vines-copy2.png')
+    background='data/vines-copy2.png', p1_spawn=(200,150), p2_spawn=(1080,150))
 
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'w, h, dx, dy, hp, chase, idle')
