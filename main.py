@@ -100,16 +100,16 @@ class StartMenu:
         self.screen.blit(self.title1, (495, 120))
         self.screen.blit(self.title2, (450, 175))
 
-        #text for transparent buttons
-        #self.button_font = pygame.font.Font('data/Kremlin.ttf', 30)
-        #self.b_start = self.button_font.render('Start', True, DKRED)
-        #self.b_help = self.button_font.render('Help', True, DKRED)
-        #self.b_options = self.button_font.render('Options', True, DKRED)
-        #self.b_exit = self. button_font.render('Exit', True, DKRED)
-        #self.screen.blit(self.b_start, (340, 400))
-        #self.screen.blit(self.b_help, (500, 400))
-        #self.screen.blit(self.b_options, (630, 400))
-        #self.screen.blit(self.b_exit, (845, 400))
+        # text for transparent buttons
+        # self.button_font = pygame.font.Font('data/Kremlin.ttf', 30)
+        # self.b_start = self.button_font.render('Start', True, DKRED)
+        # self.b_help = self.button_font.render('Help', True, DKRED)
+        # self.b_options = self.button_font.render('Options', True, DKRED)
+        # self.b_exit = self. button_font.render('Exit', True, DKRED)
+        # self.screen.blit(self.b_start, (340, 400))
+        # self.screen.blit(self.b_help, (500, 400))
+        # self.screen.blit(self.b_options, (630, 400))
+        # self.screen.blit(self.b_exit, (845, 400))
 
         pygame.display.flip()
 
@@ -236,13 +236,13 @@ class GameLoop:
 
         def _setup_skill_boxes():
             self.skill_boxes = [
-                #player 1 skill boxes
+                # player 1 skill boxes
                 Rect2(topleft=(90, 500),  size=(40, 40), color=BLACK),
                 Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
-                #player 2 skill boxes
+                # player 2 skill boxes
                 Rect2(topleft=(950, 500),  size=(40, 40), color=DKRED),
                 Rect2(topleft=(1000, 500), size=(40, 40), color=DKRED),
                 Rect2(topleft=(1050, 500), size=(40, 40), color=DKRED),

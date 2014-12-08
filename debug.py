@@ -28,5 +28,5 @@ def get_collision_data(player, arena):
     all_collision_data = []
     for terr in arena.rects:
         all_collision_data.append(
-            collision_data(terr, _determine_collision_points(player, terr),_determine_collision_sides(player, terr)))
+            collision_data(terr, _determine_collision_points(player, terr), _determine_collision_sides(player, terr)))
     return all_collision_data

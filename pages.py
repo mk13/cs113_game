@@ -55,9 +55,9 @@ class HelpPage:
         pygame.display.flip()
 
     def add_text(self):
-        #text wrapper creates a list of text
-        #for each item in the list
-        #print the line
+        # text wrapper creates a list of text
+        # for each item in the list
+        # print the line
         self.bkg_title = self.section_font.render('Background', True, WHITE)
         self.screen.blit(self.bkg_title, (800, 40))
 
@@ -129,7 +129,7 @@ class OptionsPage:
                     pygame.quit()
                     sys.exit()
 
-                #button click event handling
+                # button click event handling
                 if 'click' in self.music_on_button.handleEvent(event):
                     turn_on_music()
                 if 'click' in self.music_off_button.handleEvent(event):

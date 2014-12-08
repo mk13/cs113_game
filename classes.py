@@ -235,7 +235,7 @@ class Player(Rect2):
             self.hit_wall_from, self.touching_ground = None, False  # reset every frame
             for terrain in arena.rects:
                 if not terrain.spawn_point:
-                    #Check if touching ground
+                    # Check if touching ground
                     if (terrain.left < self.left < terrain.right or terrain.left < self.right < terrain.right) or (self.left < terrain.left < self.right or self.left < terrain.right < self.right):
                         if self.top < terrain.top < self.bottom:
                             if self.ptop + self.height - 5 <= terrain.top:
@@ -253,14 +253,14 @@ class Player(Rect2):
                             self.left = terrain.right
                             self.hit_wall_from = LEFT
                             self.dx = 0
-                            #Sliding
+                            # Sliding
                             if self.dy > 0 and not isinstance(self,Monster):
                                 self.dy = 0
                         elif self.left < terrain.left < self.right and self.dx >= 0:
                             self.right = terrain.left
                             self.hit_wall_from = RIGHT
                             self.dx = 0
-                            #Sliding
+                            # Sliding
                             if self.dy > 0 and not isinstance(self,Monster):
                                 self.dy = 0
 
@@ -441,9 +441,9 @@ class Input:
             self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
             self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
             self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-                #     Y
-                #   X   B
-                #     A
+            #     Y
+            #   X   B
+            #     A
             self.gp_input[GP_Y] = self.gamepad.get_button(3)
             self.gp_input[GP_X] = self.gamepad.get_button(0)
             self.gp_input[GP_B] = self.gamepad.get_button(2)
