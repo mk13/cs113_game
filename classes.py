@@ -58,8 +58,8 @@ class Rect2(pygame.Rect):
 # -------------------------------------------------------------------------
 class Player(Rect2):
     def __init__(self, id, topleft, size, sprite=None):
-        # id = 1 if player 1, id = 2 if player 2
-        self.id = id
+        self.id = id  # 1 for player1, 2 for player2
+        self.input = Input(self.id)
 
         # position
         super().__init__(topleft, size)
@@ -132,9 +132,9 @@ class Player(Rect2):
     def copy(self):
         return Player(self.left, self.top, self.width, self.height)
 
-    # Handles how shield works
-    # Call this after any damage is taken
-    def shield_trigger(self,damage_taken):
+    def shield_trigger(self, damage_taken):
+        """Handles how shield works
+        Call this after any damage is taken"""
         if self.hit_points < self.hit_points_max and self.conditions[SHIELD]:
             sorted(self.conditions[SHIELD], key=lambda k: k.remaining)  # Will subtract from lowest remaining time shield first
             for s in self.conditions[SHIELD]:
@@ -153,25 +153,27 @@ class Player(Rect2):
         b = self.centery - other.centery
         return math.sqrt(a * a + b * b)
 
-    def __call__(self, input, arena_map):
-        self._handle_facing_direction(input)
+    def __call__(self, arena_map, input=None):
+        if input is not None:
+            self.input = input  # for player2 to duplicate player1's input
+        self._handle_facing_direction()
         if not self.conditions[STUN] and not self.conditions[SILENCE]:
-            self._handle_inputs(input)
-        self._handle_acceleration(input)
+            self._handle_inputs()
+        self._handle_acceleration()
         self._handle_movement(arena_map)
-        self._determine_state(input)
+        self._determine_state()
 
-    def _handle_facing_direction(self, input):
+    def _handle_facing_direction(self):
         if self.attack_cooldown_expired and not self.conditions[STUN]:
-            self.facing_direction = RIGHT if input.RIGHT \
-                else LEFT if input.LEFT \
+            self.facing_direction = RIGHT if self.input.RIGHT \
+                else LEFT if self.input.LEFT \
                 else self.facing_direction
 
-    def _handle_acceleration(self, input):
+    def _handle_acceleration(self):
 
-        def _apply_accel_left_right_input(input):
-            self.dx += self.dx_movement if input.RIGHT \
-                else -self.dx_movement if input.LEFT \
+        def _apply_accel_left_right_input():
+            self.dx += self.dx_movement if self.input.RIGHT \
+                else -self.dx_movement if self.input.LEFT \
                 else 0
 
         def _apply_friction():
@@ -179,8 +181,8 @@ class Player(Rect2):
                 else -self.dx_friction if self.dx > 0 \
                 else 0
 
-        def _apply_accel_jump_input(input):
-            if input.JUMP:
+        def _apply_accel_jump_input():
+            if self.input.JUMP:
                 if not isinstance(self, Monster):
                     self.dy -= self.dy_jump if self.touching_ground or self.hit_wall_from \
                         else 0
@@ -195,7 +197,7 @@ class Player(Rect2):
                     #    else 0
 
         def _apply_gravity():
-            if (-5 < self.dy < 8): # This helps make the jump arc smoother at the top
+            if -5 < self.dy < 8:  # This helps make the jump arc smoother at the top
                 self.dy += self.dy_gravity * 0.5
             else:
                 self.dy += self.dy_gravity
@@ -207,8 +209,8 @@ class Player(Rect2):
 
         if self.attack_cooldown_expired and not self.conditions[STUN]:
             # These can only be used if not attacking
-            _apply_accel_left_right_input(input)
-            _apply_accel_jump_input(input)
+            _apply_accel_left_right_input()
+            _apply_accel_jump_input()
 
         _apply_friction()
         _apply_gravity()
@@ -274,7 +276,6 @@ class Player(Rect2):
                         elif skill_type == MEDIUM:
                             n = random.choice((1, 2, 3))
                             exec('self.skill{}_id = skill.id'.format(str(n)))
-                            # self.skill1_id = skill.id
                         elif skill_type == ULTIMATE:
                             self.ult_id = skill.id
                         arena.dropped_skills.remove(skill)
@@ -288,38 +289,38 @@ class Player(Rect2):
     # If multiple pushed, priority is:
     #   ultimate > skill3 > skill2 > skill1 > attack > meditate
     # Dropping skills and picking up skills can be handled here later on
-    def _handle_inputs(self, input):
-        if input.DROP_SKILL:  # Drop skill pressed
+    def _handle_inputs(self):
+        if self.input.DROP_SKILL:  # Drop skill pressed
             pass
 
         else:  # Drop skill not pressed
-            i = self._priority_inputs(input)
+            i = self._priority_inputs()
             if i and self.attack_cooldown_expired:
                 if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.energy -= SKILLS_TABLE[i]['energy']
                     self.attack_cooldown_expired = False
-                    self.new_particle = SKILLS_TABLE[i]['start'](i, self, input.UP, input.DOWN)
+                    self.new_particle = SKILLS_TABLE[i]['start'](i, self, self.input.UP, self.input.DOWN)
                     pygame.time.set_timer(TIME_TICK_EVENT + self.id, SKILLS_TABLE[i]['cooldown'])
                     if i == -1:
                         pygame.time.set_timer(PLAYER2_LOCK_EVENT + self.id, SKILLS_TABLE[-1]['cooldown'])
 
-    def _priority_inputs(self, input):
-        if input.ULT:
+    def _priority_inputs(self):
+        if self.input.ULT:
             return self.ult_id
-        elif input.SKILL3:
+        elif self.input.SKILL3:
             return self.skill3_id
-        elif input.SKILL2:
+        elif self.input.SKILL2:
             return self.skill2_id
-        elif input.SKILL1:
+        elif self.input.SKILL1:
             return self.skill1_id
-        elif input.ATTACK:
+        elif self.input.ATTACK:
             return self.attack_id
-        elif input.MEDITATE:
+        elif self.input.MEDITATE:
             return -1
         return 0
 
-    # Determines the player state to be used for animations
-    def _determine_state(self, input):
+    def _determine_state(self):
+        """Determines the player state to be used for animations"""
         self.previous_state = self.state
         if self.hit_points <= 0:
             self.state = DEATH
@@ -332,9 +333,9 @@ class Player(Rect2):
             #     self.state = SLIDE
             # Needed if we have slide animation
             self.state = FALL
-        elif input.RIGHT:
+        elif self.input.RIGHT:
             self.state = RWALK
-        elif input.LEFT:
+        elif self.input.LEFT:
             self.state = LWALK
         else:
             self.state = STAND
@@ -351,7 +352,7 @@ class Monster(Player):
         self.p1, self.p2 = player1, player2
         self.target, self.status = None, IDLE
         self.last_status_change = 0
-        self.ai_input = AI_Input()
+        self.input = AI_Input()
         self.color = color
         self.kind = info.kind
 
@@ -381,34 +382,33 @@ class Monster(Player):
 
     def _ai(self, time):
         self._switch_mode(time)
-        if self.status == CHASING and self.target != None:
-            self.ai_input.refresh()
+        if self.status == CHASING and self.target is not None:
+            self.input.refresh()
             if self.target.centerx >= self.centerx:
-                self.ai_input.RIGHT = True
+                self.input.RIGHT = True
             else:
-                self.ai_input.LEFT = True
+                self.input.LEFT = True
 
             if self.target.centery < self.centery:
                 if random.randint(1, 50) == 1:
-                    self.ai_input.JUMP = True
-
+                    self.input.JUMP = True
 
         else:
-            self.ai_input.JUMP = False
+            self.input.JUMP = False
             if random.randint(1, 30) < 5:
-                if self.ai_input.RIGHT:
-                    self.ai_input.RIGHT = False
-                    self.ai_input.LEFT = True
+                if self.input.RIGHT:
+                    self.input.RIGHT = False
+                    self.input.LEFT = True
                 else:
-                    self.ai_input.RIGHT = True
-                    self.ai_input.LEFT = False
+                    self.input.RIGHT = True
+                    self.input.LEFT = False
             if random.randint(1, 100) == 2:
-                self.ai_input.JUMP = True
+                self.input.JUMP = True
 
     def __call__(self, time, arena_map):
         self._ai(time)
-        self._handle_facing_direction(self.ai_input)
-        self._handle_acceleration(self.ai_input)
+        self._handle_facing_direction()
+        self._handle_acceleration()
         self._handle_movement(arena_map)
 
 # -------------------------------------------------------------------------
@@ -423,9 +423,9 @@ class AI_Input():
 
 # -------------------------------------------------------------------------
 class Input:
-    def __init__(self, inside_menu=False):
+    def __init__(self, player_id=1, inside_menu=False):
         try:
-            self.gamepad = pygame.joystick.Joystick(0)
+            self.gamepad = pygame.joystick.Joystick(player_id - 1)
             self.gamepad.init()
             self.gamepad_found = True
         except pygame.error:
@@ -435,14 +435,17 @@ class Input:
         self.ENTER_LEAVE = False
         self.gp_input = defaultdict(bool)
         self.inside_menu = inside_menu
+        self.player_id = player_id
 
     def refresh(self):
+        if self.player_id == 1:
+            self._get_keyboard_keys_pressed()
+            self._handle_keyboard_updown_events()
         self._get_gamepad_axis_buttons_pressed()
-        self._get_keyboard_keys_pressed()
         self._handle_gamepad_updown_events()
-        self._handle_keyboard_updown_events()
         self._update_attributes()
-        self._handle_mouse_visibility()
+        if self.joy_num == 1:
+            self._handle_mouse_visibility()
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
@@ -450,9 +453,9 @@ class Input:
             self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
             self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
             self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-            #     Y
-            #   X   B
-            #     A
+            #     Y             ^
+            #   X   B       []     O
+            #     A             X
             self.gp_input[GP_Y] = self.gamepad.get_button(3)
             self.gp_input[GP_X] = self.gamepad.get_button(0)
             self.gp_input[GP_B] = self.gamepad.get_button(2)
@@ -520,7 +523,6 @@ class Arena:
         self.possible_monsters = tuple(MONSTER_TABLE.keys()) if arena_info.possible_monsters == ALL \
             else arena_info.possible_monsters
 
-
         self.floor = Rect2(0, arena_info.floor_y, 1280, 50, color=None)
         self.left_wall = Rect2(0, 0, arena_info.left_wall_x, 600, color=None)
         self.right_wall = Rect2(arena_info.right_wall_x, 0, 1280 - arena_info.right_wall_x, 600, color=None)
@@ -558,9 +560,7 @@ class Arena:
 
 # -------------------------------------------------------------------------
 class Particle(Rect2):
-    # def __init__(self, width, height, radius, cooldown, duration, color):
     def __init__(self, sid, player):
-        # super().__init__(left=0, top=0, width=width, height=height)
         self.left = 0
         self.top = 0
         self.width = SKILLS_TABLE[sid]['width']
@@ -784,7 +784,7 @@ class Condition:
             self.start = time
         return self.duration <= (time - self.start)
 
-#---Debuffs-----------------------------------------------------------------
+# ---Debuffs-----------------------------------------------------------------
 class Stun(Condition):
     def __init__(self, duration):
         super().__init__(duration)
@@ -834,19 +834,19 @@ class Silence(Condition):
         super().__init__(duration)
         self.type = SILENCE
 
-# Reduces HP regen
 class Wounded(Condition):
+    """Reduces HP regen"""
     def __init__(self, duration):
         super().__init__(duration)
         self.type = WOUNDED
 
-# Reduces Energy regen
 class Weakened(Condition):
+    """Reduces Energy regen"""
     def __init__(self, duration):
         super().__init__(duration)
         self.type = WEAKENED
 
-#---Buffs-------------------------------------------------------------------
+# ---Buffs-------------------------------------------------------------------
 class Speed(Condition):
     def __init__(self, duration, magnitude):
         super().__init__(duration)
@@ -884,14 +884,14 @@ class Shield(Condition):
                 return temp
 
 
-# Increases HP regen
 class Invigorated(Condition):
+    """Increases HP regen"""
     def __init__(self, duration):
         super().__init__(duration)
         self.type = INVIGORATED
 
-# Increases energy regen
 class Empowered(Condition):
+    """Increases energy regen"""
     def __init__(self, duration):
         super().__init__(duration)
         self.type = EMPOWERED

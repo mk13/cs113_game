@@ -133,11 +133,8 @@ class GameLoop:
             pygame.time.set_timer(REGENERATION_EVENT, 1000)
             self.game_time = GameTime()
 
-        def _setup_input():
-            self.start_menu = start_menu
-            self.input = Input()
-
         def _setup_ui():
+            self.start_menu = start_menu
             self.window = self.surface.get_rect()
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
@@ -252,12 +249,9 @@ class GameLoop:
         pygame.init()
         _setup_display()
         _setup_time()
-        _setup_input()
         _setup_ui()
         _setup_arena()
-        print(len(SKILLS_TABLE))
         initialize_skill_table()
-        print(len(SKILLS_TABLE))
         _setup_monsters()
         _setup_fonts()
         _setup_particles()
@@ -269,7 +263,7 @@ class GameLoop:
     # ------------------------------------------------------------------------
     def __call__(self):
         while True:
-            if not self.input.PAUSED:
+            if not self.player1.input.PAUSED:
                 self.handle_input()
                 self.handle_monsters()
                 self.handle_particles()
@@ -286,12 +280,12 @@ class GameLoop:
     def handle_input(self):
 
         def _handle_special_input():
-            if self.input.PAUSED:
+            if self.player1.input.PAUSED:
                 rendered_font = self.pause_font.render('-PAUSE-', True, RED)
                 self.surface.blit(rendered_font, self.pause_font_xy)
                 pygame.display.update()
 
-            if self.input.RESPAWN and not self.input.PAUSED:
+            if self.player1.input.RESPAWN and not self.player1.input.PAUSED:
                 self.player1.topleft = self.player1.topleft_initial
                 self.player1.dx = self.player1.dx_initial
                 self.player1.facing_direction = self.player1.facing_direction_initial
@@ -299,22 +293,22 @@ class GameLoop:
                 self.player2.dx = self.player2.dx_initial
                 self.player2.facing_direction = self.player2.facing_direction_initial
 
-            if self.input.KILLALL and not self.input.PAUSED:
+            if self.player1.input.KILLALL and not self.player1.input.PAUSED:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
-            if self.input.EXIT:
+            if self.player1.input.EXIT:
                 # Add the QUIT event to the pygame event queue to be handled
                 # later, at the same time the QUIT event from clicking the
                 # window X is handled
                 pygame.event.post(pygame.event.Event(QUIT))
 
         def _handle_player_input():
-            if not self.input.PAUSED:
-                self.player1(self.input, self.arena)
-                self.player2(self.input, self.arena)
+            if not self.player1.input.PAUSED:
+                self.player1(self.arena)
+                self.player2(self.arena, self.player1.input)
 
-        self.input.refresh()
+        self.player1.input.refresh()
         _handle_player_input()
         _handle_special_input()
 
@@ -607,7 +601,7 @@ class GameLoop:
         _draw_arena()
         _draw_monsters()
         _draw_dropped_skills()
-        if not self.input.DEBUG_VIEW:
+        if not self.player1.input.DEBUG_VIEW:
             _draw_players()
         _draw_particles()
         _draw_scrolling_text()
@@ -706,7 +700,7 @@ class GameLoop:
                 for l in locs:
                     pygame.draw.circle(self.surface, ORANGE, l, 3, 0)
 
-        if self.input.DEBUG_VIEW:
+        if self.player1.input.DEBUG_VIEW:
             _draw_spawn_point_rects()
             _draw_play_area_debug_border()
             _draw_debug_text()
@@ -715,7 +709,7 @@ class GameLoop:
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
             _draw_mouse_text()
-        elif not self.input.DEBUG_VIEW:
+        elif not self.player1.input.DEBUG_VIEW:
             if self.player1.sprite is None:
                 _draw_players_debug(draw_p1=True, draw_p2=False)
             if self.player2.sprite is None:
@@ -734,8 +728,8 @@ class GameLoop:
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
                     self.start_menu()
-            if self.input.ENTER_LEAVE:
-                self.input.ENTER_LEAVE = False
+            if self.player1.input.ENTER_LEAVE:
+                self.player1.input.ENTER_LEAVE = False
                 self.start_menu()
 
         def _handle_time_tick_event():
@@ -745,7 +739,7 @@ class GameLoop:
                     self.game_time.inc()
 
                     # for CPU usage debug text
-                    if psutil_found and self.input.DEBUG_VIEW:
+                    if psutil_found and self.player1.input.DEBUG_VIEW:
                         new_cpu = psutil.cpu_percent(interval=None)
                         self.cpu_deque.append(new_cpu)
                         self.cpu_avg = sum(self.cpu_deque) / len(self.cpu_deque)
@@ -848,7 +842,7 @@ class GameLoop:
                     pygame.quit()
                     sys.exit()
 
-        if not self.input.PAUSED:
+        if not self.player1.input.PAUSED:
             _handle_song_end_event()
             _handle_time_tick_event()
             _handle_regeneration_event()
@@ -860,8 +854,8 @@ class GameLoop:
             _handle_return_to_main_menu()
         else:
             _handle_quit_event()
-            self.input._handle_keyboard_updown_events()
-            self.input._handle_gamepad_updown_events()
+            self.player1.input._handle_keyboard_updown_events()
+            self.player1.input._handle_gamepad_updown_events()
             pygame.event.clear()
 
     # -------------------------------------------------------------------------
