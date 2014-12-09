@@ -167,7 +167,7 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            self.st_font = pygame.font.Font(main_font, 20)  # Scrolling text font
+            self.st_font = pygame.font.Font(main_font, 18)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
 
@@ -226,8 +226,8 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
             p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
 
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30,40), sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30,40), sprite=p2_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), sprite=p1_sprite)
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), sprite=p2_sprite)
 
             self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
 
@@ -255,7 +255,9 @@ class GameLoop:
         _setup_input()
         _setup_ui()
         _setup_arena()
+        print(len(SKILLS_TABLE))
         initialize_skill_table()
+        print(len(SKILLS_TABLE))
         _setup_monsters()
         _setup_fonts()
         _setup_particles()
@@ -406,8 +408,9 @@ class GameLoop:
         def _handle_dead_monsters():
             for m in self.active_monsters:
                 if m.is_dead():
-                    dropped_skill = Rect2(topleft=m.topleft, size=(10, 10), id=100, color=BLACK)
-                    self.arena.dropped_skills.append(dropped_skill)
+                    dropped_skill_id = get_dropped_skill(m)
+                    dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=BLACK)
+                    self.arena.dropped_skills.append(dropped_skill_rect)
                     self.active_monsters.remove(m)
 
         def _update_monsters():
@@ -559,6 +562,14 @@ class GameLoop:
                 pygame.draw.rect(self.surface, RED, health_bar_life)
                 pygame.draw.rect(self.surface, BLACK, health_bar, 1)
 
+        def _draw_dropped_skills():
+            for skill in self.arena.dropped_skills:
+                pygame.draw.rect(self.surface, skill.color, skill)
+                skill_text = str(skill.id)
+                skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
+                skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
+                self.surface.blit(skill_font, skill_text_xy)
+
         def _draw_particles():
             for p in self.active_particles:
                 pygame.draw.rect(self.surface, p.color, p)
@@ -595,6 +606,7 @@ class GameLoop:
         _draw_timer()
         _draw_arena()
         _draw_monsters()
+        _draw_dropped_skills()
         if not self.input.DEBUG_VIEW:
             _draw_players()
         _draw_particles()
@@ -663,7 +675,7 @@ class GameLoop:
 
             def _draw_player_debug(p, c1, c2):
                 pygame.draw.rect(self.surface, c1, p)
-                eye = Rect2(topleft=p.topleft, size=(5,5))
+                eye = Rect2(topleft=p.topleft, size=(5, 5))
                 if p.facing_direction == LEFT:
                     eye.topleft = p.topleft
                     eye.move_ip((+3, 3))
@@ -827,7 +839,7 @@ class GameLoop:
             for event in pygame.event.get(MONSTER_SPAWN_EVENT):
                 if event.type == MONSTER_SPAWN_EVENT:
                     self.spawn_monsters = True
-                    pygame.time.set_timer(MONSTER_SPAWN_EVENT, 10000)
+                    pygame.time.set_timer(MONSTER_SPAWN_EVENT, 1000)
 
         def _handle_quit_event():
             for event in pygame.event.get(QUIT):

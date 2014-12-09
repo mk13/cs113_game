@@ -96,13 +96,13 @@ class Player(Rect2):
         self.skill1_id = self.skill2_id = self.skill3_id = self.ult_id = 0
 
         # for debugging/testing:
-        #self.attack_id = random.randint(1,3)
-        #self.skill1_id = random.randint(100,115)
-        #self.skill2_id = random.randint(100,115)
-        #self.skill3_id = random.randint(100,115)
-        #self.ult_id = random.randint(1000,1003)
+        # self.attack_id = random.randint(1,3)
+        # self.skill1_id = random.randint(100,115)
+        # self.skill2_id = random.randint(100,115)
+        # self.skill3_id = random.randint(100,115)
+        # self.ult_id = random.randint(1000,1003)
 
-        #specific testing:
+        # specific testing:
         self.attack_id = 1
         self.skill1_id = 116
         self.skill2_id = 109
@@ -265,10 +265,19 @@ class Player(Rect2):
                                 self.dy = 0
 
         def _check_for_skill_pick_ups(arena):
-            for skill in arena.dropped_skills:
-                if self.colliderect(skill):
-                    self.skill1_id = skill.id
-                    arena.dropped_skills.remove(skill)
+            if not isinstance(self, Monster):
+                for skill in arena.dropped_skills:
+                    if self.colliderect(skill):
+                        skill_type = get_skill_type(skill.id)
+                        if skill_type == WEAK:
+                            self.attack_id = skill.id
+                        elif skill_type == MEDIUM:
+                            n = random.choice((1, 2, 3))
+                            exec('self.skill{}_id = skill.id'.format(str(n)))
+                            # self.skill1_id = skill.id
+                        elif skill_type == ULTIMATE:
+                            self.ult_id = skill.id
+                        arena.dropped_skills.remove(skill)
 
         _move()  # move then check for collisions
         _check_for_collisions()
@@ -315,7 +324,7 @@ class Player(Rect2):
         if self.hit_points <= 0:
             self.state = DEATH
         elif not self.attack_cooldown_expired:
-            self.state = ATTACK # or cast
+            self.state = ATTACK  # or cast
         elif self.dy < 0:
             self.state = JUMP
         elif not self.touching_ground:
@@ -344,6 +353,7 @@ class Monster(Player):
         self.last_status_change = 0
         self.ai_input = AI_Input()
         self.color = color
+        self.kind = info.kind
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
@@ -519,8 +529,6 @@ class Arena:
         play_area = Rect2(self.left_wall.right, 0, self.right_wall.left - self.left_wall.right, self.floor.top, color=play_area_color)
         self.p1_spawn = (arena_info.p1_spawn[0] + play_area.left, arena_info.p1_spawn[1])
         self.p2_spawn = (arena_info.p2_spawn[0] + play_area.left, arena_info.p1_spawn[1])
-        print(self.p1_spawn)
-        print(self.p2_spawn)
         platforms = [Rect2(tuple(terr)[0:4], color=terr.color, hits_to_destroy=terr.hits_to_destroy, spawn_point=terr.spawn_point) for terr in arena_info.platforms]
 
         rects = [play_area, self.floor, self.left_wall, self.right_wall] + platforms
@@ -533,7 +541,7 @@ class Arena:
 
     def __iter__(self):
         # currently only time iteration is used is when the rects are drawn
-        for rect in [self.play_area_rect] + self.rects + self.dropped_skills:
+        for rect in [self.play_area_rect] + self.rects:
             yield rect
 
     @property

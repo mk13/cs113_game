@@ -77,25 +77,23 @@ SKILLS_TABLE = {}
 
 #   "on_terrain_f(current_particle)" : Additional effects it will do when the particle hits wall
 
-
 def initialize_skill_table():
     # Meditate
     SKILLS_TABLE[-1] = {'type': None, 'start': blank_function, 'cooldown': 3000, 'energy': 0}
-
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     # Slap (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee('Slap',30, 30, math.pi / 2, 35, 35, 500, 500, YELLOW, 10, 0)
     # Peashooter
     SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 500, 5000, GREEN, 5, 0)
     # Spear
-    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, True)  
+    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, True)
 
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
     # SKILLS 100-999
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     # Teleport
     SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
@@ -127,7 +125,7 @@ def initialize_skill_table():
     SKILLS_TABLE[112]['conditions'] = [classes.Snare(2500)]
     # Shatter
     SKILLS_TABLE[113] = _auto_range('Shatter',25, 25, 15, 0, 250, 5000, LBLUE, 10, 3)
-    SKILLS_TABLE[113]['on_hit_f'] = shatter_on_hit    
+    SKILLS_TABLE[113]['on_hit_f'] = shatter_on_hit
     # Cropdust
     ADD_CROP_DUST(114)
     # Redirect Monster
@@ -135,9 +133,9 @@ def initialize_skill_table():
     SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
     # Personal Faerie
     ADD_SKILL_PERSONAL_FAERIE(116)
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     # Big-Hammer
     ADD_BIG_HAMMER(1000)
@@ -150,6 +148,9 @@ def initialize_skill_table():
     ADD_POLARITY_SHIFT(1003)
     # Bee Hive
     ADD_BEE_HIVE(1004)
+
+    # for k, v in sorted(SKILLS_TABLE.items(), key=lambda x: str(x)):
+    #     print(k, v)
 
 # Templates=================================================
 def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
@@ -172,7 +173,7 @@ def _auto_range(name, width, height, speed, acceleration, cooldown, duration, co
 def blank_function(sid, player, up=False, down=False):
     return None
 
-#'start' function for teleport
+# 'start' function for teleport
 def teleport_start(sid, player, up, down):
     if up and not down:
         player.top -= 100
@@ -306,7 +307,7 @@ def shrapnel_trigger_start(sid, player, up=False, down=False):
 
         p0.centerx = p1.centerx = p2.centerx = p3.centerx = p4.centerx = p5.centerx = p6.centerx = p7.centerx = x
         p0.centery = p1.centery = p2.centery = p3.centery = p4.centery = p5.centery = p6.centery = p7.centery = y
-        
+
         return [p0,p1,p2,p3,p4,p5,p6,p7]
     else:
         return None
@@ -430,7 +431,7 @@ def fai_ice_path(particle, time):
     y = particle.originy + 20 * math.sin(x / 50)
     return x, y
 
-    
+
 def ADD_VILE_BREATH(i):
     SKILLS_TABLE[i] = {'name':'Vile Breath','type': None, 'start': vile_breath_start, 'cooldown':20, 'energy': 1}
     SKILLS_TABLE['vbreath'] = _auto_range('',10,10,5,0,500,1000,GREEN,2,1)
@@ -453,11 +454,11 @@ def vile_breath_path(particle, time):
         x -= 5 + random.randint(0,5)
     y = particle.centery + random.randint(-5,5)
     return x,y
-    
+
 def shatter_on_hit(particle,target,time):
     if target.conditions[SNARE]:
         handle_damage(target, 10, time+500)
-        
+
 def ADD_CROP_DUST(i):
     SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1}
     SKILLS_TABLE['cropdust'] = _auto_range('',10,10,5,0,500,1000,BROWN,1,1)
@@ -479,18 +480,18 @@ def crop_dust_path(particle,time):
         x += 5 + random.randint(0,5)
     y = particle.centery + random.randint(-5,5)
     return x,y
-    
+
 def silver_bullet_on_hit(particle,target,time):
     diff = target.hit_points_max - target.hit_points
     diff = int(diff/4)
     handle_damage(target,diff,time+500)
-    
+
 def redirect_on_hit(particle, target, time):
     if isinstance(target, classes.Monster):
         if target.status == IDLE:
             target.last_status_change = -10000 #Force hard reset
         target.target = particle.belongs_to.opposite
-            
+
 def ADD_ELECTRIC_FIELD(i):
     SKILLS_TABLE[i] = {'name':'Electric Field', 'type':None, 'start':electric_field_start, 'cooldown': 200, 'energy':4}
     SKILLS_TABLE['ef0'] = _auto_melee('', 20, 20, math.pi*3, 100, 100, 100, 5000, BLUE, 10, 1)
@@ -501,7 +502,7 @@ def electric_field_start(sid,player,up=False,down=False):
     ef1 = classes.MeleeParticle('ef1', player)
     ef2 = classes.MeleeParticle('ef2', player)
     return [ef0, ef1, ef2]
-    
+
 def ADD_POLARITY_SHIFT(i):
     SKILLS_TABLE[i] = {'name':'Polarity Shift', 'type':None, 'start':polarity_shift_start, 'cooldown': 200, 'energy':7}
 def polarity_shift_start(sid, player,up=False, down =False):
@@ -515,8 +516,8 @@ def polarity_shift_start(sid, player,up=False, down =False):
         c = classes.Stun(2000)
         c.begin(-1, tar)
     return None
-    
-    
+
+
 def ADD_BEE_HIVE(i):
     SKILLS_TABLE[i] = {'name':'Bee Hive', 'type': None, 'start':bee_hive_start, 'cooldown':300, 'energy':8}
     SKILLS_TABLE['beehive'] = _auto_range('',40,40, 3, 0, 500, 5000, WHITE, 4, 0)
@@ -530,7 +531,7 @@ def ADD_BEE_HIVE(i):
     SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
     SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
     SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    
+
     SKILLS_TABLE["bee1"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery-10))
     SKILLS_TABLE["bee2"]["special_path"] = (lambda p,t: (p.centerx, p.centery-10))
     SKILLS_TABLE["bee3"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery-10))
@@ -547,7 +548,7 @@ def bee_hive_start(sid, player, up=False, down=False):
 def bee_hive_path(particle,time):
     if particle.beeUpdate == -1:
         particle.beeUpdate = time
-        
+
     if time - particle.beeUpdate >= 250:
         particle.beeUpdate = time
         li = [classes.RangeParticle("bee1",particle.belongs_to,False,False),
@@ -561,7 +562,7 @@ def bee_hive_path(particle,time):
         for i in range(0,8):
             li[i].centerx = particle.centerx
             li[i].centery = particle.centery
-        
+
         if particle.belongs_to.new_particle == None:
             particle.belongs_to.new_particle = li
         elif isinstance(particle.belongs_to.new_particle,list):
@@ -569,9 +570,9 @@ def bee_hive_path(particle,time):
         else:
             temp = p.belongs_to.new_particle
             particle.belongs_to.new_particle = [temp] + li
-        
+
     return particle.centerx + particle.dx, particle.centery
-    
+
 def ADD_SKILL_PERSONAL_FAERIE(i):
     SKILLS_TABLE[i] = {'name':'Personal Faerie', 'type': None, 'start':personal_faerie_start, 'cooldown':300, 'energy':5}
     SKILLS_TABLE['personal_faerie'] = _auto_melee('', 10, 10, 0, 5, 5, 300, 5000, LBLUE, 0, 6)
@@ -591,7 +592,7 @@ def personal_faerie_start(sid, player, up = False, down = False):
 def faerie_path(p,t):
     if p.timer == -1:
         p.timer = t
-        
+
     if t - p.timer >= 500:
         p.timer = t
         shot = classes.RangeParticle('faerie_shoot', p.belongs_to, False, False)
@@ -604,7 +605,7 @@ def faerie_path(p,t):
             shot.dx *= -1
             shot.ddx *= -1
         force_add_particle_to_player(shot, p.belongs_to)
-    
+
     y = p.belongs_to.centery - 20
     if p.direction == RIGHT:
         x = p.belongs_to.centerx + 15
@@ -616,3 +617,30 @@ def faerie_shot_path(p,t):
     x = p.centerx + p.dx
     p.dx += p.ddx
     return x,y
+
+# ----------------------------------------------------------------------------
+def get_dropped_skill(monster):
+    if monster.kind == WEAK:
+        li = auto_attack_skills()
+    elif monster.kind == MEDIUM:
+        li = regular_skills()
+    elif monster.kind == ULTIMATE:
+        li = ultimate_skills()
+    return random.choice(li)
+
+def get_skill_type(skill_id):
+    if 1 <= skill_id <= 99:
+        return WEAK
+    elif 100 <= skill_id <= 999:
+        return MEDIUM
+    elif skill_id >= 1000:
+        return ULTIMATE
+
+def auto_attack_skills():
+    return list(filter(lambda x: type(x) is int and 1 <= x <= 99, SKILLS_TABLE.keys()))
+
+def regular_skills():
+    return list(filter(lambda x: type(x) is int and 100 <= x <= 999, SKILLS_TABLE.keys()))
+
+def ultimate_skills():
+    return list(filter(lambda x: type(x) is int and x >= 1000, SKILLS_TABLE.keys()))

@@ -244,8 +244,8 @@ arena3 = arena_nt(
     background='data/vines-copy2.png', p1_spawn=(75, 50), p2_spawn=(992, 50))
 
 # Monsters
-monster_info_nt = namedtuple('monster_info_nt', 'w, h, dx, dy, hp, chase, idle')
+monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(30, 40, 2, 10, 100, 5000, 5000),
-    MEDIUM: monster_info_nt(50, 60, 3, 12, 250, 7000, 5000),
-    ULTIMATE: monster_info_nt(80, 80, 4, 13, 500, 10000, 5000)}
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000)}
