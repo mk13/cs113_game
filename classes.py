@@ -307,7 +307,7 @@ class Player(Rect2):
 
         elif not self.input.DROP_SKILL:  # Drop skill not pressed
             # If a valid skill is pressed
-            if i > 0 and self.attack_cooldown_expired:
+            if (isinstance(i,str) or i > 0) and self.attack_cooldown_expired:
                 self.pickup_time = -1
                 if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.energy -= SKILLS_TABLE[i]['energy']
