@@ -814,14 +814,19 @@ class GameLoop:
                 if event.type == PLAYER2_LOCK_EVENT:
                     self.player2.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
-
-        def _handle_player_meditate_events():
-            for event in pygame.event.get(PLAYER1_MEDITATE_EVENT):
-                if event.type == PLAYER1_MEDITATE_EVENT:
-                    self.player1.energy += 5
-                    if self.player1.energy > 10:
-                        self.player1.energy = 10
-                    pygame.time.set_timer(PLAYER1_MEDITATE_EVENT, 0)
+                    
+        def _handle_player_pickup_skill_events():
+            for event in pygame.event.get(PLAYER1_PICKUP_EVENT):
+                if event.type == PLAYER1_PICKUP_EVENT:
+                    print("FOUND")
+                    self.player1.pickup_time += 1
+                    pygame.time.set_timer(PLAYER1_PICKUP_EVENT, 0)
+                    
+            for event in pygame.event.get(PLAYER2_PICKUP_EVENT):
+                if event.type == PLAYER2_PICKUP_EVENT:
+                    self.player2.pickup_time += 1
+                    pygame.time.set_timer(PLAYER2_PICKUP_EVENT, 0)
+                    
 
         def _handle_rain_event():
             for event in pygame.event.get(MORE_RAIN_EVENT):
@@ -847,7 +852,7 @@ class GameLoop:
             _handle_time_tick_event()
             _handle_regeneration_event()
             _handle_player_lock_events()
-            _handle_player_meditate_events()
+            _handle_player_pickup_skill_events()
             _handle_rain_event()
             _handle_monster_spawn_event()
             _handle_quit_event()

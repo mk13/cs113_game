@@ -44,7 +44,7 @@ class Rect2(pygame.Rect):
         # follows same logic as pygame.Rect.collidelistall, but customized to look at center coords
         hit_indices = []
         for i, r in enumerate(li):
-            #if self.collidepoint(r.center): #Using this is causing particles to pass through terrain
+            # if self.collidepoint(r.center): #Using this is causing particles to pass through terrain
             if li[i].left < self.centerx < li[i].right and li[i].top < self.centery < li[i].bottom:
                 hit_indices.append(i)
         return hit_indices
@@ -90,6 +90,12 @@ class Player(Rect2):
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
         self.level = 10
+
+        # used for skill pickup
+        self.pickup_time = -1
+        self.pickup_slot = None
+        self.pickup_skill = None
+        self.overlapping_skill = None
 
         # skills
         self.attack_id = 1
@@ -158,7 +164,7 @@ class Player(Rect2):
             self.input = input  # for player2 to duplicate player1's input
         self._handle_facing_direction()
         if not self.conditions[STUN] and not self.conditions[SILENCE]:
-            self._handle_inputs()
+            self._handle_inputs(arena_map)
         self._handle_acceleration()
         self._handle_movement(arena_map)
         self._determine_state()
@@ -175,6 +181,8 @@ class Player(Rect2):
             self.dx += self.dx_movement if self.input.RIGHT \
                 else -self.dx_movement if self.input.LEFT \
                 else 0
+            if self.input.RIGHT or self.input.LEFT:
+                self.pickup_time = -1
 
         def _apply_friction():
             self.dx += self.dx_friction if self.dx < 0 \
@@ -183,6 +191,7 @@ class Player(Rect2):
 
         def _apply_accel_jump_input():
             if self.input.JUMP:
+                self.pickup_time = -1
                 if not isinstance(self, Monster):
                     self.dy -= self.dy_jump if self.touching_ground or self.hit_wall_from \
                         else 0
@@ -268,17 +277,19 @@ class Player(Rect2):
 
         def _check_for_skill_pick_ups(arena):
             if not isinstance(self, Monster):
+                self.overlapping_skill = None
                 for skill in arena.dropped_skills:
                     if self.colliderect(skill):
-                        skill_type = get_skill_type(skill.id)
-                        if skill_type == WEAK:
-                            self.attack_id = skill.id
-                        elif skill_type == MEDIUM:
-                            n = random.choice((1, 2, 3))
-                            exec('self.skill{}_id = skill.id'.format(str(n)))
-                        elif skill_type == ULTIMATE:
-                            self.ult_id = skill.id
-                        arena.dropped_skills.remove(skill)
+                        # skill_type = get_skill_type(skill.id)
+                        # if skill_type == WEAK:
+                        #     self.attack_id = skill.id
+                        # elif skill_type == MEDIUM:
+                        #     n = random.choice((1, 2, 3))
+                        #     exec('self.skill{}_id = skill.id'.format(str(n)))
+                        # elif skill_type == ULTIMATE:
+                        #     self.ult_id = skill.id
+                        # arena.dropped_skills.remove(skill)
+                        self.overlapping_skill = skill
 
         _move()  # move then check for collisions
         _check_for_collisions()
@@ -289,13 +300,15 @@ class Player(Rect2):
     # If multiple pushed, priority is:
     #   ultimate > skill3 > skill2 > skill1 > attack > meditate
     # Dropping skills and picking up skills can be handled here later on
-    def _handle_inputs(self):
-        if self.input.DROP_SKILL:  # Drop skill pressed
-            pass
+    def _handle_inputs(self, arena):
+        i, button = self._priority_inputs()
+        if self.input.DROP_SKILL and i != -1:  # Drop skill pressed
+            self.__dict__[button] = 0
 
-        else:  # Drop skill not pressed
-            i = self._priority_inputs()
-            if i and self.attack_cooldown_expired:
+        elif not self.input.DROP_SKILL:  # Drop skill not pressed
+            # If a valid skill is pressed
+            if i > 0 and self.attack_cooldown_expired:
+                self.pickup_time = -1
                 if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.energy -= SKILLS_TABLE[i]['energy']
                     self.attack_cooldown_expired = False
@@ -303,21 +316,56 @@ class Player(Rect2):
                     pygame.time.set_timer(TIME_TICK_EVENT + self.id, SKILLS_TABLE[i]['cooldown'])
                     if i == -1:
                         pygame.time.set_timer(PLAYER2_LOCK_EVENT + self.id, SKILLS_TABLE[-1]['cooldown'])
+            # If skill is 0, aka empty, and sitting over a skill
+            elif i == 0 and self.overlapping_skill:
+                if button == ATTACKBUTTON and (0 < self.overlapping_skill.id < 99):
+                    if self.overlapping_skill in arena.dropped_skills:
+                        self.__dict__[ATTACKBUTTON] = self.overlapping_skill.id
+                        arena.dropped_skills.remove(self.overlapping_skill)
+                elif button in (SKILL1BUTTON,SKILL2BUTTON, SKILL3BUTTON) and (100 <= self.overlapping_skill.id <= 999):
+                    if self.overlapping_skill in arena.dropped_skills:
+                        self.__dict__[button] = self.overlapping_skill.id
+                        arena.dropped_skills.remove(self.overlapping_skill)
+                elif button == ULTBUTTON and (self.overlapping_skill.id >= 1000):
+                    if self.overlapping_skill in arena.dropped_skills:
+                        self.__dict[ULTBUTTON] = self.overlapping_skill.id
+                        arena.dropped_skills.remove(self.overlapping_skill)
+
+                # If hasnt tried to pick up skill
+                # print(self.pickup_time)
+                # if self.pickup_time == -1:
+                #    print("flag1")
+                #    self.pickup_time = 0
+                #    self.pickup_slot = button
+                #    self.pickup_skill = self.overlapping_skill
+                #    print(self.pickup_skill.id)
+
+                # elif self.pickup_time != -1:
+                #    if self.pickup_skill != self.overlapping_skill or button != self.pickup_slot:
+                #        print("flag2")
+                #        self.pickup_time = 0
+                #        self.pickup_slot = button
+                #        self.pickup_skill = self.overlapping_skill
+                #    elif self.pickup_time == 9:
+                #        print("flag3")
+                #        self.pickup_time = 0
+                #        self.__dict__[self.pickup_slot] = self.pickup_skill.id
+                #    else:
+                #        print("flag4")
+                #        pygame.time.set_timer(USEREVENT+2+self.id, 250)
 
     def _priority_inputs(self):
         if self.input.ULT:
-            return self.ult_id
+            return self.ult_id, ULTBUTTON
         elif self.input.SKILL3:
-            return self.skill3_id
+            return self.skill3_id, SKILL3BUTTON
         elif self.input.SKILL2:
-            return self.skill2_id
+            return self.skill2_id, SKILL2BUTTON
         elif self.input.SKILL1:
-            return self.skill1_id
+            return self.skill1_id, SKILL1BUTTON
         elif self.input.ATTACK:
-            return self.attack_id
-        elif self.input.MEDITATE:
-            return -1
-        return 0
+            return self.attack_id, ATTACKBUTTON
+        return -1, ''
 
     def _determine_state(self):
         """Determines the player state to be used for animations"""
