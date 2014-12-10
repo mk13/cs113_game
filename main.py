@@ -264,7 +264,7 @@ class GameLoop:
     def __call__(self):
         while True:
             if not self.player1.input.PAUSED:
-                self.handle_input()
+                self.handle_players()
                 self.handle_monsters()
                 self.handle_particles()
                 self.draw_screen()
@@ -273,11 +273,20 @@ class GameLoop:
                 self.handle_event_queue()
                 self.clock.tick(self.fps)
             else:
-                self.handle_input()
+                self.handle_players()
                 self.handle_event_queue()
 
     # -------------------------------------------------------------------------
-    def handle_input(self):
+    def handle_players(self):
+
+        def _refresh_inputs():
+            self.player1.input.refresh()
+            self.player2.input.refresh()
+
+        def _handle_player_input():
+            if not self.player1.input.PAUSED:
+                self.player1(self.arena)
+                self.player2(self.arena, self.player1.input)
 
         def _handle_special_input():
             if self.player1.input.PAUSED:
@@ -303,12 +312,7 @@ class GameLoop:
                 # window X is handled
                 pygame.event.post(pygame.event.Event(QUIT))
 
-        def _handle_player_input():
-            if not self.player1.input.PAUSED:
-                self.player1(self.arena)
-                self.player2(self.arena, self.player1.input)
-
-        self.player1.input.refresh()
+        _refresh_inputs()
         _handle_player_input()
         _handle_special_input()
 
@@ -814,19 +818,18 @@ class GameLoop:
                 if event.type == PLAYER2_LOCK_EVENT:
                     self.player2.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
-                    
+
         def _handle_player_pickup_skill_events():
             for event in pygame.event.get(PLAYER1_PICKUP_EVENT):
                 if event.type == PLAYER1_PICKUP_EVENT:
                     print("FOUND")
                     self.player1.pickup_time += 1
                     pygame.time.set_timer(PLAYER1_PICKUP_EVENT, 0)
-                    
+
             for event in pygame.event.get(PLAYER2_PICKUP_EVENT):
                 if event.type == PLAYER2_PICKUP_EVENT:
                     self.player2.pickup_time += 1
                     pygame.time.set_timer(PLAYER2_PICKUP_EVENT, 0)
-                    
 
         def _handle_rain_event():
             for event in pygame.event.get(MORE_RAIN_EVENT):

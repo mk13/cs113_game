@@ -477,13 +477,11 @@ class Input:
             self.gamepad.init()
             self.gamepad_found = True
         except pygame.error:
-            self.gamepad_found = False
-        self.DEBUG_VIEW = False
-        self.PAUSED = False
-        self.ENTER_LEAVE = False
+            pass
         self.gp_input = defaultdict(bool)
-        self.inside_menu = inside_menu
+        self.kb_input = defaultdict(bool)
         self.player_id = player_id
+        self.inside_menu = inside_menu
 
     def refresh(self):
         if self.player_id == 1:
@@ -561,7 +559,11 @@ class Input:
             pygame.mouse.set_visible(True)
 
     def __getattr__(self, name):
-        return None
+        # initializes any missing variables to False
+        exec('self.{} = False'.format(name))
+        return eval('self.{}'.format(name))
+
+
 
 # -------------------------------------------------------------------------
 class Arena:
