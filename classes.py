@@ -492,7 +492,7 @@ class Input:
         self._get_gamepad_axis_buttons_pressed()
         self._handle_gamepad_updown_events()
         self._update_attributes()
-        if self.joy_num == 1:
+        if self.player_id == 1:
             self._handle_mouse_visibility()
 
     def _get_gamepad_axis_buttons_pressed(self):
