@@ -328,7 +328,7 @@ class Player(Rect2):
                         arena.dropped_skills.remove(self.overlapping_skill)
                 elif button == ULTBUTTON and (self.overlapping_skill.id >= 1000):
                     if self.overlapping_skill in arena.dropped_skills:
-                        self.__dict[ULTBUTTON] = self.overlapping_skill.id
+                        self.__dict__[ULTBUTTON] = self.overlapping_skill.id
                         arena.dropped_skills.remove(self.overlapping_skill)
 
                 # If hasnt tried to pick up skill
