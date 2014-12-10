@@ -131,14 +131,14 @@ class OptionsPage:
 
                 # button click event handling
                 if 'click' in self.music_on_button.handleEvent(event):
-                    turn_on_music()
+                    AUDIO.turn_on_music()
                 if 'click' in self.music_off_button.handleEvent(event):
-                    turn_off_music()
+                    AUDIO.turn_off_music()
 
                 if 'click' in self.effects_on_button.handleEvent(event):
-                    turn_on_effects()
+                    AUDIO.turn_on_effects()
                 if 'click' in self.effects_off_button.handleEvent(event):
-                    turn_off_effects()
+                    AUDIO.turn_off_effects()
 
                 if 'click' in self.return_button.handleEvent(event):
                     self.start_menu()
