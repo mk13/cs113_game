@@ -261,7 +261,7 @@ class GameLoop:
     def __call__(self):
         while True:
             if not self.player1.input.PAUSED:
-                self.handle_players()
+                self.handle_players_inputs()
                 self.handle_monsters()
                 self.handle_particles()
                 self.draw_screen()
@@ -270,17 +270,17 @@ class GameLoop:
                 self.handle_event_queue()
                 self.clock.tick(self.fps)
             else:
-                self.handle_players()
+                self.handle_players_inputs()
                 self.handle_event_queue()
 
     # -------------------------------------------------------------------------
-    def handle_players(self):
+    def handle_players_inputs(self):
 
         def _refresh_inputs():
             self.player1.input.refresh()
             self.player2.input.refresh()
 
-        def _handle_player_input():
+        def _handle_players_inputs():
             if not self.player1.input.PAUSED:
                 self.player1(self.arena)
                 self.player2(self.arena, self.player1.input)
@@ -303,14 +303,8 @@ class GameLoop:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
-            if self.player1.input.EXIT:
-                # Add the QUIT event to the pygame event queue to be handled
-                # later, at the same time the QUIT event from clicking the
-                # window X is handled
-                pygame.event.post(pygame.event.Event(QUIT))
-
         _refresh_inputs()
-        _handle_player_input()
+        _handle_players_inputs()
         _handle_special_input()
 
     # -------------------------------------------------------------------------

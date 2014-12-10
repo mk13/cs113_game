@@ -492,6 +492,7 @@ class Input:
         self._update_attributes()
         if self.player_id == 1:
             self._handle_mouse_visibility()
+            self._handle_exit_input()
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
@@ -557,6 +558,13 @@ class Input:
             pygame.mouse.set_visible(False)
         else:
             pygame.mouse.set_visible(True)
+
+    def _handle_exit_input(self):
+        # Add the QUIT event to the pygame event queue to be handled
+        # later, at the same time the QUIT event from clicking the
+        # window X is handled
+        if self.EXIT:
+            pygame.event.post(pygame.event.Event(QUIT))
 
     def __getattr__(self, name):
         # initializes any missing variables to False
