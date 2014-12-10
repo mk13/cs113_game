@@ -1,3 +1,4 @@
+import datetime
 import random
 from collections import namedtuple
 
@@ -221,7 +222,8 @@ class Audio:
             print(self)
 
     def __str__(self):
-        return 'new song: {}'.format(self.curr_song.replace('data/', '').replace('.mp3', ''))
+        t = datetime.datetime.now().strftime('%H:%M:%S')
+        return 'new song: "{}"    started at: {}'.format(self.curr_song.replace('data/', '').replace('.mp3', ''), t)
 
 AUDIO = Audio()
 
