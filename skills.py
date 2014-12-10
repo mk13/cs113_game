@@ -78,14 +78,12 @@ SKILLS_TABLE = {}
 #   "on_terrain_f(current_particle)" : Additional effects it will do when the particle hits wall
 
 def initialize_skill_table():
-    # Meditate
-    SKILLS_TABLE[-1] = {'type': None, 'start': blank_function, 'cooldown': 3000, 'energy': 0}
     # -----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
     # -----------------------------------------------------------------------------------------
 
     # Slap (Default auto attack)
-    SKILLS_TABLE[1] = _auto_melee('Slap',30, 30, math.pi / 2, 35, 35, 500, 500, YELLOW, 10, 0)
+    SKILLS_TABLE[1] = _auto_melee('Slap',30, 30, math.pi / 2, 35, 35, 0, 500, YELLOW, 10, 0)
     # Peashooter
     SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 500, 5000, GREEN, 5, 0)
     # Spear

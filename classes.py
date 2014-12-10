@@ -311,9 +311,10 @@ class Player(Rect2):
                 self.pickup_time = -1
                 if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.energy -= SKILLS_TABLE[i]['energy']
-                    self.attack_cooldown_expired = False
                     self.new_particle = SKILLS_TABLE[i]['start'](i, self, self.input.UP, self.input.DOWN)
-                    pygame.time.set_timer(TIME_TICK_EVENT + self.id, SKILLS_TABLE[i]['cooldown'])
+                    if SKILLS_TABLE[i]['cooldown']:
+                        self.attack_cooldown_expired = False
+                        pygame.time.set_timer(TIME_TICK_EVENT + self.id, SKILLS_TABLE[i]['cooldown'])
                     if i == -1:
                         pygame.time.set_timer(PLAYER2_LOCK_EVENT + self.id, SKILLS_TABLE[-1]['cooldown'])
             # If skill is 0, aka empty, and sitting over a skill
@@ -497,19 +498,36 @@ class Input:
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
-            self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-            self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-            self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-            self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-            #     Y             ^
-            #   X   B       []     O
-            #     A             X
-            self.gp_input[GP_Y] = self.gamepad.get_button(3)
-            self.gp_input[GP_X] = self.gamepad.get_button(0)
-            self.gp_input[GP_B] = self.gamepad.get_button(2)
-            self.gp_input[GP_A] = self.gamepad.get_button(1)
-            self.gp_input[GP_START] = self.gamepad.get_button(9)
-            self.gp_input[GP_BACK] = self.gamepad.get_button(8)
+            
+            if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
+                #Max's gamepad
+                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
+                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
+                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
+                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
+                
+                self.gp_input['attack'] = self.gamepad.get_button(3)
+                self.gp_input['jump'] = self.gamepad.get_button(2)
+                self.gp_input['skill1'] = self.gamepad.get_button(1)
+                self.gp_input['skill2'] = self.gamepad.get_button(0)
+                self.gp_input['skill3'] = self.gamepad.get_button(5)
+                self.gp_input['ult'] = self.gamepad.get_button(7)
+                self.gp_input['drop'] = self.gamepad.get_button(4)
+                
+            else:
+                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
+                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
+                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
+                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
+                #     Y             ^
+                #   X   B       []     O
+                #     A             X
+                self.gp_input[GP_Y] = self.gamepad.get_button(3)
+                self.gp_input[GP_X] = self.gamepad.get_button(0)
+                self.gp_input[GP_B] = self.gamepad.get_button(2)
+                self.gp_input[GP_A] = self.gamepad.get_button(1)
+                self.gp_input[GP_START] = self.gamepad.get_button(9)
+                self.gp_input[GP_BACK] = self.gamepad.get_button(8)
 
     def _get_keyboard_keys_pressed(self):
         self.kb_input = pygame.key.get_pressed()
@@ -541,16 +559,15 @@ class Input:
         self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
         self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
         self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
-        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A]
-        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X]
+        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A] or self.gp_input['jump']
+        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X] or self.gp_input['attack']
         self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
         self.EXIT = self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
-        self.SKILL1 = self.kb_input[K_s]
-        self.SKILL2 = self.kb_input[K_d]
-        self.SKILL3 = self.kb_input[K_f]
-        self.ULT = self.kb_input[K_g]
-        self.DROP_SKILL = self.kb_input[K_q]
-        self.MEDITATE = self.kb_input[K_w]
+        self.SKILL1 = self.kb_input[K_s] or self.gp_input['skill1']
+        self.SKILL2 = self.kb_input[K_d] or self.gp_input['skill2']
+        self.SKILL3 = self.kb_input[K_f] or self.gp_input['skill3']
+        self.ULT = self.kb_input[K_g] or self.gp_input['ult']
+        self.DROP_SKILL = self.kb_input[K_q] or self.gp_input['drop']
         self.ENTER = self.kb_input[K_RETURN]
         self.KILLALL = self.kb_input[K_k]
 
