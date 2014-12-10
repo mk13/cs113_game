@@ -97,21 +97,29 @@ class OptionsPage:
             pygame.display.set_mode((1280, 600))
             pygame.display.set_caption('Famished Tournament')
             self.screen = pygame.display.get_surface()
-
             self.bkg_image = pygame.image.load('data/temp_start_bkg.png')
             self.screen.blit(self.bkg_image, (0, 0))
 
-            self.music_on_button = pygbutton.PygButton((650, 200, 60, 50), 'ON')
-            self.music_on_button.draw(self.screen)
-            self.music_off_button = pygbutton.PygButton((730, 200, 80, 50), 'OFF')
-            self.music_off_button.draw(self.screen)
-            self.effects_on_button = pygbutton.PygButton((770, 260, 60, 50), 'ON')
-            self.effects_on_button.draw(self.screen)
-            self.effects_off_button = pygbutton.PygButton((850, 260, 80, 50), 'OFF')
-            self.effects_off_button.draw(self.screen)
+            self.active_colors = BLACK, DKRED
+            self.inactive_colors = DKRED, BLACK
 
+            m_on = s_on = self.inactive_colors
+            m_off = s_off = self.active_colors
+
+            if AUDIO.music_on:
+                m_on, m_off = self.active_colors, self.inactive_colors
+
+            if AUDIO.sound_on:
+                s_on, s_off = self.active_colors, self.inactive_colors
+
+            self.music_on_button = pygbutton.PygButton((650, 200, 60, 50), 'ON', fgcolor=m_on[0], bgcolor=m_on[1])
+            self.music_off_button = pygbutton.PygButton((730, 200, 80, 50), 'OFF', fgcolor=m_off[0], bgcolor=m_off[1])
+            self.effects_on_button = pygbutton.PygButton((770, 260, 60, 50), 'ON', fgcolor=s_on[0], bgcolor=s_on[1])
+            self.effects_off_button = pygbutton.PygButton((850, 260, 80, 50), 'OFF', fgcolor=s_off[0], bgcolor=s_off[1])
             self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
-            self.return_button.draw(self.screen)
+
+            self.draw_screen()
+
 
         def _setup_time():
             self.clock = pygame.time.Clock()
@@ -124,33 +132,48 @@ class OptionsPage:
 
     def __call__(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-                # button click event handling
-                if 'click' in self.music_on_button.handleEvent(event):
-                    AUDIO.turn_on_music()
-                if 'click' in self.music_off_button.handleEvent(event):
-                    AUDIO.turn_off_music()
-
-                if 'click' in self.effects_on_button.handleEvent(event):
-                    AUDIO.turn_on_effects()
-                if 'click' in self.effects_off_button.handleEvent(event):
-                    AUDIO.turn_off_effects()
-
-                if 'click' in self.return_button.handleEvent(event):
-                    self.start_menu()
-
             self.draw_screen()
+            self.handle_events()
             self.clock.tick(self.fps)
 
     def draw_screen(self):
         self.bkg_music_font = self.font.render('Music:', True, DKRED)
         self.se_font = self.font.render('Sound Effects:', True, DKRED)
-
         self.screen.blit(self.bkg_music_font, (500, 200))
         self.screen.blit(self.se_font, (400, 260))
-
+        self.music_on_button.draw(self.screen)
+        self.music_off_button.draw(self.screen)
+        self.effects_on_button.draw(self.screen)
+        self.effects_off_button.draw(self.screen)
+        self.return_button.draw(self.screen)
         pygame.display.flip()
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # button click event handling
+            if 'click' in self.music_on_button.handleEvent(event):
+                self.music_on_button.fgcolor, self.music_on_button.bgcolor = self.active_colors
+                self.music_off_button.fgcolor, self.music_off_button.bgcolor = self.inactive_colors
+                AUDIO.turn_on_music()
+
+            if 'click' in self.music_off_button.handleEvent(event):
+                self.music_on_button.fgcolor, self.music_on_button.bgcolor = self.inactive_colors
+                self.music_off_button.fgcolor, self.music_off_button.bgcolor = self.active_colors
+                AUDIO.turn_off_music()
+
+            if 'click' in self.effects_on_button.handleEvent(event):
+                self.effects_on_button.fgcolor, self.effects_on_button.bgcolor = self.active_colors
+                self.effects_off_button.fgcolor, self.effects_off_button.bgcolor = self.inactive_colors
+                AUDIO.turn_on_effects()
+
+            if 'click' in self.effects_off_button.handleEvent(event):
+                self.effects_on_button.fgcolor, self.effects_on_button.bgcolor = self.inactive_colors
+                self.effects_off_button.fgcolor, self.effects_off_button.bgcolor = self.active_colors
+                AUDIO.turn_off_effects()
+
+            if 'click' in self.return_button.handleEvent(event):
+                self.start_menu()
