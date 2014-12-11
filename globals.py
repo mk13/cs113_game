@@ -1,3 +1,5 @@
+import datetime
+import random
 from collections import namedtuple
 
 import pygame
@@ -25,9 +27,10 @@ DKPURPLE = Color(153, 0, 153)
 ORANGE = Color(255, 153, 0)
 DKORANGE = Color(153, 92, 0)
 
-# Music Flags
-MUSIC_ON = False
-EFFECTS_ON = False
+# Music
+SONGS = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3',
+         'data/drilldance.mp3', 'data/running_emu.mp3', 'data/wooboodoo.mp3',
+         'data/accident.mp3']
 
 # Monster Types and Globals
 ALL = 'ALL'
@@ -174,32 +177,56 @@ def force_add_particle_to_player(particle,player):
             player.new_particle = [player.new_particle, particle]
 
 
+# Music and Sound
+class Audio:
+    def __init__(self):
+        try:
+            pygame.mixer.init(44100)
+            self.audio_device_found = True
+        except pygame.error:
+            self.audio_device_found = False
+        self.menu_song = self.curr_song = 'data/404error.mp3'
+        self.music_on = self.sound_on = False
 
-def turn_off_music():
-    global MUSIC_ON
-    MUSIC_ON = False
-    pygame.mixer.music.stop()
+    def restart_music(self):
+        if self.audio_device_found:
+            self.turn_off_music()
+            self.turn_on_music()
 
-def turn_on_music():
-    global MUSIC_ON
-    if not MUSIC_ON:
-        MUSIC_ON = True
-        pygame.mixer.pre_init(44100)
-        pygame.mixer.init()
-        pygame.mixer.music.load('data/404error.mp3')
-        pygame.mixer.music.play(-1)
+    def turn_on_music(self):
+        if self.audio_device_found:
+            self.music_on = True
+            self.curr_song = self.menu_song
+            pygame.mixer.music.load(self.curr_song)
+            pygame.mixer.music.play(-1)
+            print(self)
 
-def turn_off_effects():
-    global SOUND_ON
-    SOUND_ON = False
+    def turn_off_music(self):
+        if self.audio_device_found:
+            self.music_on = False
+            pygame.mixer.music.stop()
 
-def turn_on_effects():
-    global SOUND_ON
-    SOUND_ON = True
+    def turn_on_effects(self):
+        if self.audio_device_found:
+            self.sound_on = True
 
-def get_music_on():
-    global MUSIC_ON
-    return MUSIC_ON
+    def turn_off_effects(self):
+        if self.audio_device_found:
+            self.sound_on = False
+
+    def play_next_random_song(self):
+        if self.audio_device_found:
+            self.curr_song = random.choice([s for s in SONGS if s != self.curr_song])
+            pygame.mixer.music.load(self.curr_song)
+            pygame.mixer.music.play()
+            pygame.mixer.music.set_endevent(SONG_END_EVENT)
+            print(self)
+
+    def __str__(self):
+        t = datetime.datetime.now().strftime('%H:%M:%S')
+        return 'new song: "{}"    started at: {}'.format(self.curr_song.replace('data/', '').replace('.mp3', ''), t)
+
+AUDIO = Audio()
 
 # Arenas
 arena_nt = namedtuple('arena_nt', 'left_wall_x, right_wall_x, floor_y, platforms, max_monsters, possible_monsters, background, p1_spawn, p2_spawn')

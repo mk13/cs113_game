@@ -479,13 +479,11 @@ class Input:
             self.gamepad_found = True
             #print(str(player_id)+ "  " + str(self.gamepad_found))
         except pygame.error:
-            self.gamepad_found = False
-        self.DEBUG_VIEW = False
-        self.PAUSED = False
-        self.ENTER_LEAVE = False
+            pass
         self.gp_input = defaultdict(bool)
-        self.inside_menu = inside_menu
+        self.kb_input = defaultdict(bool)
         self.player_id = player_id
+        self.inside_menu = inside_menu
 
     def refresh(self):
         if self.player_id == 1:
@@ -494,8 +492,9 @@ class Input:
         self._get_gamepad_axis_buttons_pressed()
         self._handle_gamepad_updown_events()
         self._update_attributes()
-        if self.joy_num == 1:
+        if self.player_id == 1:
             self._handle_mouse_visibility()
+            self._handle_exit_input()
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
@@ -578,8 +577,19 @@ class Input:
         else:
             pygame.mouse.set_visible(True)
 
+    def _handle_exit_input(self):
+        # Add the QUIT event to the pygame event queue to be handled
+        # later, at the same time the QUIT event from clicking the
+        # window X is handled
+        if self.EXIT:
+            pygame.event.post(pygame.event.Event(QUIT))
+
     def __getattr__(self, name):
-        return None
+        # initializes any missing variables to False
+        exec('self.{} = False'.format(name))
+        return eval('self.{}'.format(name))
+
+
 
 # -------------------------------------------------------------------------
 class Arena:

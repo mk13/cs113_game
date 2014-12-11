@@ -45,7 +45,7 @@ class StartMenu:
             self.exit_button = PygButton((810, 395, 105, 40), 'Exit')
 
         def _setup_music():
-            turn_on_music()
+            AUDIO.turn_on_music()
 
         def _setup_time():
             self.clock = pygame.time.Clock()
@@ -60,7 +60,9 @@ class StartMenu:
         _setup_time()
         _setup_input()
 
-    def __call__(self):
+    def __call__(self, restart_music=False):
+        if restart_music:
+            AUDIO.restart_music()
         while True:
             self.input.refresh()
             self.draw_UI()
@@ -181,13 +183,8 @@ class GameLoop:
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
 
         def _setup_music():
-            self.music_flag = get_music_on()
-            if self.music_flag:
-                self.songs = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3',
-                              'data/drilldance.mp3', 'data/running_emu.mp3', 'data/wooboodoo.mp3',
-                              'data/accident.mp3']
-                self.curr_song = None
-                self.play_next_random_song()
+            if AUDIO.music_on:
+                AUDIO.play_next_random_song()
 
         def _setup_rain():
             self.rain_particles = []
@@ -267,7 +264,7 @@ class GameLoop:
     def __call__(self):
         while True:
             if not self.player1.input.PAUSED:
-                self.handle_input()
+                self.handle_players_inputs()
                 self.handle_monsters()
                 self.handle_particles()
                 self.draw_screen()
@@ -276,11 +273,20 @@ class GameLoop:
                 self.handle_event_queue()
                 self.clock.tick(self.fps)
             else:
-                self.handle_input()
+                self.handle_players_inputs()
                 self.handle_event_queue()
 
     # -------------------------------------------------------------------------
-    def handle_input(self):
+    def handle_players_inputs(self):
+
+        def _refresh_inputs():
+            self.player1.input.refresh()
+            self.player2.input.refresh()
+
+        def _handle_players_inputs():
+            if not self.player1.input.PAUSED:
+                self.player1(self.arena)
+                self.player2(self.arena, self.player1.input)
 
         def _handle_special_input():
             if self.player1.input.PAUSED:
@@ -300,19 +306,8 @@ class GameLoop:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
-            if self.player1.input.EXIT:
-                # Add the QUIT event to the pygame event queue to be handled
-                # later, at the same time the QUIT event from clicking the
-                # window X is handled
-                pygame.event.post(pygame.event.Event(QUIT))
-
-        def _handle_player_input():
-            if not self.player1.input.PAUSED:
-                self.player1(self.arena)
-                self.player2(self.arena)
-
-        self.player1.input.refresh()
-        _handle_player_input()
+        _refresh_inputs()
+        _handle_players_inputs()
         _handle_special_input()
 
     # -------------------------------------------------------------------------
@@ -741,16 +736,16 @@ class GameLoop:
         def _handle_song_end_event():
             for event in pygame.event.get(SONG_END_EVENT):
                 if event.type == SONG_END_EVENT:
-                    print("the song ended!")
-                    self.play_next_random_song()
+                    print('the song ended!')
+                    AUDIO.play_next_random_song()
 
         def _handle_return_to_main_menu():
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
-                    self.start_menu()
+                    self.start_menu(restart_music=True)
             if self.player1.input.ENTER_LEAVE:
                 self.player1.input.ENTER_LEAVE = False
-                self.start_menu()
+                self.start_menu(restart_music=True)
 
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
@@ -834,19 +829,18 @@ class GameLoop:
                 if event.type == PLAYER2_LOCK_EVENT:
                     self.player2.attack_cooldown_expired = True
                     pygame.time.set_timer(PLAYER2_LOCK_EVENT, 0)
-                    
+
         def _handle_player_pickup_skill_events():
             for event in pygame.event.get(PLAYER1_PICKUP_EVENT):
                 if event.type == PLAYER1_PICKUP_EVENT:
                     print("FOUND")
                     self.player1.pickup_time += 1
                     pygame.time.set_timer(PLAYER1_PICKUP_EVENT, 0)
-                    
+
             for event in pygame.event.get(PLAYER2_PICKUP_EVENT):
                 if event.type == PLAYER2_PICKUP_EVENT:
                     self.player2.pickup_time += 1
                     pygame.time.set_timer(PLAYER2_PICKUP_EVENT, 0)
-                    
 
         def _handle_rain_event():
             for event in pygame.event.get(MORE_RAIN_EVENT):
@@ -882,15 +876,6 @@ class GameLoop:
             self.player1.input._handle_keyboard_updown_events()
             self.player1.input._handle_gamepad_updown_events()
             pygame.event.clear()
-
-    # -------------------------------------------------------------------------
-    def play_next_random_song(self):
-        next_song = random.choice([s for s in self.songs if s != self.curr_song])
-        self.curr_song = next_song
-        pygame.mixer.music.load(next_song)
-        pygame.mixer.music.play()
-        pygame.mixer.music.set_endevent(SONG_END_EVENT)
-        print('new song: {}'.format(next_song.replace('data/', '').replace('.mp3', '')))
 
 # -------------------------------------------------------------------------
 if __name__ == '__main__':
