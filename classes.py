@@ -477,6 +477,7 @@ class Input:
             self.gamepad = pygame.joystick.Joystick(player_id - 1)
             self.gamepad.init()
             self.gamepad_found = True
+            #print(str(player_id)+ "  " + str(self.gamepad_found))
         except pygame.error:
             self.gamepad_found = False
         self.DEBUG_VIEW = False
@@ -498,7 +499,7 @@ class Input:
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
-            
+            print(self.gamepad.get_name())
             if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
                 #Max's gamepad
                 self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
