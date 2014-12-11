@@ -138,6 +138,9 @@ class GameLoop:
             self.window = self.surface.get_rect()
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
+            self.left_grey_fill = Rect2(left=0, top=0, width=65, height=600)
+            self.right_grey_fill = Rect2(left=1215, top=0, width=60, height=600)
+            self.bottom_grey_fill = Rect2(left=0, top=475, width=1280, height=115)
 
         def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
@@ -369,7 +372,7 @@ class GameLoop:
                                 p.on_hit(opposite, self.game_time.msec)
                                 self.active_particles.remove(p)
                 # Melee Particle
-                else:
+                elif isinstance(p, MeleeParticle):
                     # Check Monsters
                     all_monsters_hit_i = p.collidelistall(self.active_monsters)
                     for i in all_monsters_hit_i:
@@ -383,6 +386,12 @@ class GameLoop:
                     # Check Player
                     if p.colliderect(opposite):
                         p.on_hit(opposite, self.game_time.msec)
+                # Field Particle
+                else:
+                    # Check Monsters and players
+                    for t in self.active_monsters + [self.player1, self.player2]:
+                        if p.is_in_field(t):
+                            p.on_hit(t, self.game_time.msec)
 
         _update_active_particles()
         _update_particles()
@@ -417,12 +426,19 @@ class GameLoop:
 
     # -------------------------------------------------------------------------
     def draw_screen(self):
-
-        def _draw_ui():
+    
+        def _draw_ui1():
             self.surface.fill(DGREY)
             if self.arena.background is not None:
                 self.image = pygame.image.load(self.arena.background)
                 self.screen.blit(self.image, (self.arena.play_area_rect.left, 0))
+            
+
+        def _draw_ui2():
+            pygame.draw.rect(self.surface, DGREY, self.left_grey_fill)
+            pygame.draw.rect(self.surface, DGREY, self.right_grey_fill)
+            pygame.draw.rect(self.surface, DGREY, self.bottom_grey_fill)
+
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -566,7 +582,10 @@ class GameLoop:
 
         def _draw_particles():
             for p in self.active_particles:
-                pygame.draw.rect(self.surface, p.color, p)
+                if isinstance(p, FieldParticle):
+                    pygame.draw.circle(self.surface, p.color, (p.centerx, p.centery), p.radius, 1)
+                else:
+                    pygame.draw.rect(self.surface, p.color, p)
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:
@@ -596,7 +615,7 @@ class GameLoop:
                     self.rain_particles.remove(r)
             self.make_rain = False
 
-        _draw_ui()
+        _draw_ui1()
         _draw_timer()
         _draw_arena()
         _draw_monsters()
@@ -605,6 +624,7 @@ class GameLoop:
             _draw_players()
         _draw_particles()
         _draw_scrolling_text()
+        _draw_ui2()
         # _draw_rain()
 
     # -------------------------------------------------------------------------

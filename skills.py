@@ -82,13 +82,15 @@ def initialize_skill_table():
     # AUTO ATTACKS 1-99
     # -----------------------------------------------------------------------------------------
 
-    # Slap (Default auto attack)
-    SKILLS_TABLE[1] = _auto_melee('Slap',30, 30, math.pi / 2, 35, 35, 0, 500, YELLOW, 10, 0)
+    # Monster Slayer (Default auto attack)
+    SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0)
+    SKILLS_TABLE[1]['on_hit_f'] = monster_slayer_on_hit
     # Peashooter
     SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 500, 5000, GREEN, 5, 0)
     # Spear
     SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, True)
-
+    # Nail-on-plank
+    SKILLS_TABLE[4] = _auto_melee('Nail-on-Plank', 20, 20, math.pi/2, 30, 30, 20, 500, BROWN, 2, 0)
     # -----------------------------------------------------------------------------------------
     # SKILLS 100-999
     # -----------------------------------------------------------------------------------------
@@ -146,7 +148,8 @@ def initialize_skill_table():
     ADD_POLARITY_SHIFT(1003)
     # Bee Hive
     ADD_BEE_HIVE(1004)
-
+    # Epicenter
+    ADD_EPICENTER(1005)
     # for k, v in sorted(SKILLS_TABLE.items(), key=lambda x: str(x)):
     #     print(k, v)
 
@@ -164,12 +167,19 @@ def _auto_range(name, width, height, speed, acceleration, cooldown, duration, co
             'cooldown': cooldown, 'duration': duration, 'color': color, 'dmg': dmg,
             'energy': energy}
 
+def _auto_field(name, radius, cooldown, duration, color, dmg, energy):
+    return {'name': name, 'type': FIELD,
+            'start':(lambda sid, player: classes.FieldParticle(sid,player)),
+            'radius':radius, 'width':radius*2, 'height':radius*2, 'cooldown':cooldown, 'duration':duration,
+            'color':color, 'dmg':dmg, 'energy':energy}
 
 # Individual skills =========================================
 
-# Used for meditation
-def blank_function(sid, player, up=False, down=False):
-    return None
+def monster_slayer_on_hit(particle, target, time):
+    if isinstance(target, classes.Monster):
+        handle_damage(target, 20, time)
+    else:
+        handle_damage(target, 2, time)
 
 # 'start' function for teleport
 def teleport_start(sid, player, up, down):
@@ -222,7 +232,6 @@ def knock_back(particle,target,time):
     else:
         target.x += 50
     out_of_arena_fix(target)
-
 
 def ADD_BOULDER_TOSS(i):
     SKILLS_TABLE[i] = {'name': "Boulder Toss", 'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6}
@@ -615,6 +624,20 @@ def faerie_shot_path(p,t):
     x = p.centerx + p.dx
     p.dx += p.ddx
     return x,y
+    
+def ADD_EPICENTER(i):
+    SKILLS_TABLE[i] = {'name':'Epicenter', 'type': None, 'start':epicenter_start, 'cooldown':300, 'energy':8}
+    SKILLS_TABLE['epicenter'] = _auto_field('', radius=200, cooldown=200, duration=6000, color=BROWN, dmg=10, energy=2)
+    SKILLS_TABLE['epicenter']['frequency'] = 2000
+    SKILLS_TABLE['epicenter']['conditions'] = [classes.Slow(2000, 0.5)]
+    SKILLS_TABLE['epicenter']['on_hit_f'] = epicenter_on_hit_f
+def epicenter_start(sid, player, up=False, down=False):
+    obj = classes.FieldParticle('epicenter', player)
+    return obj
+def epicenter_on_hit_f(particle, target, time):
+    target.dx += (particle.centerx - target.centerx)/5
+    target.dy += (particle.centery - target.centery)/5
+    
 
 # ----------------------------------------------------------------------------
 def get_dropped_skill(monster):

@@ -71,6 +71,7 @@ EXIT = 'EXIT'
 RESET = 'RESET'
 MELEE = 'MELEE'
 RANGE = 'RANGED'
+FIELD = 'FIELD'
 
 # Conditions
 STUN = 'STUN'

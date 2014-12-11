@@ -113,7 +113,7 @@ class Player(Rect2):
         self.skill1_id = 116
         self.skill2_id = 109
         self.skill3_id = 107
-        self.ult_id = 1004
+        self.ult_id = 1005
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -303,7 +303,7 @@ class Player(Rect2):
     def _handle_inputs(self, arena):
         i, button = self._priority_inputs()
         if self.input.DROP_SKILL and i != -1:  # Drop skill pressed
-            self.__dict__[button] = 0
+            self.__dict__[button] = 0 if button != ATTACKBUTTON else 1            
 
         elif not self.input.DROP_SKILL:  # Drop skill not pressed
             # If a valid skill is pressed
@@ -318,7 +318,7 @@ class Player(Rect2):
                     if i == -1:
                         pygame.time.set_timer(PLAYER2_LOCK_EVENT + self.id, SKILLS_TABLE[-1]['cooldown'])
             # If skill is 0, aka empty, and sitting over a skill
-            elif i == 0 and self.overlapping_skill:
+            elif (i == 0 or i == 1) and self.overlapping_skill:
                 if button == ATTACKBUTTON and (0 < self.overlapping_skill.id < 99):
                     if self.overlapping_skill in arena.dropped_skills:
                         self.__dict__[ATTACKBUTTON] = self.overlapping_skill.id
@@ -739,7 +739,6 @@ class RangeParticle(Particle):
         self.direction = player.facing_direction
         self.originx = player.centerx  # Where the particle started
         self.originy = player.centery  # These might be useful later on
-
         # If has special path, upload function to special_f
         self.dx = SKILLS_TABLE[sid]['speed']
         self.ddx = SKILLS_TABLE[sid]['acceleration']
@@ -772,7 +771,7 @@ class RangeParticle(Particle):
     def update(self, time):
         if self.spawn_time == 0:
             self.spawn_time = time
-
+        
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
 
@@ -789,6 +788,7 @@ class RangeParticle(Particle):
 
     def on_hit(self, target, time):  # DONT delete time; will use later
         if target != self.belongs_to:
+            
             handle_damage(target, self.dmg, time)
 
             for c in self.conditions:
@@ -802,6 +802,69 @@ class RangeParticle(Particle):
             if self.on_hit_f:
                 self.on_hit_f(self, target, time)
 
+# -------------------------------------------------------------------------
+
+class FieldParticle(Particle):
+    def __init__(self, sid, player):
+        super().__init__(sid, player)
+        self.radius = SKILLS_TABLE[sid]['radius']
+        self.frequency = None   
+        self.persistent_pulse_f = None    #(particle, time, target)
+        
+        self.originx = self.centerx = player.centerx
+        self.originy = self.centery = player.centery
+        
+        self.has_hit = []  # Need this to keep track of what it has hit;
+                           # melee particles are not delete upon hitting
+                           # a target, so we need to know who it has hit
+                           # to prevent the same target being hit multiple
+                           # times
+        self.has_hit_time = []
+        
+        if 'persistent_pulse_f' in SKILLS_TABLE[sid].keys():
+            self.persistent_pulse_f = SKILLS_TABLE[sid]['persistent_pulse_f']
+        if 'frequency' in SKILLS_TABLE[sid].keys():
+            self.frequency = SKILLS_TABLE[sid]['frequency']
+
+            
+    def update(self, time):
+        if self.spawn_time == 0:
+            self.spawn_time = time
+           
+        for i,v in enumerate(self.has_hit_time):
+            if (v+200) <= time:
+                del self.has_hit[i] 
+                del self.has_hit_time[i]
+        
+        elapsed_time = time - self.spawn_time
+        self.expired = (elapsed_time >= self.duration)
+        
+        if self.persistent_f:
+            self.persistent_f(self,time)
+            
+    def is_in_field(self, target):
+        return target.distance_from(self) <= self.radius
+               
+    def on_hit(self, target, time):
+        #If pulse function exists
+        if target != self.belongs_to and self.frequency and target not in self.has_hit:
+            self.has_hit.append(target)
+            self.has_hit_time.append(time)
+            # On pulse
+            if (time - self.spawn_time)%self.frequency == 0:
+                handle_damage(target, self.dmg, time)
+                for c in self.conditions:
+                    c.begin(time, target)
+                
+
+                if self.on_hit_f:
+                    self.on_hit_f(self, target, time)
+        
+        #If persistent pulse function exists
+        if target != self.belongs_to and self.persistent_pulse_f:
+            self.peristent_pulse_f(self,target,time)
+        
+    
 # -------------------------------------------------------------------------
 class GameTime:
     def __init__(self):
