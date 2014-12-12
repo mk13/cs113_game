@@ -286,7 +286,7 @@ class GameLoop:
         def _handle_players_inputs():
             if not self.player1.input.PAUSED:
                 self.player1(self.arena)
-                self.player2(self.arena, self.player1.input)
+                self.player2(self.arena)
 
         def _handle_special_input():
             if self.player1.input.PAUSED:

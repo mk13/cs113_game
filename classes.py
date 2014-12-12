@@ -498,13 +498,17 @@ class Input:
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
-            print(self.gamepad.get_name())
             if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
                 #Max's gamepad
                 self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
                 self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
                 self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
                 self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
+
+                #self.gp_input[GP_LEFT] = self.gamepad.get_hat(i)
+                #self.gp_input[GP_RIGHT] = self.gamepad.get_hat(1)[0] == 1
+                #self.gp_input[GP_UP] = self.gamepad.get_hat(1)[1] == 1
+                #self.gp_input[GP_DOWN] = self.gamepad.get_hat(1)[1] == -1
                 
                 self.gp_input['attack'] = self.gamepad.get_button(3)
                 self.gp_input['jump'] = self.gamepad.get_button(2)
@@ -522,12 +526,13 @@ class Input:
                 #     Y             ^
                 #   X   B       []     O
                 #     A             X
-                self.gp_input[GP_Y] = self.gamepad.get_button(3)
-                self.gp_input[GP_X] = self.gamepad.get_button(0)
-                self.gp_input[GP_B] = self.gamepad.get_button(2)
-                self.gp_input[GP_A] = self.gamepad.get_button(1)
-                self.gp_input[GP_START] = self.gamepad.get_button(9)
-                self.gp_input[GP_BACK] = self.gamepad.get_button(8)
+                self.gp_input['attack'] = self.gamepad.get_button(0)
+                self.gp_input['jump'] = self.gamepad.get_button(1)
+                self.gp_input['skill1'] = self.gamepad.get_button(2)
+                self.gp_input['skill2'] = self.gamepad.get_button(3)
+                self.gp_input['skill3'] = self.gamepad.get_button(5)
+                self.gp_input['ult'] = self.gamepad.get_button(7)
+                self.gp_input['drop'] = self.gamepad.get_button(4)
 
     def _get_keyboard_keys_pressed(self):
         self.kb_input = pygame.key.get_pressed()
