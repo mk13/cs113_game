@@ -404,6 +404,15 @@ class Monster(Player):
         self.input = AI_Input()
         self.color = color
         self.kind = info.kind
+        
+        self.dmg = info.dmg
+        self.exp_value = info.exp_value
+        
+        self.has_hit = []
+        self.has_hit_time = []
+        self.hit_by = {1: False, 2: False}
+        self.hit_by_time = {1: 0, 2: 0}
+        
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
@@ -418,6 +427,18 @@ class Monster(Player):
                 self.target = self.p1
             else:
                 self.target = self.p2
+    
+    def _handle_last_hit(self,time):
+        for i,v in enumerate(self.has_hit_time):
+            if (v+2000) <= time:
+                del self.has_hit[i]
+                del self.has_hit_time[i]
+        
+        if self.hit_by_time[1] + 2000 <= time:
+            self.hit_by[1] = False
+        if self.hit_by_time[2] + 2000 <= time:
+            self.hit_by[2] = False
+        
 
     def _switch_mode(self, time):
         time_spent_in_status = time - self.last_status_change
@@ -455,10 +476,25 @@ class Monster(Player):
                 self.input.JUMP = True
 
     def __call__(self, time, arena_map):
+        self._handle_last_hit(time)
         self._ai(time)
         self._handle_facing_direction()
         self._handle_acceleration()
         self._handle_movement(arena_map)
+        
+    def on_hit(self,target,time):
+        if target not in self.has_hit:
+            if self.kind != ULTIMATE and not self.hit_by[target.id]:
+                self.has_hit.append(target)
+                self.has_hit_time.append(time)
+
+                handle_damage(target, self.dmg, time) 
+            elif self.kind == ULTIMATE:
+                self.has_hit.append(target)
+                self.has_hit_time.append(time)
+
+                handle_damage(target, self.dmg, time) 
+        
 
 # -------------------------------------------------------------------------
 class AI_Input():
@@ -741,8 +777,10 @@ class MeleeParticle(Particle):
 
             # On hitting monster, small pushback
             if isinstance(target, Monster):
-                target.centerx += -5 * target.dx
+                target.centerx += -10 * target.dx
                 target.dx *= -1
+                target.hit_by[self.belongs_to.id] = True
+                target.hit_by_time[self.belongs_to.id] = time
 
             if self.on_hit_f:
                 self.on_hit_f(self,target,time)
@@ -814,6 +852,9 @@ class RangeParticle(Particle):
             if isinstance(target, Monster):
                 target.centerx += -5 * target.dx
                 target.dx *= -1
+                target.hit_by[self.belongs_to.id] = True
+                target.hit_by_time[self.belongs_to.id] = time
+                
 
             if self.on_hit_f:
                 self.on_hit_f(self, target, time)
@@ -872,7 +913,12 @@ class FieldParticle(Particle):
                 for c in self.conditions:
                     c.begin(time, target)
                 
-
+                if isinstance(target, Monster):
+                    target.centerx += -5 * target.dx
+                    target.dx *= -1
+                    target.hit_by[self.belongs_to.id] = True
+                    target.hit_by_time[self.belongs_to.id] = time
+                
                 if self.on_hit_f:
                     self.on_hit_f(self, target, time)
         

@@ -39,6 +39,7 @@ MEDIUM = 'MEDIUM'
 ULTIMATE = 'ULTIMATE'
 CHASING = 'CHASING'
 IDLE = 'IDLE'
+ULTIMATE_SPAWN_RATE = 5000
 
 # Player States (for animation)
 STAND = 'STAND'
@@ -243,7 +244,7 @@ arena1 = arena_nt(
         terrain_nt(30, 240, 40, 20, WHITE, 5, False),
         terrain_nt(1145, 465, -5, 5, None, -1, True),
         terrain_nt(15, 465, -5, 5, None, -1, True), ],
-    max_monsters=5, possible_monsters=(WEAK, MEDIUM),
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM),
     background=None, p1_spawn=(135, 150), p2_spawn=(985, 150))
 
 arena2 = arena_nt(
@@ -259,7 +260,7 @@ arena2 = arena_nt(
         terrain_nt(970, 65, 80, 10, DKGREEN, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=5, possible_monsters=ALL,
+    max_monsters=3, possible_monsters=(WEAK,MEDIUM), #ALL
     background=None, p1_spawn=(135, 150), p2_spawn=(985, 150))
 
 arena3 = arena_nt(
@@ -276,12 +277,12 @@ arena3 = arena_nt(
         terrain_nt(785, 120, 227, 40, None, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=5, possible_monsters=ALL,
+    max_monsters=3, possible_monsters=(WEAK,MEDIUM), #ALL 
     background='data/vines-copy2.png', p1_spawn=(75, 50), p2_spawn=(992, 50))
 
 # Monsters
-monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle')
+monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000),
-    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000),
-    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000)}
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000,10, 10),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,15, 15),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,25, 30)}
