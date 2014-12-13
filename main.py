@@ -304,7 +304,7 @@ class GameLoop:
         _check_particle_collisions()
 
     # -------------------------------------------------------------------------
-    def handle_monsters(self,time):
+    def handle_monsters(self, time):
 
         def _handle_monster_spawning():
             if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
@@ -341,6 +341,7 @@ class GameLoop:
         _handle_monster_spawning()
         _handle_dead_monsters()
         _update_monsters(time)
+
     # -------------------------------------------------------------------------
     def draw_screen(self):
 

@@ -10,7 +10,7 @@ from pygame.locals import *  # for event timers
 
 if os.environ['COMPUTERNAME'] == 'BRIAN-DESKTOP':
     os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(1920, 90)
-if os.environ['COMPUTERNAME'] == 'MAX-LT':
+if os.environ['COMPUTERNAME'] in ('MAX-LT', 'BRIAN-LAPTOP'):
     os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(50, 30)
 
 pygame.init()
@@ -274,7 +274,7 @@ arena2 = arena_nt(
         terrain_nt(970, 65, 80, 10, DKGREEN, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=3, possible_monsters=(WEAK,MEDIUM), #ALL
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM),  # ALL
     background=None, p1_spawn=(135, 150), p2_spawn=(985, 150))
 
 arena3 = arena_nt(
@@ -291,7 +291,7 @@ arena3 = arena_nt(
         terrain_nt(785, 120, 227, 40, None, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=3, possible_monsters=(WEAK,MEDIUM), #ALL
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM),  # ALL
     background='data/vines-copy2.png', p1_spawn=(75, 50), p2_spawn=(992, 50))
 
 # Monsters
