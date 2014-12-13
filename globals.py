@@ -19,7 +19,7 @@ pygame.display.set_caption('Famished Tournament')
 SCREEN = pygame.display.set_mode((1280, 600))
 CLOCK = pygame.time.Clock()
 FPS = 30
-NEXT_PAGE = ''
+NEXT_PAGE = 'start'
 
 # Colors
 BLACK = Color(0, 0, 0)
@@ -275,7 +275,6 @@ class Input:
         self._update_attributes()
         if self.player_id == 1:
             self._handle_mouse_visibility()
-            self._handle_exit_input()
 
     def _get_gamepad_axis_buttons_pressed(self):
         if self.gamepad_found:
@@ -361,17 +360,12 @@ class Input:
                 self.DEBUG_VIEW = not self.DEBUG_VIEW
             if event.key == K_PAUSE:
                 self.PAUSED = not self.PAUSED
-            if event.key == K_RETURN:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
+            if event.key == K_ESCAPE:
+                self.ESC = not self.ESC
 
     def _handle_gamepad_updown_events(self):
         if self.gamepad_found:
-            # Push A and Y at same time in order for the ENTER_LEAVE input to register from gamepad
-            # ENTER_LEAVE input enters game/menu from menu/game
-            joy_button_down_events = pygame.event.get(JOYBUTTONDOWN)
-            if len(list(filter(lambda e: e.button in [self.G_A_BUTTON, self.G_Y_BUTTON], joy_button_down_events))) == 2:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
-            for event in joy_button_down_events:
+            for event in pygame.event.get(JOYBUTTONDOWN):
                 if event.button == GP_START:
                     self.PAUSED = not self.PAUSED
                 if event.button == GP_BACK:
@@ -393,23 +387,16 @@ class Input:
 
         self.DROP_SKILL = self.kb_input[K_q] or self.gp_input[GP_L1] or self.gp_input['drop']
 
-        self.EXIT = self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
         self.RESPAWN = self.kb_input[K_r]
         self.ENTER = self.kb_input[K_RETURN]
         self.KILLALL = self.kb_input[K_k]
 
     def _handle_mouse_visibility(self):
+        global NEXT_PAGE
         if self.DEBUG_VIEW and NEXT_PAGE not in ('start, options, help'.split(', ')):
             pygame.mouse.set_visible(False)
         else:
             pygame.mouse.set_visible(True)
-
-    def _handle_exit_input(self):
-        # Add the QUIT event to the pygame event queue to be handled
-        # later, at the same time the QUIT event from clicking the
-        # window X is handled
-        if self.EXIT:
-            pygame.event.post(pygame.event.Event(QUIT))
 
     def __getattr__(self, name):
         # initializes any missing variables to False

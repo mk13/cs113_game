@@ -664,8 +664,8 @@ class GameLoop:
                 if 'click' in self.return_button.handleEvent(event):
                     self.return_now = True
                     GL.NEXT_PAGE = 'start'
-            if self.player1.input.ENTER_LEAVE:
-                self.player1.input.ENTER_LEAVE = False
+            if self.player1.input.ESC:
+                self.player1.input.ESC = False
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 

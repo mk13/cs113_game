@@ -30,6 +30,7 @@ class StartMenu:
         self.return_now = False
         while not self.return_now:
             self.draw()
+            self.input()
             self.events()
             GL.CLOCK.tick(GL.FPS)
 
@@ -43,6 +44,11 @@ class StartMenu:
         GL.SCREEN.blit(self.title_font2, (450, 175))
         pygame.display.update()
 
+    def input(self):
+        GL.INPUT1.refresh()
+        if GL.INPUT1.ESC:
+            EXIT_GAME()
+
     def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -51,7 +57,6 @@ class StartMenu:
                 EXIT_GAME()
             if 'click' in self.start_button.handleEvent(event):
                 self.return_now = True
-                # GL.NEXT_PAGE = 'game'
                 GL.NEXT_PAGE = 'GameLoop()'
             if 'click' in self.help_button.handleEvent(event):
                 self.return_now = True
@@ -87,6 +92,7 @@ class HelpPage:
         self.return_now = False
         while not self.return_now:
             self.draw()
+            self.input()
             self.events()
             GL.CLOCK.tick(GL.FPS)
 
@@ -106,6 +112,13 @@ class HelpPage:
 
         self.return_button.draw(GL.SCREEN)
         pygame.display.update()
+
+    def input(self):
+        GL.INPUT1.refresh()
+        if GL.INPUT1.ESC:
+            self.return_now = True
+            GL.INPUT1.ESC = False
+            GL.NEXT_PAGE = 'start'
 
     def events(self):
         for event in pygame.event.get():
@@ -134,6 +147,7 @@ class OptionsPage:
         self.return_now = False
         while not self.return_now:
             self.draw()
+            self.input()
             self.events()
             GL.CLOCK.tick(GL.FPS)
 
@@ -161,6 +175,13 @@ class OptionsPage:
         self.effects_off_button.draw(GL.SCREEN)
         self.return_button.draw(GL.SCREEN)
         pygame.display.update()
+
+    def input(self):
+        GL.INPUT1.refresh()
+        if GL.INPUT1.ESC:
+            self.return_now = True
+            GL.INPUT1.ESC = False
+            GL.NEXT_PAGE = 'start'
 
     def events(self):
         for event in pygame.event.get():
