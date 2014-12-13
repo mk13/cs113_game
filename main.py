@@ -88,6 +88,7 @@ class GameLoop:
 
         def _setup_monsters():
             self.active_monsters = []
+            self.ultimate_monster_active = False
             self.dropped_skills = []
             self.spawn_monsters = False
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
@@ -136,7 +137,7 @@ class GameLoop:
             self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), sprite=p1_sprite)
             self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), sprite=p2_sprite)
 
-            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
+            #self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -175,7 +176,7 @@ class GameLoop:
         while not self.return_now:
             if not self.player1.input.PAUSED:
                 self.handle_players_inputs()
-                self.handle_monsters()
+                self.handle_monsters(self.game_time.msec)
                 self.handle_particles()
                 self.draw_screen()
                 self.draw_debug()
@@ -196,7 +197,7 @@ class GameLoop:
         def _handle_players_inputs():
             if not self.player1.input.PAUSED:
                 self.player1(self.arena)
-                self.player2(self.arena, self.player1.input)
+                self.player2(self.arena)
 
         def _handle_special_input():
             if self.player1.input.PAUSED:
@@ -303,7 +304,7 @@ class GameLoop:
         _check_particle_collisions()
 
     # -------------------------------------------------------------------------
-    def handle_monsters(self):
+    def handle_monsters(self,time):
 
         def _handle_monster_spawning():
             if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
@@ -311,6 +312,12 @@ class GameLoop:
                 color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
                 monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]  # pick a random monster
                 self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2, color))
+            if not self.ultimate_monster_active:
+                if self.game_time.msec != 0 and (self.game_time.msec % ULTIMATE_SPAWN_RATE) == 0:
+                    spawn_point = self.arena.random_spawn_point  # pick a random spawn point
+                    color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
+                    self.ultimate_monster_active = True
+                    self.active_monsters.append(Monster(MONSTER_TABLE[ULTIMATE], spawn_point.topleft, self.player1, self.player2, color))
             self.spawn_monsters = False
 
         def _handle_dead_monsters():
@@ -319,16 +326,21 @@ class GameLoop:
                     dropped_skill_id = get_dropped_skill(m)
                     dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=BLACK)
                     self.arena.dropped_skills.append(dropped_skill_rect)
+                    if m.kind == ULTIMATE:
+                        self.ultimate_monster_active = False
                     self.active_monsters.remove(m)
 
-        def _update_monsters():
+        def _update_monsters(time):
             for m in self.active_monsters:
                 m(self.game_time.msec, self.arena)
+                if m.colliderect(self.player1):
+                    m.on_hit(self.player1,time)
+                if m.colliderect(self.player2):
+                    m.on_hit(self.player2,time)
 
         _handle_monster_spawning()
         _handle_dead_monsters()
-        _update_monsters()
-
+        _update_monsters(time)
     # -------------------------------------------------------------------------
     def draw_screen(self):
 
