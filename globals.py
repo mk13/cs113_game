@@ -1,10 +1,24 @@
 import datetime
+import os
 import random
+import sys
 from collections import namedtuple
 
 import pygame
 from pygame import Color
 from pygame.locals import *  # for event timers
+
+if os.environ['COMPUTERNAME'] == 'BRIAN-DESKTOP':
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(1920, 90)
+if os.environ['COMPUTERNAME'] == 'MAX-LT':
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(50, 30)
+
+pygame.init()
+pygame.display.set_caption('Famished Tournament')
+SCREEN = pygame.display.set_mode((1280, 600))
+CLOCK = pygame.time.Clock()
+FPS = 30
+NEXT_PAGE = ''
 
 # Colors
 BLACK = Color(0, 0, 0)
@@ -285,3 +299,7 @@ MONSTER_TABLE = {
     WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000),
     MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000),
     ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000)}
+
+def EXIT_GAME():
+    pygame.quit()
+    sys.exit()
