@@ -159,7 +159,7 @@ class GameLoop:
             self.energy_font_xy = 80, 535
             self.pause_font = pygame.font.Font(main_font, 200)
             self.pause_font_xy = font_position_center(self.window, self.pause_font, '-PAUSE-')
-            self.debug_font_small = pygame.font.SysFont('consolas', 10)  # monospace
+            self.debug_font_small = pygame.font.SysFont('consolas', 12)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
             self.debug_font_xy1 = 1075, 505
@@ -169,9 +169,13 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            self.st_font = pygame.font.Font(main_font, 18)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
+            
+            #Scrolling text stuff
+            self.st_dmg_font = pygame.font.Font(main_font, 12)
+            self.st_condition_font = pygame.font.Font(main_font, 15)
+            self.st_level_up_font = pygame.font.Font(main_font, 30)
 
         def _setup_particles():
             self.active_particles = []
@@ -418,6 +422,11 @@ class GameLoop:
                     self.arena.dropped_skills.append(dropped_skill_rect)
                     if m.kind == ULTIMATE:
                         self.ultimate_monster_active = False
+                    if m.last_hit_by != None:
+                        m.last_hit_by.handle_exp(m.exp_value,self.game_time.msec)
+                    #Debugging: kill button used
+                    else: 
+                        self.player1.handle_exp(m.exp_value,self.game_time.msec)
                     self.active_monsters.remove(m)
 
         def _update_monsters(time):
@@ -596,15 +605,49 @@ class GameLoop:
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:
+                cond_count = 0
                 for t in unit.st_buffer:
-                    text = t[0] if isinstance(t[0],str) else ("-" + str(int(t[0])))
-                    color = RED
-                    if isinstance(t[0],str) and t[0] in BUFFS:
-                        color = GREEN
-                    self.surface.blit(self.st_font.render(text, True, color),
-                    (unit.centerx, unit.top - (3000 - t[1] + self.game_time.msec)/50))
-                    if t[1] <= self.game_time.msec:
+                    #Damage scrolling text:
+                    if t[0] == ST_DMG:
+                        text = "-" + str(int(t[1]))
+                        color = RED
+                        
+                        self.surface.blit(self.st_dmg_font.render(text, True, color),
+                        (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
+                    #Level up scrolling text
+                    elif t[0] == ST_LEVEL_UP:
+                        text = t[1]
+                        color = YELLOW
+                        self.surface.blit(self.st_level_up_font.render(text, True, color),
+                        (unit.centerx-50, unit.top - (4000 - t[2] + self.game_time.msec)/50))
+                    if t[2] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
+                
+                #Condition scrolling text
+                #Process list
+                print_list = []
+                for k,vl in unit.conditions.items():
+                    #ignore dot
+                    if k != DOT:
+                        if unit.conditions[k] and k == SHIELD:
+                            sum_mag = 0
+                            max_duration = 0
+                            for sh in unit.conditions[k]:
+                                sum_mag += sh.magnitude
+                                max_duration = max(max_duration, int((self.game_time.msec - sh.start)/1000))
+                            print_list.append(SHIELD + "("+str(sum_mag)+"):"+str(max_duration))
+                        elif unit.conditions[k]:
+                            max_duration = 0
+                            for c in unit.conditions[k]:
+                                max_duration = max(max_duration, int((c.duration - self.game_time.msec + c.start)/1000))
+                            print_list.append(k + ":" + str(max_duration))
+                #Print list
+                for i,v in enumerate(print_list):
+                    color = GREEN if v in BUFFS else RED
+                    self.surface.blit(self.st_condition_font.render(v, True, color),
+                    (unit.centerx-50, unit.top - 20 - (15 * i)))
+                
+                            
 
         def _draw_rain():
             if self.make_rain:

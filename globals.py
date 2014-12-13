@@ -40,6 +40,13 @@ ULTIMATE = 'ULTIMATE'
 CHASING = 'CHASING'
 IDLE = 'IDLE'
 ULTIMATE_SPAWN_RATE = 5000
+WEAK_EXP_VALUE = 10
+MEDIUM_EXP_VALUE = 25
+ULTIMATE_EXP_VALUE = 50
+
+# Player exp level-up thresholds
+                   #1  2   3    4    5    6    7    8    9    10
+LEVEL_THRESHOLDS = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450]
 
 # Player States (for animation)
 STAND = 'STAND'
@@ -99,6 +106,9 @@ SKILL2BUTTON = "skill2_id"
 SKILL3BUTTON = "skill3_id"
 ULTBUTTON    = "ult_id"
 
+# Scrolling texts
+ST_DMG = "ST_DMG"
+ST_LEVEL_UP = "ST_LEVEL_UP"
 
 # Events
 TIME_TICK_EVENT = USEREVENT + 0
@@ -149,7 +159,7 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
-        target.st_buffer.append((value, time + 2000))
+        target.st_buffer.append((ST_DMG, value, time + 2000))
 
 def condition_string(cond, value):
     st = cond + ": "
@@ -283,6 +293,6 @@ arena3 = arena_nt(
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000,10, 10),
-    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,15, 15),
-    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,25, 30)}
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, WEAK_EXP_VALUE, 10),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 15),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 30)}
