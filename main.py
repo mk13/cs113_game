@@ -134,10 +134,8 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
             p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
 
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), sprite=p2_sprite)
-
-            #self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), input=GL.INPUT1, sprite=p1_sprite)
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), input=GL.INPUT2, sprite=p2_sprite)
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier

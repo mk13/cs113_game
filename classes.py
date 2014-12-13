@@ -57,9 +57,10 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, topleft, size, sprite=None):
+    def __init__(self, id, topleft, size, input=None, sprite=None):
         self.id = id  # 1 for player1, 2 for player2
-        self.input = Input(self.id)
+        self.input = input
+        # self.input = Input(self.id)
 
         # position
         super().__init__(topleft, size)
@@ -503,127 +504,7 @@ class AI_Input():
         self.RIGHT = self.LEFT = self.JUMP = False
 
 # -------------------------------------------------------------------------
-class Input:
-    def __init__(self, player_id=1, inside_menu=False):
-        try:
-            self.gamepad = pygame.joystick.Joystick(player_id - 1)
-            self.gamepad.init()
-            self.gamepad_found = True
-        except pygame.error:
-            pass
-        self.gp_input = defaultdict(bool)
-        self.kb_input = defaultdict(bool)
-        self.player_id = player_id
-        self.inside_menu = inside_menu
 
-    def refresh(self):
-        if self.player_id == 1:
-            self._get_keyboard_keys_pressed()
-            self._handle_keyboard_updown_events()
-        self._get_gamepad_axis_buttons_pressed()
-        self._handle_gamepad_updown_events()
-        self._update_attributes()
-        if self.player_id == 1:
-            self._handle_mouse_visibility()
-            self._handle_exit_input()
-
-    def _get_gamepad_axis_buttons_pressed(self):
-        if self.gamepad_found:
-            if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
-                # Max's gamepad
-                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-
-                # self.gp_input[GP_LEFT] = self.gamepad.get_hat(i)
-                # self.gp_input[GP_RIGHT] = self.gamepad.get_hat(1)[0] == 1
-                # self.gp_input[GP_UP] = self.gamepad.get_hat(1)[1] == 1
-                # self.gp_input[GP_DOWN] = self.gamepad.get_hat(1)[1] == -1
-
-                self.gp_input['attack'] = self.gamepad.get_button(3)
-                self.gp_input['jump'] = self.gamepad.get_button(2)
-                self.gp_input['skill1'] = self.gamepad.get_button(1)
-                self.gp_input['skill2'] = self.gamepad.get_button(0)
-                self.gp_input['skill3'] = self.gamepad.get_button(5)
-                self.gp_input['ult'] = self.gamepad.get_button(7)
-                self.gp_input['drop'] = self.gamepad.get_button(4)
-
-            else:
-                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-                #     Y             ^
-                #   X   B       []     O
-                #     A             X
-                self.gp_input['attack'] = self.gamepad.get_button(0)
-                self.gp_input['jump'] = self.gamepad.get_button(1)
-                self.gp_input['skill1'] = self.gamepad.get_button(2)
-                self.gp_input['skill2'] = self.gamepad.get_button(3)
-                self.gp_input['skill3'] = self.gamepad.get_button(5)
-                self.gp_input['ult'] = self.gamepad.get_button(7)
-                self.gp_input['drop'] = self.gamepad.get_button(4)
-
-    def _get_keyboard_keys_pressed(self):
-        self.kb_input = pygame.key.get_pressed()
-
-    def _handle_keyboard_updown_events(self):
-        for event in pygame.event.get(KEYDOWN):
-            if event.key in (K_BACKQUOTE, K_F12):
-                self.DEBUG_VIEW = not self.DEBUG_VIEW
-            if event.key == K_PAUSE:
-                self.PAUSED = not self.PAUSED
-            if event.key == K_RETURN:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
-
-    def _handle_gamepad_updown_events(self):
-        if self.gamepad_found:
-            # Push A and Y at same time in order for the ENTER_LEAVE input to register from gamepad
-            # ENTER_LEAVE input enters game/menu from menu/game
-            joy_button_down_events = pygame.event.get(JOYBUTTONDOWN)
-            if len(list(filter(lambda e: e.button in [self.G_A_BUTTON, self.G_Y_BUTTON], joy_button_down_events))) == 2:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
-            for event in joy_button_down_events:
-                if event.button == GP_START:
-                    self.PAUSED = not self.PAUSED
-                if event.button == GP_BACK:
-                    self.DEBUG_VIEW = not self.DEBUG_VIEW
-
-    def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT] or self.gp_input[GP_LEFT]
-        self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
-        self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
-        self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
-        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A] or self.gp_input['jump']
-        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X] or self.gp_input['attack']
-        self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
-        self.EXIT = self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
-        self.SKILL1 = self.kb_input[K_s] or self.gp_input['skill1']
-        self.SKILL2 = self.kb_input[K_d] or self.gp_input['skill2']
-        self.SKILL3 = self.kb_input[K_f] or self.gp_input['skill3']
-        self.ULT = self.kb_input[K_g] or self.gp_input['ult']
-        self.DROP_SKILL = self.kb_input[K_q] or self.gp_input['drop']
-        self.ENTER = self.kb_input[K_RETURN]
-        self.KILLALL = self.kb_input[K_k]
-
-    def _handle_mouse_visibility(self):
-        if self.DEBUG_VIEW and not self.inside_menu:
-            pygame.mouse.set_visible(False)
-        else:
-            pygame.mouse.set_visible(True)
-
-    def _handle_exit_input(self):
-        # Add the QUIT event to the pygame event queue to be handled
-        # later, at the same time the QUIT event from clicking the
-        # window X is handled
-        if self.EXIT:
-            pygame.event.post(pygame.event.Event(QUIT))
-
-    def __getattr__(self, name):
-        # initializes any missing variables to False
-        exec('self.{} = False'.format(name))
-        return eval('self.{}'.format(name))
 
 # -------------------------------------------------------------------------
 class Arena:
