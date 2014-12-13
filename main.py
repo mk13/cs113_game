@@ -634,17 +634,17 @@ class GameLoop:
                             max_duration = 0
                             for sh in unit.conditions[k]:
                                 sum_mag += sh.magnitude
-                                max_duration = max(max_duration, int((self.game_time.msec - sh.start)/1000))
-                            print_list.append(SHIELD + "("+str(sum_mag)+"):"+str(max_duration))
+                                max_duration = max(max_duration, int((sh.duration - self.game_time.msec + sh.start)/1000))
+                            print_list.append((GREEN, SHIELD + "("+str(sum_mag)+"):"+str(max_duration)))
                         elif unit.conditions[k]:
                             max_duration = 0
                             for c in unit.conditions[k]:
                                 max_duration = max(max_duration, int((c.duration - self.game_time.msec + c.start)/1000))
-                            print_list.append(k + ":" + str(max_duration))
+                            color = GREEN if k in BUFFS else RED
+                            print_list.append((color, k + ":" + str(max_duration)))
                 #Print list
                 for i,v in enumerate(print_list):
-                    color = GREEN if v in BUFFS else RED
-                    self.surface.blit(self.st_condition_font.render(v, True, color),
+                    self.surface.blit(self.st_condition_font.render(v[1], True, v[0]),
                     (unit.centerx-50, unit.top - 20 - (15 * i)))
                 
                             
