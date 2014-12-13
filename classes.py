@@ -57,9 +57,10 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, topleft, size, sprite=None):
+    def __init__(self, id, topleft, size, input=None, sprite=None):
         self.id = id  # 1 for player1, 2 for player2
-        self.input = Input(self.id)
+        self.input = input
+        # self.input = Input(self.id)
 
         # position
         super().__init__(topleft, size)
@@ -311,7 +312,7 @@ class Player(Rect2):
     def _handle_inputs(self, arena):
         i, button = self._priority_inputs()
         if self.input.DROP_SKILL and i != -1:  # Drop skill pressed
-            self.__dict__[button] = 0 if button != ATTACKBUTTON else 1            
+            self.__dict__[button] = 0 if button != ATTACKBUTTON else 1
 
         elif not self.input.DROP_SKILL:  # Drop skill not pressed
             # If a valid skill is pressed
@@ -412,16 +413,15 @@ class Monster(Player):
         self.input = AI_Input()
         self.color = color
         self.kind = info.kind
-        
+
         self.dmg = info.dmg
         self.exp_value = info.exp_value
-        
+
         self.has_hit = []
         self.has_hit_time = []
         self.hit_by = {1: False, 2: False}
         self.hit_by_time = {1: 0, 2: 0}
         self.last_hit_by = None
-        
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
@@ -436,18 +436,17 @@ class Monster(Player):
                 self.target = self.p1
             else:
                 self.target = self.p2
-    
+
     def _handle_last_hit(self,time):
         for i,v in enumerate(self.has_hit_time):
             if (v+2000) <= time:
                 del self.has_hit[i]
                 del self.has_hit_time[i]
-        
+
         if self.hit_by_time[1] + 2000 <= time:
             self.hit_by[1] = False
         if self.hit_by_time[2] + 2000 <= time:
             self.hit_by[2] = False
-        
 
     def _switch_mode(self, time):
         time_spent_in_status = time - self.last_status_change
@@ -490,20 +489,18 @@ class Monster(Player):
         self._handle_facing_direction()
         self._handle_acceleration()
         self._handle_movement(arena_map)
-        
-    def on_hit(self,target,time):
+
+    def on_hit(self, target, time):
         if target not in self.has_hit:
             if self.kind != ULTIMATE and not self.hit_by[target.id]:
                 self.has_hit.append(target)
                 self.has_hit_time.append(time)
+                handle_damage(target, self.dmg, time)
 
-                handle_damage(target, self.dmg, time) 
             elif self.kind == ULTIMATE:
                 self.has_hit.append(target)
                 self.has_hit_time.append(time)
-
-                handle_damage(target, self.dmg, time) 
-        
+                handle_damage(target, self.dmg, time)
 
 # -------------------------------------------------------------------------
 class AI_Input():
@@ -516,129 +513,6 @@ class AI_Input():
         self.RIGHT = self.LEFT = self.JUMP = False
 
 # -------------------------------------------------------------------------
-class Input:
-    def __init__(self, player_id=1, inside_menu=False):
-        try:
-            self.gamepad = pygame.joystick.Joystick(player_id - 1)
-            self.gamepad.init()
-            self.gamepad_found = True
-            #print(str(player_id)+ "  " + str(self.gamepad_found))
-        except pygame.error:
-            pass
-        self.gp_input = defaultdict(bool)
-        self.kb_input = defaultdict(bool)
-        self.player_id = player_id
-        self.inside_menu = inside_menu
-
-    def refresh(self):
-        if self.player_id == 1:
-            self._get_keyboard_keys_pressed()
-            self._handle_keyboard_updown_events()
-        self._get_gamepad_axis_buttons_pressed()
-        self._handle_gamepad_updown_events()
-        self._update_attributes()
-        if self.player_id == 1:
-            self._handle_mouse_visibility()
-            self._handle_exit_input()
-
-    def _get_gamepad_axis_buttons_pressed(self):
-        if self.gamepad_found:
-            if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
-                #Max's gamepad
-                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-
-                #self.gp_input[GP_LEFT] = self.gamepad.get_hat(i)
-                #self.gp_input[GP_RIGHT] = self.gamepad.get_hat(1)[0] == 1
-                #self.gp_input[GP_UP] = self.gamepad.get_hat(1)[1] == 1
-                #self.gp_input[GP_DOWN] = self.gamepad.get_hat(1)[1] == -1
-                
-                self.gp_input['attack'] = self.gamepad.get_button(3)
-                self.gp_input['jump'] = self.gamepad.get_button(2)
-                self.gp_input['skill1'] = self.gamepad.get_button(1)
-                self.gp_input['skill2'] = self.gamepad.get_button(0)
-                self.gp_input['skill3'] = self.gamepad.get_button(5)
-                self.gp_input['ult'] = self.gamepad.get_button(7)
-                self.gp_input['drop'] = self.gamepad.get_button(4)
-                
-            else:
-                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-                #     Y             ^
-                #   X   B       []     O
-                #     A             X
-                self.gp_input['attack'] = self.gamepad.get_button(0)
-                self.gp_input['jump'] = self.gamepad.get_button(1)
-                self.gp_input['skill1'] = self.gamepad.get_button(2)
-                self.gp_input['skill2'] = self.gamepad.get_button(3)
-                self.gp_input['skill3'] = self.gamepad.get_button(5)
-                self.gp_input['ult'] = self.gamepad.get_button(7)
-                self.gp_input['drop'] = self.gamepad.get_button(4)
-
-    def _get_keyboard_keys_pressed(self):
-        self.kb_input = pygame.key.get_pressed()
-
-    def _handle_keyboard_updown_events(self):
-        for event in pygame.event.get(KEYDOWN):
-            if event.key in (K_BACKQUOTE, K_F12):
-                self.DEBUG_VIEW = not self.DEBUG_VIEW
-            if event.key == K_PAUSE:
-                self.PAUSED = not self.PAUSED
-            if event.key == K_RETURN:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
-
-    def _handle_gamepad_updown_events(self):
-        if self.gamepad_found:
-            # Push A and Y at same time in order for the ENTER_LEAVE input to register from gamepad
-            # ENTER_LEAVE input enters game/menu from menu/game
-            joy_button_down_events = pygame.event.get(JOYBUTTONDOWN)
-            if len(list(filter(lambda e: e.button in [self.G_A_BUTTON, self.G_Y_BUTTON], joy_button_down_events))) == 2:
-                self.ENTER_LEAVE = not self.ENTER_LEAVE
-            for event in joy_button_down_events:
-                if event.button == GP_START:
-                    self.PAUSED = not self.PAUSED
-                if event.button == GP_BACK:
-                    self.DEBUG_VIEW = not self.DEBUG_VIEW
-
-    def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT] or self.gp_input[GP_LEFT]
-        self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
-        self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
-        self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
-        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A] or self.gp_input['jump']
-        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X] or self.gp_input['attack']
-        self.RESPAWN = self.kb_input[K_r] or self.gp_input[GP_Y]
-        self.EXIT = self.kb_input[K_ESCAPE] or (self.gp_input[GP_START] and self.gp_input[GP_BACK])
-        self.SKILL1 = self.kb_input[K_s] or self.gp_input['skill1']
-        self.SKILL2 = self.kb_input[K_d] or self.gp_input['skill2']
-        self.SKILL3 = self.kb_input[K_f] or self.gp_input['skill3']
-        self.ULT = self.kb_input[K_g] or self.gp_input['ult']
-        self.DROP_SKILL = self.kb_input[K_q] or self.gp_input['drop']
-        self.ENTER = self.kb_input[K_RETURN]
-        self.KILLALL = self.kb_input[K_k]
-
-    def _handle_mouse_visibility(self):
-        if self.DEBUG_VIEW and not self.inside_menu:
-            pygame.mouse.set_visible(False)
-        else:
-            pygame.mouse.set_visible(True)
-
-    def _handle_exit_input(self):
-        # Add the QUIT event to the pygame event queue to be handled
-        # later, at the same time the QUIT event from clicking the
-        # window X is handled
-        if self.EXIT:
-            pygame.event.post(pygame.event.Event(QUIT))
-
-    def __getattr__(self, name):
-        # initializes any missing variables to False
-        exec('self.{} = False'.format(name))
-        return eval('self.{}'.format(name))
-
 
 
 # -------------------------------------------------------------------------
@@ -835,7 +709,7 @@ class RangeParticle(Particle):
     def update(self, time):
         if self.spawn_time == 0:
             self.spawn_time = time
-        
+
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
 
@@ -852,7 +726,7 @@ class RangeParticle(Particle):
 
     def on_hit(self, target, time):  # DONT delete time; will use later
         if target != self.belongs_to:
-            
+
             handle_damage(target, self.dmg, time)
 
             for c in self.conditions:
@@ -865,56 +739,55 @@ class RangeParticle(Particle):
                 target.hit_by[self.belongs_to.id] = True
                 target.hit_by_time[self.belongs_to.id] = time
                 target.last_hit_by = self.belongs_to
-                
+
 
             if self.on_hit_f:
                 self.on_hit_f(self, target, time)
 
 # -------------------------------------------------------------------------
-
 class FieldParticle(Particle):
     def __init__(self, sid, player):
         super().__init__(sid, player)
         self.radius = SKILLS_TABLE[sid]['radius']
-        self.frequency = None   
+        self.frequency = None
         self.persistent_pulse_f = None    #(particle, time, target)
-        
+
         self.originx = self.centerx = player.centerx
         self.originy = self.centery = player.centery
-        
+
         self.has_hit = []  # Need this to keep track of what it has hit;
                            # melee particles are not delete upon hitting
                            # a target, so we need to know who it has hit
                            # to prevent the same target being hit multiple
                            # times
         self.has_hit_time = []
-        
+
         if 'persistent_pulse_f' in SKILLS_TABLE[sid].keys():
             self.persistent_pulse_f = SKILLS_TABLE[sid]['persistent_pulse_f']
         if 'frequency' in SKILLS_TABLE[sid].keys():
             self.frequency = SKILLS_TABLE[sid]['frequency']
 
-            
+
     def update(self, time):
         if self.spawn_time == 0:
             self.spawn_time = time
-           
+
         for i,v in enumerate(self.has_hit_time):
             if (v+200) <= time:
-                del self.has_hit[i] 
+                del self.has_hit[i]
                 del self.has_hit_time[i]
-        
+
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
-        
+
         if self.persistent_f:
             self.persistent_f(self,time)
-            
+
     def is_in_field(self, target):
         return target.distance_from(self) <= self.radius
-               
+
     def on_hit(self, target, time):
-        #If pulse function exists
+        # If pulse function exists
         if target != self.belongs_to and self.frequency and target not in self.has_hit:
             self.has_hit.append(target)
             self.has_hit_time.append(time)
@@ -923,22 +796,20 @@ class FieldParticle(Particle):
                 handle_damage(target, self.dmg, time)
                 for c in self.conditions:
                     c.begin(time, target)
-                
+
                 if isinstance(target, Monster):
                     target.centerx += -5 * target.dx
                     target.dx *= -1
                     target.hit_by[self.belongs_to.id] = True
                     target.hit_by_time[self.belongs_to.id] = time
                     target.last_hit_by = self.belongs_to
-                
                 if self.on_hit_f:
                     self.on_hit_f(self, target, time)
-        
-        #If persistent pulse function exists
+
+        # If persistent pulse function exists
         if target != self.belongs_to and self.persistent_pulse_f:
             self.peristent_pulse_f(self,target,time)
-        
-    
+
 # -------------------------------------------------------------------------
 class GameTime:
     def __init__(self):
@@ -1081,7 +952,6 @@ class Shield(Condition):
                 temp = damage_taken - self.magnitude
                 self.magnitude -= damage_taken
                 return temp
-
 
 class Invigorated(Condition):
     """Increases HP regen"""
