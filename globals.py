@@ -66,26 +66,6 @@ DEATH = 'DEATH'
 ATTACK = 'ATTACK'
 CAST = 'CAST'
 
-# Gamepad Buttons
-GP_LEFT = 'GP_LEFT'
-GP_RIGHT = 'GP_RIGHT'
-GP_UP = 'GP_UP'
-GP_DOWN = 'GP_DOWN'
-
-GP_Y = 'GP_Y'
-GP_X = 'GP_X'
-GP_B = 'GP_B'
-GP_A = 'GP_A'
-
-GP_BACK = 'GP_BACK'
-GP_START = 'GP_START'
-
-GP_L1 = 'GP_L1'
-GP_R1 = 'GP_R1'
-GP_L2 = 'GP_L2'
-GP_R2 = 'GP_R2'
-
-
 # Inputs
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
@@ -254,142 +234,159 @@ class Audio:
 AUDIO = Audio()
 
 class Input:
+
     def __init__(self, player_id=1):
+        self.gp_input = defaultdict(bool)
+        self.kb_input = defaultdict(bool)
+        self.player_id = player_id
         try:
             self.gamepad = pygame.joystick.Joystick(player_id - 1)
             self.gamepad.init()
             self.gamepad_found = True
             print('"{}"'.format(self.gamepad.get_name()))
+            self.__setup_gamepad_buttons__()
         except pygame.error:
             pass
-        self.gp_input = defaultdict(bool)
-        self.kb_input = defaultdict(bool)
-        self.player_id = player_id
+
+    def __setup_gamepad_buttons__(self):
+        input_nt = namedtuple('input_nt', 'kind, number, value1, value2')
+
+        #  L2                                  R2
+        #     L1                            R1
+        #         U                      Y
+        #       L   R   SELCT  START   X   B
+        #         D                      A
+
+        #         self.gp_input['skill2'] = self.gamepad.get_button(0)        Y
+        #         self.gp_input['attack'] = self.gamepad.get_button(3)        X
+        #         self.gp_input['skill1'] = self.gamepad.get_button(1)        B
+        #         self.gp_input['jump'] = self.gamepad.get_button(2)          A
+        #         self.gp_input['drop'] = self.gamepad.get_button(4)          L1
+        #         self.gp_input['skill3'] = self.gamepad.get_button(5)        R1
+        #         self.gp_input['ult'] = self.gamepad.get_button(7)           R2
+
+        if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":  # Max's gamepad
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),  # guessing
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),  # guessing
+                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),  # guessing
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),  # guessing
+                  'GP_Y': input_nt(kind='button', number=0, value1=None, value2=None),
+                  'GP_X': input_nt(kind='button', number=3, value1=None, value2=None),
+                  'GP_B': input_nt(kind='button', number=1, value1=None, value2=None),
+                  'GP_A': input_nt(kind='button', number=2, value1=None, value2=None),
+                  'GP_SELECT': input_nt(kind='button', number=8, value1=None, value2=None),  # guessing
+                  'GP_START': input_nt(kind='button', number=9, value1=None, value2=None),  # guessing
+                  'GP_L1': input_nt(kind='button', number=4, value1=None, value2=None),
+                  'GP_R1': input_nt(kind='button', number=5, value1=None, value2=None),
+                  'GP_L2': input_nt(kind='button', number=6, value1=None, value2=None),  # guessing
+                  'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
+
+        elif self.gamepad.get_name() == 'Logitech Cordless RumblePad 2 USB':  # Brian's gamepad if switched to "D"
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+                  'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
+                  'GP_X': input_nt(kind='button', number=0, value1=None, value2=None),
+                  'GP_B': input_nt(kind='button', number=2, value1=None, value2=None),
+                  'GP_A': input_nt(kind='button', number=1, value1=None, value2=None),
+                  'GP_SELECT': input_nt(kind='button', number=8, value1=None, value2=None),
+                  'GP_START': input_nt(kind='button', number=9, value1=None, value2=None),
+                  'GP_L1': input_nt(kind='button', number=4, value1=None, value2=None),
+                  'GP_R1': input_nt(kind='button', number=5, value1=None, value2=None),
+                  'GP_L2': input_nt(kind='button', number=6, value1=None, value2=None),
+                  'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
+
+        elif self.gamepad.get_name() == 'Wireless Gamepad F710 (Controller)':  # Brian's gamepad if switched to "X"
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+                  'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
+                  'GP_X': input_nt(kind='button', number=2, value1=None, value2=None),
+                  'GP_B': input_nt(kind='button', number=1, value1=None, value2=None),
+                  'GP_A': input_nt(kind='button', number=0, value1=None, value2=None),
+                  'GP_SELECT': input_nt(kind='button', number=6, value1=None, value2=None),
+                  'GP_START': input_nt(kind='button', number=7, value1=None, value2=None),
+                  'GP_L1': input_nt(kind='button', number=4, value1=None, value2=None),
+                  'GP_R1': input_nt(kind='button', number=5, value1=None, value2=None),
+                  'GP_L2': input_nt(kind='axis', number=2, value1=+1, value2=None),
+                  'GP_R2': input_nt(kind='axis', number=2, value1=-1, value2=None)}
+
+        self.GP_INPUTS_at_setup = di
 
     def refresh(self):
         if self.player_id == 1:
-            self._get_keyboard_keys_pressed()
-            self._handle_keyboard_updown_events()
-        self._get_gamepad_axis_buttons_pressed()
-        self._handle_gamepad_updown_events()
-        self._update_attributes()
+            self._get_keyboard_pressed()
+            self._get_keyboard_events()
+        self._get_gamepad_pressed()
+        self._get_gamepad_events()
+        self._combine_all_pressed()
         if self.player_id == 1:
             self._handle_mouse_visibility()
 
-    def _get_gamepad_axis_buttons_pressed(self):
-        if self.gamepad_found:
+    def _get_keyboard_pressed(self):
+        # self.kb_input = pygame.key.get_pressed()
+        sucky_kb_input = pygame.key.get_pressed()
+        self.kb_input['K_RETURN'] = sucky_kb_input[K_RETURN]
+        self.kb_input['K_ESCAPE'] = sucky_kb_input[K_ESCAPE]
+        self.kb_input['K_BACKQUOTE'] = sucky_kb_input[K_BACKQUOTE]
+        self.kb_input['K_F12'] = sucky_kb_input[K_F12]
+        self.kb_input['K_LEFT'] = sucky_kb_input[K_LEFT]
+        self.kb_input['K_RIGHT'] = sucky_kb_input[K_RIGHT]
+        self.kb_input['K_UP'] = sucky_kb_input[K_UP]
+        self.kb_input['K_DOWN'] = sucky_kb_input[K_DOWN]
+        self.kb_input['K_SPACE'] = sucky_kb_input[K_SPACE]
+        self.kb_input['K_a'] = sucky_kb_input[K_a]
+        self.kb_input['K_s'] = sucky_kb_input[K_s]
+        self.kb_input['K_d'] = sucky_kb_input[K_d]
+        self.kb_input['K_f'] = sucky_kb_input[K_f]
+        self.kb_input['K_g'] = sucky_kb_input[K_g]
+        self.kb_input['K_q'] = sucky_kb_input[K_q]
+        self.kb_input['K_r'] = sucky_kb_input[K_r]
+        self.kb_input['K_k'] = sucky_kb_input[K_k]
 
-            if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":
-                # Max's gamepad
-                self.gp_input[GP_LEFT] = round(self.gamepad.get_axis(0)) == -1
-                self.gp_input[GP_RIGHT] = round(self.gamepad.get_axis(0)) == +1
-                self.gp_input[GP_UP] = round(self.gamepad.get_axis(1)) == -1
-                self.gp_input[GP_DOWN] = round(self.gamepad.get_axis(1)) == +1
-
-                # self.gp_input[GP_LEFT] = self.gamepad.get_hat(i)
-                # self.gp_input[GP_RIGHT] = self.gamepad.get_hat(1)[0] == 1
-                # self.gp_input[GP_UP] = self.gamepad.get_hat(1)[1] == 1
-                # self.gp_input[GP_DOWN] = self.gamepad.get_hat(1)[1] == -1
-
-                self.gp_input['attack'] = self.gamepad.get_button(3)
-                self.gp_input['jump'] = self.gamepad.get_button(2)
-                self.gp_input['skill1'] = self.gamepad.get_button(1)
-                self.gp_input['skill2'] = self.gamepad.get_button(0)
-                self.gp_input['skill3'] = self.gamepad.get_button(5)
-                self.gp_input['ult'] = self.gamepad.get_button(7)
-                self.gp_input['drop'] = self.gamepad.get_button(4)
-
-            elif self.gamepad.get_name() == 'Logitech Cordless RumblePad 2 USB':  # if switched to "D"
-
-                #  L2                                     R2
-                #  L1                                     R1
-                #        U                           Y
-                #      L   R     back    start     X   B
-                #        D                           A
-
-                self.gp_input[GP_LEFT] = self.gamepad.get_hat(0)[0] == -1
-                self.gp_input[GP_RIGHT] = self.gamepad.get_hat(0)[0] == +1
-                self.gp_input[GP_UP] = self.gamepad.get_hat(0)[1] == +1
-                self.gp_input[GP_DOWN] = self.gamepad.get_hat(0)[1] == -1
-
-                self.gp_input[GP_Y] = self.gamepad.get_button(3)
-                self.gp_input[GP_X] = self.gamepad.get_button(0)
-                self.gp_input[GP_B] = self.gamepad.get_button(2)
-                self.gp_input[GP_A] = self.gamepad.get_button(1)
-
-                self.gp_input[GP_BACK] = self.gamepad.get_button(8)
-                self.gp_input[GP_START] = self.gamepad.get_button(9)
-
-                self.gp_input[GP_L1] = self.gamepad.get_button(4)
-                self.gp_input[GP_R1] = self.gamepad.get_button(5)
-                self.gp_input[GP_L2] = self.gamepad.get_button(6)
-                self.gp_input[GP_R2] = self.gamepad.get_button(7)
-
-            elif self.gamepad.get_name() == 'Wireless Gamepad F710 (Controller)':  # if switched to "X"
-
-                #  L2                                     R2
-                #  L1                                     R1
-                #        U                           Y
-                #      L   R     back    start     X   B
-                #        D                           A
-
-                self.gp_input[GP_LEFT] = self.gamepad.get_hat(0)[0] == -1
-                self.gp_input[GP_RIGHT] = self.gamepad.get_hat(0)[0] == +1
-                self.gp_input[GP_UP] = self.gamepad.get_hat(0)[1] == +1
-                self.gp_input[GP_DOWN] = self.gamepad.get_hat(0)[1] == -1
-
-                self.gp_input[GP_Y] = self.gamepad.get_button(3)
-                self.gp_input[GP_X] = self.gamepad.get_button(2)
-                self.gp_input[GP_B] = self.gamepad.get_button(1)
-                self.gp_input[GP_A] = self.gamepad.get_button(0)
-
-                self.gp_input[GP_BACK] = self.gamepad.get_button(6)
-                self.gp_input[GP_START] = self.gamepad.get_button(7)
-
-                self.gp_input[GP_L1] = self.gamepad.get_button(4)
-                self.gp_input[GP_R1] = self.gamepad.get_button(5)
-                self.gp_input[GP_L2] = round(self.gamepad.get_axis(2)) == +1
-                self.gp_input[GP_R2] = round(self.gamepad.get_axis(2)) == -1
-
-    def _get_keyboard_keys_pressed(self):
-        self.kb_input = pygame.key.get_pressed()
-
-    def _handle_keyboard_updown_events(self):
+    def _get_keyboard_events(self):
         for event in pygame.event.get(KEYDOWN):
+            if event.key == K_RETURN:
+                self.START = not self.START
+            if event.key == K_ESCAPE:
+                self.SELECT = not self.SELECT
             if event.key in (K_BACKQUOTE, K_F12):
                 self.DEBUG_VIEW = not self.DEBUG_VIEW
-            if event.key == K_PAUSE:
-                self.PAUSED = not self.PAUSED
-            if event.key == K_ESCAPE:
-                self.ESC = not self.ESC
 
-    def _handle_gamepad_updown_events(self):
+    def _get_gamepad_pressed(self):
+        if self.gamepad_found:
+            for name, info in self.GP_INPUTS_at_setup.items():
+                if info.kind == 'button':
+                    self.gp_input[name] = self.gamepad.get_button(info.number)
+                elif info.kind == 'axis':
+                    self.gp_input[name] = round(self.gamepad.get_axis(info.number)) == info.value1
+                elif info.kind == 'hat':
+                    self.gp_input[name] = self.gamepad.get_hat(info.number)[info.value1] == info.value2
+
+    def _get_gamepad_events(self):
         if self.gamepad_found:
             for event in pygame.event.get(JOYBUTTONDOWN):
-                if event.button == GP_START:
-                    self.PAUSED = not self.PAUSED
-                if event.button == GP_BACK:
-                    self.DEBUG_VIEW = not self.DEBUG_VIEW
+                if event.button == self.GP_INPUTS_at_setup['GP_START'].number:
+                    self.START = not self.START
+                if event.button == self.GP_INPUTS_at_setup['GP_SELECT'].number:
+                    self.SELECT = not self.SELECT
 
-    def _update_attributes(self):
-        self.LEFT = self.kb_input[K_LEFT] or self.gp_input[GP_LEFT]
-        self.RIGHT = self.kb_input[K_RIGHT] or self.gp_input[GP_RIGHT]
-        self.UP = self.kb_input[K_UP] or self.gp_input[GP_UP]
-        self.DOWN = self.kb_input[K_DOWN] or self.gp_input[GP_DOWN]
-
-        self.JUMP = self.kb_input[K_SPACE] or self.gp_input[GP_A] or self.gp_input['jump']
-        self.ATTACK = self.kb_input[K_a] or self.gp_input[GP_X] or self.gp_input['attack']
-        self.SKILL1 = self.kb_input[K_s] or self.gp_input[GP_B] or self.gp_input['skill1']
-        self.SKILL2 = self.kb_input[K_d] or self.gp_input[GP_Y] or self.gp_input['skill2']
-
-        self.SKILL3 = self.kb_input[K_f] or self.gp_input[GP_R1] or self.gp_input['skill3']
-        self.ULT = self.kb_input[K_g] or self.gp_input[GP_R2] or self.gp_input['ult']
-
-        self.DROP_SKILL = self.kb_input[K_q] or self.gp_input[GP_L1] or self.gp_input['drop']
-
-        self.RESPAWN = self.kb_input[K_r]
-        self.ENTER = self.kb_input[K_RETURN]
-        self.KILLALL = self.kb_input[K_k]
+    def _combine_all_pressed(self):
+        self.LEFT = self.kb_input['K_LEFT'] or self.gp_input['GP_LEFT']
+        self.RIGHT = self.kb_input['K_RIGHT'] or self.gp_input['GP_RIGHT']
+        self.UP = self.kb_input['K_UP'] or self.gp_input['GP_UP']
+        self.DOWN = self.kb_input['K_DOWN'] or self.gp_input['GP_DOWN']
+        self.JUMP = self.kb_input['K_SPACE'] or self.gp_input['GP_A']
+        self.ATTACK = self.kb_input['K_a'] or self.gp_input['GP_X']
+        self.SKILL1 = self.kb_input['K_s'] or self.gp_input['GP_B']
+        self.SKILL2 = self.kb_input['K_d'] or self.gp_input['GP_Y']
+        self.SKILL3 = self.kb_input['K_f'] or self.gp_input['GP_R1']
+        self.ULT = self.kb_input['K_g'] or self.gp_input['GP_R2']
+        self.DROP_SKILL = self.kb_input['K_q'] or self.gp_input['GP_L1']
+        self.RESPAWN = self.kb_input['K_r']
+        self.KILLALL = self.kb_input['K_k']
 
     def _handle_mouse_visibility(self):
         global NEXT_PAGE
@@ -405,6 +402,8 @@ class Input:
 
 INPUT1 = Input(player_id=1)
 INPUT2 = Input(player_id=2)
+
+
 
 # Arenas
 arena_nt = namedtuple('arena_nt', 'left_wall_x, right_wall_x, floor_y, platforms, max_monsters, possible_monsters, background, p1_spawn, p2_spawn')

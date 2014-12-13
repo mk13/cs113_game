@@ -46,8 +46,12 @@ class StartMenu:
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.ESC:
+        if GL.INPUT1.SELECT:
             EXIT_GAME()
+        if GL.INPUT1.START:
+            GL.INPUT1.START = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'GameLoop()'
 
     def events(self):
         for event in pygame.event.get():
@@ -115,9 +119,9 @@ class HelpPage:
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.ESC:
+        if GL.INPUT1.SELECT:
+            GL.INPUT1.SELECT = False
             self.return_now = True
-            GL.INPUT1.ESC = False
             GL.NEXT_PAGE = 'start'
 
     def events(self):
@@ -178,9 +182,9 @@ class OptionsPage:
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.ESC:
+        if GL.INPUT1.SELECT:
+            GL.INPUT1.SELECT = False
             self.return_now = True
-            GL.INPUT1.ESC = False
             GL.NEXT_PAGE = 'start'
 
     def events(self):
