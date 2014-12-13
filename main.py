@@ -795,8 +795,7 @@ class GameLoop:
             _handle_return_to_main_menu()
         else:
             _handle_quit_event()
-            self.player1.input._get_keyboard_events()
-            self.player1.input._get_gamepad_events()
+            self.player1.input.refresh_during_pause()
             pygame.event.clear()
 
 # ----------------------------------------------------------------------------

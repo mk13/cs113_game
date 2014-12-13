@@ -325,6 +325,16 @@ class Input:
         if self.player_id == 1:
             self._handle_mouse_visibility()
 
+    def refresh_during_pause(self):
+        if self.player_id == 1:
+            for event in pygame.event.get(KEYDOWN):
+                if event.key == K_RETURN:
+                    self.START = not self.START
+        if self.gamepad_found:
+            for event in pygame.event.get(JOYBUTTONDOWN):
+                if event.button == self.GP_INPUTS_at_setup['GP_START'].number:
+                    self.START = not self.START
+
     def _get_keyboard_pressed(self):
         # self.kb_input = pygame.key.get_pressed()
         sucky_kb_input = pygame.key.get_pressed()
