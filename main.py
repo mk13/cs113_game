@@ -322,17 +322,31 @@ class GameLoop:
             if self.player1.new_particle:
                 if isinstance(self.player1.new_particle, list):
                     for p in self.player1.new_particle:
-                        self.active_particles.append(p)
+                        if isinstance(p, Particle):
+                            self.active_particles.append(p)
+                        else:
+                            self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 else:
-                    self.active_particles.append(self.player1.new_particle)
+                    if isinstance(self.player1.new_particle, Particle):
+                        self.active_particles.append(self.player1.new_particle)
+                    else:
+                        p = self.player1.new_particle
+                        self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 self.player1.new_particle = None
 
             if self.player2.new_particle:
                 if isinstance(self.player2.new_particle, list):
                     for p in self.player2.new_particle:
-                        self.active_particles.append(p)
+                        if isinstance(p, Particle):
+                            self.active_particles.append(p)
+                        else:
+                            self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 else:
-                    self.active_particles.append(self.player2.new_particle)
+                    if isinstance(self.player2.new_particle, Particle):
+                        self.active_particles.append(self.player2.new_particle)
+                    else:
+                        p = self.player2.new_particle
+                        self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 self.player2.new_particle = None
 
         def _update_particles():

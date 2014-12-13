@@ -133,6 +133,8 @@ def initialize_skill_table():
     SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
     # Personal Faerie
     ADD_SKILL_PERSONAL_FAERIE(116)
+    # Junk Wall
+    SKILLS_TABLE[117] = {'name':'Junk Wall','type': None, 'start': wall_start, 'cooldown': 200, 'energy': 5}
     # -----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     # -----------------------------------------------------------------------------------------
@@ -638,6 +640,31 @@ def epicenter_on_hit_f(particle, target, time):
     target.dx += (particle.centerx - target.centerx)/5
     target.dy += (particle.centery - target.centery)/5
     
+def wall_start(sid, player, up, down):
+    x1 = x2 = x3 = player.centerx -15
+    y1 = y2 = y3 = player.centery -10
+    
+    if up and not down:
+        y1 -= 50
+        y2 -= 50
+        y3 -= 50
+        x2 -= 40
+        x3 += 40
+    elif not up and down:
+        y1 += 50
+        y2 += 50
+        y3 += 50
+        x2 -= 40
+        x3 += 40
+    elif up == down:
+        x1 += 40 if player.facing_direction==RIGHT else -40
+        x2 += 40 if player.facing_direction==RIGHT else -40
+        x3 += 40 if player.facing_direction==RIGHT else -40
+        y2 += 50
+        y3 -= 50
+    return [terrain_nt(x1, y1, 30, 30, BLACK, 1, False),
+            terrain_nt(x2, y2, 30, 30, BLACK, 1, False),
+            terrain_nt(x3, y3, 30, 30, BLACK, 1, False)]
 
 # ----------------------------------------------------------------------------
 def get_dropped_skill(monster):
