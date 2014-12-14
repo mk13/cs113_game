@@ -205,20 +205,24 @@ class Audio:
             self.curr_song = self.menu_song
             pygame.mixer.music.load(self.curr_song)
             pygame.mixer.music.play(-1)
+            print('music turned on', end='    ')
             print(self)
 
     def turn_off_music(self):
         if self.audio_device_found:
             self.music_on = False
             pygame.mixer.music.stop()
+            print('music turned off')
 
     def turn_on_effects(self):
         if self.audio_device_found:
             self.sound_on = True
+            print('sound effects turned on')
 
     def turn_off_effects(self):
         if self.audio_device_found:
             self.sound_on = False
+            print('sound effects turned off')
 
     def play_next_random_song(self):
         if self.audio_device_found:
@@ -328,11 +332,11 @@ class Input:
         if self.player_id == 1:
             for event in pygame.event.get(KEYDOWN):
                 if event.key == K_RETURN:
-                    self.START_EVENT = not self.START_EVENT
+                    self.START_PRESS_EVENT = not self.START_PRESS_EVENT
         if self.gamepad_found:
             for event in pygame.event.get(JOYBUTTONDOWN):
                 if event.button == self.GP_INPUTS_DICT['GP_START'].number:
-                    self.START_EVENT = not self.START_EVENT
+                    self.START_PRESS_EVENT = not self.START_PRESS_EVENT
 
     def _get_keyboard_pressed(self):
         sucky_kb_input = pygame.key.get_pressed()
@@ -357,19 +361,25 @@ class Input:
     def _get_keyboard_events(self):
         for event in pygame.event.get(KEYDOWN):
             if event.key == K_RETURN:
-                self.START_EVENT = not self.START_EVENT
+                self.START_PRESS_EVENT = not self.START_PRESS_EVENT
 
             if event.key == K_ESCAPE:
-                self.SELECT_EVENT = not self.SELECT_EVENT
+                self.SELECT_PRESS_EVENT = not self.SELECT_PRESS_EVENT
 
             if event.key in (K_BACKQUOTE, K_F12):
                 self.DEBUG_VIEW = not self.DEBUG_VIEW
 
             if event.key == K_LEFT:
-                self.LEFT_EVENT = not self.LEFT_EVENT
+                self.LEFT_PRESS_EVENT = not self.LEFT_PRESS_EVENT
 
             if event.key == K_RIGHT:
-                self.RIGHT_EVENT = not self.RIGHT_EVENT
+                self.RIGHT_PRESS_EVENT = not self.RIGHT_PRESS_EVENT
+
+            if event.key == K_UP:
+                self.UP_PRESS_EVENT = not self.UP_PRESS_EVENT
+
+            if event.key == K_DOWN:
+                self.DOWN_PRESS_EVENT = not self.DOWN_PRESS_EVENT
 
     def _get_gamepad_pressed2(self):
         if self.gamepad_found:
@@ -381,20 +391,20 @@ class Input:
                 if info.kind == 'button':
                     self.gp_input[name] = self.gamepad.get_button(info.number)
                     if info.number in [e.button for e in joy_button_events]:
-                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
-                        print('button', name + '_EVENT', self.gp_input[name + '_EVENT'])
+                        self.gp_input[name + '_PRESS_EVENT'] = not self.gp_input[name + '_PRESS_EVENT']
+                        # print('button', name + '_PRESS_EVENT', self.gp_input[name + '_PRESS_EVENT'])
 
                 elif info.kind == 'axis':
                     self.gp_input[name] = round(self.gamepad.get_axis(info.number)) == info.value1
                     if (info.number, info.value1) in [(e.axis, e.value) for e in joy_axis_events]:
-                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
-                        print('axis  ', name + '_EVENT', self.gp_input[name + '_EVENT'])
+                        self.gp_input[name + '_PRESS_EVENT'] = not self.gp_input[name + '_PRESS_EVENT']
+                        # print('axis  ', name + '_PRESS_EVENT', self.gp_input[name + '_PRESS_EVENT'])
 
                 elif info.kind == 'hat':
                     self.gp_input[name] = self.gamepad.get_hat(info.number)[info.value2] == info.value1  # ITS FUCKING BACKWARDS??? THE TWO WAYS TO LOOK UP HAT DATA DONT RETURN THE SAME DATA IN THE SAME FUCKING WAY?  WHAT THE FUCK FUCK YOU PYGAME.
                     if (info.number, info.value1, info.value2) in [(e.hat, e.value[0], e.value[1]) for e in joy_hat_events]:
-                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
-                        print('hat   ', name + '_EVENT', self.gp_input[name + '_EVENT'])
+                        self.gp_input[name + '_PRESS_EVENT'] = not self.gp_input[name + '_PRESS_EVENT']
+                        # print('hat   ', name + '_PRESS_EVENT', self.gp_input[name + '_PRESS_EVENT'])
 
     def _combine_all_pressed(self):
         self.LEFT = self.kb_input['K_LEFT'] or self.gp_input['GP_LEFT']
@@ -411,13 +421,18 @@ class Input:
         self.RESPAWN = self.kb_input['K_r']
         self.KILLALL = self.kb_input['K_k']
 
-        self.START_EVENT = self.gp_input['GP_START_EVENT']
-        self.SELECT_EVENT = self.gp_input['GP_SELECT_EVENT']
-        self.RIGHT_EVENT = self.gp_input['GP_RIGHT_EVENT']
-        self.LEFT_EVENT = self.gp_input['GP_LEFT_EVENT']
+        self.LEFT_PRESS_EVENT = self.gp_input['GP_LEFT_PRESS_EVENT']
+        self.RIGHT_PRESS_EVENT = self.gp_input['GP_RIGHT_PRESS_EVENT']
+        self.UP_PRESS_EVENT = self.gp_input['GP_UP_PRESS_EVENT']
+        self.DOWN_PRESS_EVENT = self.gp_input['GP_DOWN_PRESS_EVENT']
+        self.START_PRESS_EVENT = self.gp_input['GP_START_PRESS_EVENT']
+        self.SELECT_PRESS_EVENT = self.gp_input['GP_SELECT_PRESS_EVENT']
+
+        self.A_PRESS_EVENT = self.gp_input['GP_A_PRESS_EVENT']
+        self.B_PRESS_EVENT = self.gp_input['GP_B_PRESS_EVENT']
 
     def __setattr__(self, name, value):
-        if name in ('RIGHT_EVENT', 'LEFT_EVENT', 'START_EVENT', 'SELECT_EVENT'):
+        if name in 'LEFT_PRESS_EVENT, RIGHT_PRESS_EVENT, UP_PRESS_EVENT, DOWN_PRESS_EVENT, START_PRESS_EVENT, SELECT_PRESS_EVENT, A_PRESS_EVENT, B_PRESS_EVENT'.split(', '):
             self.__dict__['gp_input']['GP_' + name] = value
             self.__dict__[name] = value
         else:
