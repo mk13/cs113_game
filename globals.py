@@ -171,7 +171,7 @@ def handle_damage(target, value, time):
             target.st_buffer.append((ST_DMG, value, time + 2000))
         else:
             target.st_buffer.append((ST_DMG, value, time))
-            
+
 def handle_hp_gain(target, value, time):
     if value != 0:
         target.hit_points += value
@@ -181,7 +181,7 @@ def handle_hp_gain(target, value, time):
             target.st_buffer.append((ST_HP, value, time + 2000))
         else:
             target.st_buffer.append((ST_HP, value, time))
-        
+
 def handle_energy(target, value, time):
     if value != 0:
         target.energy += value
@@ -307,10 +307,20 @@ class Input:
         #         self.gp_input['ult'] = self.gamepad.get_button(7)           R2
 
         if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":  # Max's gamepad
-            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),  # guessing
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),  # guessing
-                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),  # guessing
-                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),  # guessing
+
+            di = {
+                  # HAT SETTINGS OPTION 1
+                  'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+
+                  # HAT SETTINGS OPTION 2
+                  # 'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
+                  # 'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),
+                  # 'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  # 'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=-1),
+
                   'GP_Y': input_nt(kind='button', number=0, value1=None, value2=None),
                   'GP_X': input_nt(kind='button', number=3, value1=None, value2=None),
                   'GP_B': input_nt(kind='button', number=1, value1=None, value2=None),
@@ -323,8 +333,8 @@ class Input:
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
 
         elif self.gamepad.get_name() == 'Logitech Cordless RumblePad 2 USB':  # Brian's gamepad if switched to "D"
-            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems ass backwards to me (value1 and value2)
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),  # works but seems ass backwards to me (value1 and value2)
                   'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
                   'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=-1),
                   'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
@@ -339,8 +349,8 @@ class Input:
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
 
         elif self.gamepad.get_name() == 'Wireless Gamepad F710 (Controller)':  # Brian's gamepad if switched to "X"
-            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems backwards
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),  # works but seems backwards
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems ass backwards to me (value1 and value2)
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),  # works but seems ass backwards to me
                   'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
                   'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=-1),
                   'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
@@ -471,9 +481,7 @@ class Input:
     def __setattr__(self, name, value):
         if name in 'LEFT_PRESS_EVENT, RIGHT_PRESS_EVENT, UP_PRESS_EVENT, DOWN_PRESS_EVENT, START_PRESS_EVENT, SELECT_PRESS_EVENT, A_PRESS_EVENT, B_PRESS_EVENT'.split(', '):
             self.__dict__['gp_input']['GP_' + name] = value
-            self.__dict__[name] = value
-        else:
-            self.__dict__[name] = value
+        self.__dict__[name] = value
 
     def _handle_mouse_visibility(self):
         global NEXT_PAGE
