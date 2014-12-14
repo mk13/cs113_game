@@ -87,6 +87,9 @@ class GameLoop:
             self.st_energy_font = pygame.font.Font(main_font, 12)
             self.st_condition_font = pygame.font.Font(main_font, 15)
             self.st_level_up_font = pygame.font.Font(main_font, 30)
+            
+            #Other text
+            self.oor_text = pygame.font.Font(main_font,30)
 
         def _setup_particles():
             self.active_particles = []
@@ -505,6 +508,20 @@ class GameLoop:
                 _draw_player(self.player1)
             if self.player2.sprite is not None:
                 _draw_player(self.player2)
+            
+            #If player is above screen
+            for p in [self.player1, self.player2]:
+                if p.bottom < 0:
+                    text = "P1" if p.id == 1 else "P2"
+                    color = BLUE if p.id == 1 else GREEN
+                    v1 = (p.centerx, 5)
+                    v2 = (p.centerx-10, 30)
+                    v3 = (p.centerx+10, 30)
+                    vlist = [v1,v2,v3]
+                    
+                    GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
+                        (p.centerx-8, 40))
+                    pygame.draw.polygon(GL.SCREEN, color, vlist)
 
         def _draw_monsters():
             for m in self.active_monsters:

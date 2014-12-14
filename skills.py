@@ -167,6 +167,9 @@ def initialize_skill_table():
     SKILLS_TABLE[123]['on_hit_f'] = teleport_shot_on_hit
     # Blast Off
     ADD_BLAST_OFF(124)
+    # Swap shot
+    SKILLS_TABLE[125] = _auto_range('Swap Shot', 20, 20, 20, 0, 200, 5000, LLBLUE, 5, 4)
+    SKILLS_TABLE[125]['on_hit_f'] = swap_shot_on_hit
     # -----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     # -----------------------------------------------------------------------------------------
@@ -814,6 +817,12 @@ def falcon_punch_on_hit(particle,target,time):
         target.ddx = 0
     target.dy = -20
     
+def swap_shot_on_hit(particle, target, time):
+    temp = (target.centerx, target.centery)
+    target.centerx = particle.belongs_to.centerx
+    target.centery = particle.belongs_to.centery
+    particle.belongs_to.centerx = temp[0]
+    particle.belongs_to.centery = temp[1]
 # ----------------------------------------------------------------------------
 def get_dropped_skill(monster):
     if monster.kind == WEAK: 
