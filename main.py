@@ -534,13 +534,13 @@ class GameLoop:
                         text = "-" + str(int(t[1]))
                         color = RED
                         
-                        self.surface.blit(self.st_dmg_font.render(text, True, color),
+                        GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
                         (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     #Level up scrolling text
                     elif t[0] == ST_LEVEL_UP:
                         text = t[1]
                         color = YELLOW
-                        self.surface.blit(self.st_level_up_font.render(text, True, color),
+                        GL.SCREEN.blit(self.st_level_up_font.render(text, True, color),
                         (unit.centerx-50, unit.top - (4000 - t[2] + self.game_time.msec)/50))
                     if t[2] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
@@ -566,7 +566,7 @@ class GameLoop:
                             print_list.append((color, k + ":" + str(max_duration)))
                 #Print list
                 for i,v in enumerate(print_list):
-                    self.surface.blit(self.st_condition_font.render(v[1], True, v[0]),
+                    GL.SCREEN.blit(self.st_condition_font.render(v[1], True, v[0]),
                     (unit.centerx-50, unit.top - 20 - (15 * i)))
                 
                             

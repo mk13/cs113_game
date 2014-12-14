@@ -685,7 +685,7 @@ def get_skill_type(skill_id):
         return ULTIMATE
 
 def auto_attack_skills():
-    return list(filter(lambda x: type(x) is int and 1 <= x <= 99, SKILLS_TABLE.keys()))
+    return list(filter(lambda x: type(x) is int and 2 <= x <= 99, SKILLS_TABLE.keys()))
 
 def regular_skills():
     return list(filter(lambda x: type(x) is int and 100 <= x <= 999, SKILLS_TABLE.keys()))
