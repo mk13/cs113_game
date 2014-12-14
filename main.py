@@ -69,7 +69,7 @@ class GameLoop:
             self.energy_font_xy = 80, 535
             self.pause_font = pygame.font.Font(main_font, 200)
             self.pause_font_xy = font_position_center(self.window, self.pause_font, '-PAUSE-')
-            self.debug_font_small = pygame.font.SysFont('consolas', 10)  # monospace
+            self.debug_font_small = pygame.font.SysFont('consolas', 12)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
             self.debug_font_xy1 = 1075, 505
@@ -79,9 +79,17 @@ class GameLoop:
             self.debug_font_xy5 = 800, 505
             self.debug_font_xy6 = 800, 520
             self.debug_font_xy7 = 800, 540
-            self.st_font = pygame.font.Font(main_font, 18)  # Scrolling text font
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
+            
+            #Scrolling text stuff
+            self.st_dmg_font = pygame.font.Font(main_font, 12)
+            self.st_energy_font = pygame.font.Font(main_font, 12)
+            self.st_condition_font = pygame.font.Font(main_font, 15)
+            self.st_level_up_font = pygame.font.Font(main_font, 30)
+            
+            #Other text
+            self.oor_font = pygame.font.Font(main_font,20)
 
         def _setup_particles():
             self.active_particles = []
@@ -149,11 +157,11 @@ class GameLoop:
                 Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
                 # player 2 skill boxes
-                Rect2(topleft=(950, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1000, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1050, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1100, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1150, 500), size=(40, 40), color=DKRED), ]
+                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
 
         _setup_display()
         _setup_time()
@@ -226,17 +234,31 @@ class GameLoop:
             if self.player1.new_particle:
                 if isinstance(self.player1.new_particle, list):
                     for p in self.player1.new_particle:
-                        self.active_particles.append(p)
+                        if isinstance(p, Particle):
+                            self.active_particles.append(p)
+                        else:
+                            self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 else:
-                    self.active_particles.append(self.player1.new_particle)
+                    if isinstance(self.player1.new_particle, Particle):
+                        self.active_particles.append(self.player1.new_particle)
+                    else:
+                        p = self.player1.new_particle
+                        self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 self.player1.new_particle = None
 
             if self.player2.new_particle:
                 if isinstance(self.player2.new_particle, list):
                     for p in self.player2.new_particle:
-                        self.active_particles.append(p)
+                        if isinstance(p, Particle):
+                            self.active_particles.append(p)
+                        else:
+                            self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 else:
-                    self.active_particles.append(self.player2.new_particle)
+                    if isinstance(self.player2.new_particle, Particle):
+                        self.active_particles.append(self.player2.new_particle)
+                    else:
+                        p = self.player2.new_particle
+                        self.arena.rects.append(Rect2(tuple(p)[0:4],color=p.color,hits_to_destroy=p.hits_to_destroy, spawn_point=p.spawn_point))
                 self.player2.new_particle = None
 
         def _update_particles():
@@ -326,6 +348,11 @@ class GameLoop:
                     self.arena.dropped_skills.append(dropped_skill_rect)
                     if m.kind == ULTIMATE:
                         self.ultimate_monster_active = False
+                    if m.last_hit_by != None:
+                        m.last_hit_by.handle_exp(m.exp_value,self.game_time.msec)
+                    #Debugging: kill button used
+                    else: 
+                        self.player1.handle_exp(m.exp_value,self.game_time.msec)
                     self.active_monsters.remove(m)
 
         def _update_monsters(time):
@@ -395,7 +422,13 @@ class GameLoop:
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
-                skill_text = str(skill_ids[i])
+                if i < 5 :
+                    if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                else:
+                    if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
                 skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                 skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
                 GL.SCREEN.blit(skill_font, skill_text_xy)
@@ -475,6 +508,23 @@ class GameLoop:
                 _draw_player(self.player1)
             if self.player2.sprite is not None:
                 _draw_player(self.player2)
+            
+            #If player is above screen
+            for p in [self.player1, self.player2]:
+                if p.bottom < 0:
+                    text = "P1: " if p.id == 1 else "P2: "
+                    text2 = str(p.bottom)
+                    color = BLUE if p.id == 1 else GREEN
+                    v1 = (p.centerx, 5)
+                    v2 = (p.centerx-10, 30)
+                    v3 = (p.centerx+10, 30)
+                    vlist = [v1,v2,v3]
+                    
+                    GL.SCREEN.blit(self.oor_font.render(text, True, color),
+                        (p.centerx-20, 40))
+                    GL.SCREEN.blit(self.st_dmg_font.render(text2, True, color),
+                        (p.centerx+10, 40))
+                    pygame.draw.polygon(GL.SCREEN, color, vlist)
 
         def _draw_monsters():
             for m in self.active_monsters:
@@ -504,15 +554,64 @@ class GameLoop:
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:
-                for t in unit.st_buffer:
-                    text = t[0] if isinstance(t[0],str) else ("-" + str(int(t[0])))
-                    color = RED
-                    if isinstance(t[0],str) and t[0] in BUFFS:
-                        color = GREEN
-                    GL.SCREEN.blit(self.st_font.render(text, True, color),
-                    (unit.centerx, unit.top - (3000 - t[1] + self.game_time.msec)/50))
-                    if t[1] <= self.game_time.msec:
+                for i,t in enumerate(unit.st_buffer):
+                    if t[2] < 0:
+                        unit.st_buffer.append((t[0],t[1],t[2]+self.game_time.msec + 2000))
                         unit.st_buffer.remove(t)
+                        continue
+                    #Damage scrolling text:
+                    if t[0] == ST_DMG:
+                        text = "-" + str(int(t[1]))
+                        color = RED
+                        
+                        GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
+                        (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
+                    #Health Gain text
+                    elif t[0] == ST_HP:
+                        text = "+" + str(int(t[1]))
+                        color = GREEN
+                        GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
+                        (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
+                    #Level up scrolling text
+                    elif t[0] == ST_LEVEL_UP:
+                        text = t[1]
+                        color = YELLOW
+                        GL.SCREEN.blit(self.st_level_up_font.render(text, True, color),
+                        (unit.centerx-50, unit.top - (4000 - t[2] + self.game_time.msec)/50))
+                    #Energy gain text
+                    elif t[0] == ST_ENERGY:
+                        text = str(t[1])
+                        color = PURPLE
+                        GL.SCREEN.blit(self.st_energy_font.render(text, True, color),
+                        (unit.centerx, unit.top - (3000 - t[2] + self.game_time.msec)/50))
+                    if t[2] <= self.game_time.msec:
+                        unit.st_buffer.remove(t)
+                
+                #Condition scrolling text
+                #Process list
+                print_list = []
+                for k,vl in unit.conditions.items():
+                    #ignore dot
+                    if k != DOT:
+                        if unit.conditions[k] and k == SHIELD:
+                            sum_mag = 0
+                            max_duration = 0
+                            for sh in unit.conditions[k]:
+                                sum_mag += sh.magnitude
+                                max_duration = max(max_duration, int((sh.duration - self.game_time.msec + sh.start)/1000))
+                            print_list.append((GREEN, SHIELD + "("+str(sum_mag)+"):"+str(max_duration)))
+                        elif unit.conditions[k]:
+                            max_duration = 0
+                            for c in unit.conditions[k]:
+                                max_duration = max(max_duration, int((c.duration - self.game_time.msec + c.start)/1000))
+                            color = GREEN if k in BUFFS else RED
+                            print_list.append((color, k + ":" + str(max_duration)))
+                #Print list
+                for i,v in enumerate(print_list):
+                    GL.SCREEN.blit(self.st_condition_font.render(v[1], True, v[0]),
+                    (unit.centerx-70, unit.top - 20 - (15 * i)))
+                
+                            
 
         def _draw_rain():
             if self.make_rain:
@@ -742,7 +841,7 @@ class GameLoop:
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):
-                print('P1 LOCK EVENT')
+                #print('P1 LOCK EVENT')
                 # player 1 skill lock timer
                 if event.type == PLAYER1_LOCK_EVENT:
                     self.player1.attack_cooldown_expired = True

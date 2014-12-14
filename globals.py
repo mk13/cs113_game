@@ -17,6 +17,9 @@ if os.environ['COMPUTERNAME'] in ('MAX-LT', 'BRIAN-LAPTOP'):
 pygame.init()
 pygame.display.set_caption('Famished Tournament')
 SCREEN = pygame.display.set_mode((1280, 600))
+RED_MASK = pygame.Surface((40,40))
+RED_MASK.fill((255,0,0))
+RED_MASK.set_alpha(100)
 CLOCK = pygame.time.Clock()
 FPS = 30
 NEXT_PAGE = 'start'
@@ -55,6 +58,13 @@ ULTIMATE = 'ULTIMATE'
 CHASING = 'CHASING'
 IDLE = 'IDLE'
 ULTIMATE_SPAWN_RATE = 5000
+WEAK_EXP_VALUE = 10
+MEDIUM_EXP_VALUE = 25
+ULTIMATE_EXP_VALUE = 50
+
+# Player exp level-up thresholds
+                   #1  2   3    4    5    6    7    8    9    10
+LEVEL_THRESHOLDS = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450]
 
 # Player States (for animation)
 STAND = 'STAND'
@@ -101,6 +111,12 @@ SKILL1BUTTON = "skill1_id"
 SKILL2BUTTON = "skill2_id"
 SKILL3BUTTON = "skill3_id"
 ULTBUTTON    = "ult_id"
+
+# Scrolling texts
+ST_DMG = "ST_DMG"
+ST_HP  = "ST_HP"
+ST_ENERGY = "ST_ENERGY"
+ST_LEVEL_UP = "ST_LEVEL_UP"
 
 # Events
 TIME_TICK_EVENT = USEREVENT + 0
@@ -151,7 +167,28 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
-        target.st_buffer.append((value, time + 2000))
+        if time >= 0:
+            target.st_buffer.append((ST_DMG, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_DMG, value, time))
+            
+def handle_hp_gain(target, value, time):
+    if value != 0:
+        target.hit_points += value
+        if target.hit_points > target.hit_points_max:
+            target.hit_points = target.hit_points_max
+        if time >= 0:
+            target.st_buffer.append((ST_HP, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_HP, value, time))
+        
+def handle_energy(target, value, time):
+    if value != 0:
+        target.energy += value
+        if time >= 0:
+            target.st_buffer.append((ST_ENERGY, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_ENERGY, value, time))
 
 def condition_string(cond, value):
     st = cond + ": "
@@ -509,11 +546,7 @@ arena3 = arena_nt(
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, 10, 10),
-    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000, 15, 15),
-    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000, 25, 30)}
-
-
-
-
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, WEAK_EXP_VALUE, 10),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 15),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 30)}
 

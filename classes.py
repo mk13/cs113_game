@@ -91,6 +91,7 @@ class Player(Rect2):
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
         self.level = 10
+        self.current_exp = 0
 
         # used for skill pickup
         self.pickup_time = -1
@@ -110,11 +111,11 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 1
-        self.skill1_id = 116
-        self.skill2_id = 109
-        self.skill3_id = 107
-        self.ult_id = 1005
+        self.attack_id = 9
+        self.skill1_id = 125
+        self.skill2_id = 122
+        self.skill3_id = 124
+        self.ult_id = 1006
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -151,6 +152,13 @@ class Player(Rect2):
 
     def is_dead(self):
         return self.hit_points <= 0
+        
+    def handle_exp(self,exp_gain,time):
+        if self.level < 10:
+            self.current_exp += exp_gain
+            if self.current_exp >= LEVEL_THRESHOLDS[self.level]:
+                self.level += 1
+                self.st_buffer.append((ST_LEVEL_UP,"LEVEL " + str(self.level)+ "!",time+1000 ))
 
     def move_ip(self, dxdy):
         super().move_ip(dxdy)
@@ -413,6 +421,7 @@ class Monster(Player):
         self.has_hit_time = []
         self.hit_by = {1: False, 2: False}
         self.hit_by_time = {1: 0, 2: 0}
+        self.last_hit_by = None
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
@@ -655,6 +664,7 @@ class MeleeParticle(Particle):
                 target.dx *= -1
                 target.hit_by[self.belongs_to.id] = True
                 target.hit_by_time[self.belongs_to.id] = time
+                target.last_hit_by = self.belongs_to
 
             if self.on_hit_f:
                 self.on_hit_f(self,target,time)
@@ -728,6 +738,7 @@ class RangeParticle(Particle):
                 target.dx *= -1
                 target.hit_by[self.belongs_to.id] = True
                 target.hit_by_time[self.belongs_to.id] = time
+                target.last_hit_by = self.belongs_to
 
 
             if self.on_hit_f:
@@ -791,7 +802,7 @@ class FieldParticle(Particle):
                     target.dx *= -1
                     target.hit_by[self.belongs_to.id] = True
                     target.hit_by_time[self.belongs_to.id] = time
-
+                    target.last_hit_by = self.belongs_to
                 if self.on_hit_f:
                     self.on_hit_f(self, target, time)
 
@@ -838,8 +849,6 @@ class Condition:
         c.start = time
         c.target = target
         target.conditions[c.type].append(c)
-        if not isinstance(self, Shield):
-            target.st_buffer.append((condition_string(self.type,self.duration),time+2000))
 
     def is_expired(self,time):
         if self.start == -1:
@@ -881,7 +890,7 @@ class Dot(Condition):
         c.target = target
         c.last_tick = time
         target.conditions[c.type].append(c)
-        target.st_buffer.append((condition_string(self.type, self.frequency * self.ticks),time+2000))
+
 
     def is_expired(self, time):
         t = time - self.last_tick
@@ -925,7 +934,6 @@ class Shield(Condition):
     def is_expired(self,time):
         if self.start == -1:
             self.start = time
-            self.target.st_buffer.append((condition_string(self.type,self.duration),time+2000))
         self.remaining = self.duration - time - self.start
         if self.duration <= (time - self.start):
             return True
