@@ -12,6 +12,7 @@ from pygame.locals import *
 import globals as GL
 from globals import *
 from pygbutton import *
+from classes import *
 
 
 class StartMenu:
@@ -25,6 +26,8 @@ class StartMenu:
         title_font = pygame.font.Font('data/Kremlin.ttf', 50)
         self.title_font1 = title_font.render('Famished', True, DKRED)
         self.title_font2 = title_font.render('Tournament', True, DKRED)
+        self.selection_box_properties = [(325, 395, 140, 40), (485, 395, 110, 40), (615, 395, 175, 40), (810, 395, 105, 40)]
+        self.selection_box_i = 0
 
     def __call__(self):
         self.return_now = False
@@ -42,32 +45,65 @@ class StartMenu:
         self.exit_button.draw(GL.SCREEN)
         GL.SCREEN.blit(self.title_font1, (495, 120))
         GL.SCREEN.blit(self.title_font2, (450, 175))
+        self.selection_box = Rect2(self.selection_box_properties[self.selection_box_i], color=BLUE)
+        pygame.draw.rect(GL.SCREEN, BLUE, self.selection_box, 2)
         pygame.display.update()
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.SELECT:
+        if GL.INPUT1.SELECT_EVENT:
             EXIT_GAME()
-        if GL.INPUT1.START:
-            GL.INPUT1.START = False
-            self.return_now = True
-            GL.NEXT_PAGE = 'GameLoop()'
+
+        if GL.INPUT1.START_EVENT:
+            GL.INPUT1.START_EVENT = False
+
+            if self.selection_box_i == 0:
+                self.return_now = True
+                GL.NEXT_PAGE = 'GameLoop()'
+
+            elif self.selection_box_i == 1:
+                self.return_now = True
+                GL.NEXT_PAGE = 'help'
+
+            elif self.selection_box_i == 2:
+                self.return_now = True
+                GL.NEXT_PAGE = 'options'
+
+            elif self.selection_box_i == 3:
+                self.return_now = True
+                EXIT_GAME()
+
+        if GL.INPUT1.RIGHT_EVENT:
+            GL.INPUT1.RIGHT_EVENT = False
+            self.selection_box_i += 1
+            if self.selection_box_i > 3:
+                self.selection_box_i = 0
+
+        if GL.INPUT1.LEFT_EVENT:
+            GL.INPUT1.LEFT_EVENT = False
+            self.selection_box_i -= 1
+            if self.selection_box_i < 0:
+                self.selection_box_i = 3
 
     def events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                EXIT_GAME()
-            if 'click' in self.exit_button.handleEvent(event):
-                EXIT_GAME()
             if 'click' in self.start_button.handleEvent(event):
                 self.return_now = True
                 GL.NEXT_PAGE = 'GameLoop()'
+
             if 'click' in self.help_button.handleEvent(event):
                 self.return_now = True
                 GL.NEXT_PAGE = 'help'
+
             if 'click' in self.options_button.handleEvent(event):
                 self.return_now = True
                 GL.NEXT_PAGE = 'options'
+
+            if 'click' in self.exit_button.handleEvent(event):
+                EXIT_GAME()
+
+            if event.type == pygame.QUIT:
+                EXIT_GAME()
 
 
 class HelpPage:
@@ -119,8 +155,8 @@ class HelpPage:
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.SELECT:
-            GL.INPUT1.SELECT = False
+        if GL.INPUT1.SELECT_EVENT:
+            GL.INPUT1.SELECT_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
@@ -182,8 +218,8 @@ class OptionsPage:
 
     def input(self):
         GL.INPUT1.refresh()
-        if GL.INPUT1.SELECT:
-            GL.INPUT1.SELECT = False
+        if GL.INPUT1.SELECT_EVENT:
+            GL.INPUT1.SELECT_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 

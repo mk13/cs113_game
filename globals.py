@@ -282,10 +282,10 @@ class Input:
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
 
         elif self.gamepad.get_name() == 'Logitech Cordless RumblePad 2 USB':  # Brian's gamepad if switched to "D"
-            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
-                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
-                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=-1),
                   'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
                   'GP_X': input_nt(kind='button', number=0, value1=None, value2=None),
                   'GP_B': input_nt(kind='button', number=2, value1=None, value2=None),
@@ -298,10 +298,10 @@ class Input:
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
 
         elif self.gamepad.get_name() == 'Wireless Gamepad F710 (Controller)':  # Brian's gamepad if switched to "X"
-            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
-                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
-                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+            di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems backwards
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),  # works but seems backwards
+                  'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=-1),
                   'GP_Y': input_nt(kind='button', number=3, value1=None, value2=None),
                   'GP_X': input_nt(kind='button', number=2, value1=None, value2=None),
                   'GP_B': input_nt(kind='button', number=1, value1=None, value2=None),
@@ -313,14 +313,13 @@ class Input:
                   'GP_L2': input_nt(kind='axis', number=2, value1=+1, value2=None),
                   'GP_R2': input_nt(kind='axis', number=2, value1=-1, value2=None)}
 
-        self.GP_INPUTS_at_setup = di
+        self.GP_INPUTS_DICT = di
 
     def refresh(self):
         if self.player_id == 1:
             self._get_keyboard_pressed()
             self._get_keyboard_events()
-        self._get_gamepad_pressed()
-        self._get_gamepad_events()
+        self._get_gamepad_pressed2()
         self._combine_all_pressed()
         if self.player_id == 1:
             self._handle_mouse_visibility()
@@ -329,14 +328,13 @@ class Input:
         if self.player_id == 1:
             for event in pygame.event.get(KEYDOWN):
                 if event.key == K_RETURN:
-                    self.START = not self.START
+                    self.START_EVENT = not self.START_EVENT
         if self.gamepad_found:
             for event in pygame.event.get(JOYBUTTONDOWN):
-                if event.button == self.GP_INPUTS_at_setup['GP_START'].number:
-                    self.START = not self.START
+                if event.button == self.GP_INPUTS_DICT['GP_START'].number:
+                    self.START_EVENT = not self.START_EVENT
 
     def _get_keyboard_pressed(self):
-        # self.kb_input = pygame.key.get_pressed()
         sucky_kb_input = pygame.key.get_pressed()
         self.kb_input['K_RETURN'] = sucky_kb_input[K_RETURN]
         self.kb_input['K_ESCAPE'] = sucky_kb_input[K_ESCAPE]
@@ -359,29 +357,44 @@ class Input:
     def _get_keyboard_events(self):
         for event in pygame.event.get(KEYDOWN):
             if event.key == K_RETURN:
-                self.START = not self.START
+                self.START_EVENT = not self.START_EVENT
+
             if event.key == K_ESCAPE:
-                self.SELECT = not self.SELECT
+                self.SELECT_EVENT = not self.SELECT_EVENT
+
             if event.key in (K_BACKQUOTE, K_F12):
                 self.DEBUG_VIEW = not self.DEBUG_VIEW
 
-    def _get_gamepad_pressed(self):
+            if event.key == K_LEFT:
+                self.LEFT_EVENT = not self.LEFT_EVENT
+
+            if event.key == K_RIGHT:
+                self.RIGHT_EVENT = not self.RIGHT_EVENT
+
+    def _get_gamepad_pressed2(self):
         if self.gamepad_found:
-            for name, info in self.GP_INPUTS_at_setup.items():
+            joy_button_events = [e for e in pygame.event.get(JOYBUTTONDOWN)]
+            joy_axis_events = [e for e in pygame.event.get(JOYAXISMOTION)]
+            joy_hat_events = [e for e in pygame.event.get(JOYHATMOTION)]
+
+            for name, info in self.GP_INPUTS_DICT.items():  # these are all the inputs that we care about
                 if info.kind == 'button':
                     self.gp_input[name] = self.gamepad.get_button(info.number)
+                    if info.number in [e.button for e in joy_button_events]:
+                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
+                        print('button', name + '_EVENT', self.gp_input[name + '_EVENT'])
+
                 elif info.kind == 'axis':
                     self.gp_input[name] = round(self.gamepad.get_axis(info.number)) == info.value1
-                elif info.kind == 'hat':
-                    self.gp_input[name] = self.gamepad.get_hat(info.number)[info.value1] == info.value2
+                    if (info.number, info.value1) in [(e.axis, e.value) for e in joy_axis_events]:
+                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
+                        print('axis  ', name + '_EVENT', self.gp_input[name + '_EVENT'])
 
-    def _get_gamepad_events(self):
-        if self.gamepad_found:
-            for event in pygame.event.get(JOYBUTTONDOWN):
-                if event.button == self.GP_INPUTS_at_setup['GP_START'].number:
-                    self.START = not self.START
-                if event.button == self.GP_INPUTS_at_setup['GP_SELECT'].number:
-                    self.SELECT = not self.SELECT
+                elif info.kind == 'hat':
+                    self.gp_input[name] = self.gamepad.get_hat(info.number)[info.value2] == info.value1  # ITS FUCKING BACKWARDS??? THE TWO WAYS TO LOOK UP HAT DATA DONT RETURN THE SAME DATA IN THE SAME FUCKING WAY?  WHAT THE FUCK FUCK YOU PYGAME.
+                    if (info.number, info.value1, info.value2) in [(e.hat, e.value[0], e.value[1]) for e in joy_hat_events]:
+                        self.gp_input[name + '_EVENT'] = not self.gp_input[name + '_EVENT']
+                        print('hat   ', name + '_EVENT', self.gp_input[name + '_EVENT'])
 
     def _combine_all_pressed(self):
         self.LEFT = self.kb_input['K_LEFT'] or self.gp_input['GP_LEFT']
@@ -397,6 +410,18 @@ class Input:
         self.DROP_SKILL = self.kb_input['K_q'] or self.gp_input['GP_L1']
         self.RESPAWN = self.kb_input['K_r']
         self.KILLALL = self.kb_input['K_k']
+
+        self.START_EVENT = self.gp_input['GP_START_EVENT']
+        self.SELECT_EVENT = self.gp_input['GP_SELECT_EVENT']
+        self.RIGHT_EVENT = self.gp_input['GP_RIGHT_EVENT']
+        self.LEFT_EVENT = self.gp_input['GP_LEFT_EVENT']
+
+    def __setattr__(self, name, value):
+        if name in ('RIGHT_EVENT', 'LEFT_EVENT', 'START_EVENT', 'SELECT_EVENT'):
+            self.__dict__['gp_input']['GP_' + name] = value
+            self.__dict__[name] = value
+        else:
+            self.__dict__[name] = value
 
     def _handle_mouse_visibility(self):
         global NEXT_PAGE
