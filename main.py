@@ -422,12 +422,14 @@ class GameLoop:
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
+                
                 if i < 5 :
                     if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
                         GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
                 else:
                     if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
-                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
+
                 skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
                 skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                 skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)

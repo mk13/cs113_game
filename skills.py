@@ -81,7 +81,7 @@ def initialize_skill_table():
     # -----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
     # -----------------------------------------------------------------------------------------
-
+    SKILLS_TABLE[0] = {'name':'Blank','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0}
     # Monster Slayer (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0)
     SKILLS_TABLE[1]['on_hit_f'] = monster_slayer_on_hit
@@ -106,6 +106,8 @@ def initialize_skill_table():
     SKILLS_TABLE[8]['conditions'] = [classes.Dot(6, 3, 1500), classes.Wounded(5000)]
     # Falcon punch
     ADD_FALCON_PUNCH(9)
+    # Shotgun
+    ADD_SHOTGUN(10)
     # -----------------------------------------------------------------------------------------
     # SKILLS 100-999
     # -----------------------------------------------------------------------------------------
@@ -190,6 +192,8 @@ def initialize_skill_table():
     # Vampiric Swipe
     SKILLS_TABLE[1006] = _auto_melee('Vampiric Swipe', 30, 30, math.pi/2, 40, 40, 400, 400, RED, 0, 6)
     SKILLS_TABLE[1006]['on_hit_f'] = vampiric_swipe_on_hit
+    # Barrage
+    ADD_BARRAGE(1007)
 
 # Templates=================================================
 def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
@@ -212,7 +216,8 @@ def _auto_field(name, radius, cooldown, duration, color, dmg, energy):
             'color':color, 'dmg':dmg, 'energy':energy}
 
 # Individual skills =========================================
-
+def blank_start(sid, player, up, down):
+    return None
 def monster_slayer_on_hit(particle, target, time):
     if isinstance(target, classes.Monster):
         handle_damage(target, 20, time)
@@ -755,6 +760,8 @@ def ADD_BLAST_OFF(i):
 def blast_off_start(sid, player, up, down):
     speed = classes.Speed(250, 0.75)
     speed.begin(-1, player)
+    shield = classes.Shield(500, 30)
+    shield.begin(-1,player)
     if up != down:
         if up:
             player.dy -= 70
@@ -823,6 +830,72 @@ def swap_shot_on_hit(particle, target, time):
     target.centery = particle.belongs_to.centery
     particle.belongs_to.centerx = temp[0]
     particle.belongs_to.centery = temp[1]
+    
+def ADD_BARRAGE(i):
+    SKILLS_TABLE[i] = _auto_range('Barrage',20,20,25, 0, 250, 5000, RED, 0, 7)
+    SKILLS_TABLE[i]['on_hit_f'] = barrage_primary_on_hit
+    SKILLS_TABLE['barrage'] = _auto_melee('', 30, 30, 0, 0, 0, 250, 5000, DKRED, 10, 0)
+    SKILLS_TABLE['barrage']['special_path'] = barrage_path
+    SKILLS_TABLE['barrage']['on_hit_f'] = barrage_on_hit_f
+def barrage_primary_on_hit(particle,target,time):
+    b1 = classes.MeleeParticle('barrage', particle.belongs_to)
+    b2 = classes.MeleeParticle('barrage', particle.belongs_to)
+    b3 = classes.MeleeParticle('barrage', particle.belongs_to)
+    b1.focus_target = target
+    b2.focus_target = target
+    b3.focus_target = target
+    b1.centerx = b1.belongs_to.centerx - 50
+    b2.centerx = b2.belongs_to.centerx + 50
+    b3.centery = b3.belongs_to.centery - 50
+    
+    b1.centery = b1.belongs_to.centery
+    b2.centery = b2.belongs_to.centery
+    b3.centerx = b3.belongs_to.centerx
+    
+    force_add_particle_to_player([b1,b2,b3],particle.belongs_to)
+def barrage_path(particle,time):
+    dx = 0
+    dy = 0
+    if particle.centerx > particle.focus_target.centerx:
+        dx -= random.randint(5,8)
+    elif particle.centerx < particle.focus_target.centerx:
+        dx += random.randint(5,8)
+    else:
+        dx += random.randint(-20, 20)
+        
+    if particle.centery > particle.focus_target.centery:
+        dy -= random.randint(5,8)
+    elif particle.centery < particle.focus_target.centery:
+        dy += random.randint(5,8)
+    else:
+        dy += random.randint(-20,20)
+    return particle.centerx + dx, particle.centery + dy
+def barrage_on_hit_f(particle, target, time):
+    if target == particle.focus_target:
+        particle.expired = True
+    
+def ADD_SHOTGUN(i):
+    SKILLS_TABLE[i] = {'name':'Shotgun', 'start':shotgun_start, 'cooldown':500, 'energy':0}
+    SKILLS_TABLE['shotgun_pellet'] = _auto_range('',10,10,20,1,250,500, ORANGE, 2, 0)
+    SKILLS_TABLE['shotgun_pellet']['special_path'] = shotgun_pellet_path
+def shotgun_start(sid, player, up=False, down=False):
+    plist = []
+    for i in range(0,5):
+        p = classes.RangeParticle('shotgun_pellet', player, up, down)
+        p.centery = player.centery
+        if player.facing_direction == RIGHT:
+            p.centerx = player.centerx+10
+            p.dx = random.randint(20,30)
+            p.dy = random.randint(-4,4)
+        else:
+            p.centerx = player.centerx-10
+            p.dx = random.randint(-30,-20)
+            p.dy = random.randint(-4,4)
+        plist.append(p)
+    return plist
+    
+def shotgun_pellet_path(particle,time):
+    return particle.centerx + particle.dx, particle.centery + particle.dy
 # ----------------------------------------------------------------------------
 def get_dropped_skill(monster):
     if monster.kind == WEAK: 
