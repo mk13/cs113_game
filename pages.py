@@ -172,9 +172,13 @@ class HelpPage:
 
         if GL.INPUT1.START_PRESS_EVENT:
             GL.INPUT1.START_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.SELECT_PRESS_EVENT:
             GL.INPUT1.SELECT_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.B_PRESS_EVENT:
             GL.INPUT1.B_PRESS_EVENT = False
@@ -266,13 +270,17 @@ class OptionsPage:
 
         if GL.INPUT1.START_PRESS_EVENT:
             GL.INPUT1.START_PRESS_EVENT = False
+            if self.selection_box_row == 0:
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.SELECT_PRESS_EVENT:
             GL.INPUT1.SELECT_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.B_PRESS_EVENT:
-            if GL.INPUT1.B_PRESS_EVENT:
-                GL.INPUT1.B_PRESS_EVENT = False
+            GL.INPUT1.B_PRESS_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
