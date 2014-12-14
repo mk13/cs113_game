@@ -84,6 +84,7 @@ class GameLoop:
             
             #Scrolling text stuff
             self.st_dmg_font = pygame.font.Font(main_font, 12)
+            self.st_energy_font = pygame.font.Font(main_font, 12)
             self.st_condition_font = pygame.font.Font(main_font, 15)
             self.st_level_up_font = pygame.font.Font(main_font, 30)
 
@@ -153,11 +154,11 @@ class GameLoop:
                 Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
                 # player 2 skill boxes
-                Rect2(topleft=(950, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1000, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1050, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1100, 500), size=(40, 40), color=DKRED),
-                Rect2(topleft=(1150, 500), size=(40, 40), color=DKRED), ]
+                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
 
         _setup_display()
         _setup_time()
@@ -418,7 +419,13 @@ class GameLoop:
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
-                skill_text = str(skill_ids[i])
+                if i < 5 :
+                    if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                else:
+                    if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
                 skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                 skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
                 GL.SCREEN.blit(skill_font, skill_text_xy)
@@ -527,13 +534,22 @@ class GameLoop:
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:
-                cond_count = 0
-                for t in unit.st_buffer:
+                for i,t in enumerate(unit.st_buffer):
+                    if t[2] < 0:
+                        unit.st_buffer.append((t[0],t[1],t[2]+self.game_time.msec + 2000))
+                        unit.st_buffer.remove(t)
+                        continue
                     #Damage scrolling text:
                     if t[0] == ST_DMG:
                         text = "-" + str(int(t[1]))
                         color = RED
                         
+                        GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
+                        (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
+                    #Health Gain text
+                    elif t[0] == ST_HP:
+                        text = "+" + str(int(t[1]))
+                        color = GREEN
                         GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
                         (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     #Level up scrolling text
@@ -542,6 +558,12 @@ class GameLoop:
                         color = YELLOW
                         GL.SCREEN.blit(self.st_level_up_font.render(text, True, color),
                         (unit.centerx-50, unit.top - (4000 - t[2] + self.game_time.msec)/50))
+                    #Energy gain text
+                    elif t[0] == ST_ENERGY:
+                        text = str(t[1])
+                        color = PURPLE
+                        GL.SCREEN.blit(self.st_energy_font.render(text, True, color),
+                        (unit.centerx, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     if t[2] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
                 
@@ -567,7 +589,7 @@ class GameLoop:
                 #Print list
                 for i,v in enumerate(print_list):
                     GL.SCREEN.blit(self.st_condition_font.render(v[1], True, v[0]),
-                    (unit.centerx-50, unit.top - 20 - (15 * i)))
+                    (unit.centerx-70, unit.top - 20 - (15 * i)))
                 
                             
 
@@ -799,7 +821,7 @@ class GameLoop:
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):
-                print('P1 LOCK EVENT')
+                #print('P1 LOCK EVENT')
                 # player 1 skill lock timer
                 if event.type == PLAYER1_LOCK_EVENT:
                     self.player1.attack_cooldown_expired = True

@@ -17,6 +17,9 @@ if os.environ['COMPUTERNAME'] in ('MAX-LT', 'BRIAN-LAPTOP'):
 pygame.init()
 pygame.display.set_caption('Famished Tournament')
 SCREEN = pygame.display.set_mode((1280, 600))
+RED_MASK = pygame.Surface((40,40))
+RED_MASK.fill((255,0,0))
+RED_MASK.set_alpha(100)
 CLOCK = pygame.time.Clock()
 FPS = 30
 NEXT_PAGE = 'start'
@@ -111,6 +114,8 @@ ULTBUTTON    = "ult_id"
 
 # Scrolling texts
 ST_DMG = "ST_DMG"
+ST_HP  = "ST_HP"
+ST_ENERGY = "ST_ENERGY"
 ST_LEVEL_UP = "ST_LEVEL_UP"
 
 # Events
@@ -162,7 +167,28 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
-        target.st_buffer.append((ST_DMG, value, time + 2000))
+        if time >= 0:
+            target.st_buffer.append((ST_DMG, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_DMG, value, time))
+            
+def handle_hp_gain(target, value, time):
+    if value != 0:
+        target.hit_points += value
+        if target.hit_points > target.hit_points_max:
+            target.hit_points = target.hit_points_max
+        if time >= 0:
+            target.st_buffer.append((ST_HP, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_HP, value, time))
+        
+def handle_energy(target, value, time):
+    if value != 0:
+        target.energy += value
+        if time >= 0:
+            target.st_buffer.append((ST_ENERGY, value, time + 2000))
+        else:
+            target.st_buffer.append((ST_ENERGY, value, time))
 
 def condition_string(cond, value):
     st = cond + ": "

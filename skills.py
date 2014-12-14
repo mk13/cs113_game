@@ -86,15 +86,29 @@ def initialize_skill_table():
     SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0)
     SKILLS_TABLE[1]['on_hit_f'] = monster_slayer_on_hit
     # Peashooter
-    SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 500, 5000, GREEN, 5, 0)
+    SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 250, 5000, GREEN, 5, 0)
     # Spear
-    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, True)
+    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 250, 250, DGREY, 15, 0, True)
+    SKILLS_TABLE[3]['conditions'] = [classes.Wounded(2000)]
     # Nail-on-plank
     SKILLS_TABLE[4] = _auto_melee('Nail-on-Plank', 20, 20, math.pi/2, 30, 30, 20, 500, BROWN, 2, 0)
+    SKILLS_TABLE[4]['on_hit_f'] = knock_back
+    # Boomerang
+    SKILLS_TABLE[5] = _auto_range('Boomerang', 15, 15, 25, -2, 250, 5000, GREEN, 5, 0)
+    # Heavy Bar
+    SKILLS_TABLE[6] = _auto_melee('Heavy Bar', 40, 40, math.pi/2, 60, 60, 1000, 750, BLACK, 30, 0)
+    SKILLS_TABLE[6]['conditions'] = [classes.Stun(500)]
+    # Quick Shot
+    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, ORANGE, 3, 0)
+    SKILLS_TABLE[7]['on_hit_f'] = quick_shot_on_hit
+    # Plague Swipe
+    SKILLS_TABLE[8] = _auto_melee('Plague Swipe', 15, 15, math.pi/2, 40, 40, 400, 400, GREEN, 0, 0)
+    SKILLS_TABLE[8]['conditions'] = [classes.Dot(6, 3, 1500), classes.Wounded(5000)]
+    # Falcon punch
+    ADD_FALCON_PUNCH(9)
     # -----------------------------------------------------------------------------------------
     # SKILLS 100-999
     # -----------------------------------------------------------------------------------------
-
     # Teleport
     SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
     # Fireball
@@ -135,6 +149,24 @@ def initialize_skill_table():
     ADD_SKILL_PERSONAL_FAERIE(116)
     # Junk Wall
     SKILLS_TABLE[117] = {'name':'Junk Wall','type': None, 'start': wall_start, 'cooldown': 200, 'energy': 5}
+    # Life Tap
+    SKILLS_TABLE[118] = {'name':'Life Tap', 'type':None, 'start':life_tap_start, 'cooldown':300, 'energy':0}
+    # Adrenaline
+    SKILLS_TABLE[119] = {'name':'Adrenaline', 'type':None, 'start':adrenaline_start, 'cooldown':300, 'energy': 4}
+    # Silencer
+    SKILLS_TABLE[120] = _auto_melee(name='Silencer', width=40, height=40, arc=math.pi/2, start_radius=40, max_radius=40, cooldown=100, duration=500, color=RED, dmg=15, energy=5, extend = False)
+    SKILLS_TABLE[120]['conditions'] = [classes.Silence(3000)]
+    # Gravity shot
+    SKILLS_TABLE[121] = _auto_range('Gravity Shot', 35, 35, 20, 0, 200, 5000, DKORANGE, 3, 4)
+    SKILLS_TABLE[121]['on_hit_f'] = gravity_shot_on_hit
+    # Lifting shot
+    SKILLS_TABLE[122] = _auto_range('Lifting Shot', 15, 15, 20, 0, 200, 5000, DKORANGE, 0, 2)
+    SKILLS_TABLE[122]['on_hit_f'] = lifting_shot_on_hit
+    # Teleport shot
+    SKILLS_TABLE[123] = _auto_range('Teleport Shot', 20, 20, 20, 0, 200, 5000, BLUE, 5, 4)
+    SKILLS_TABLE[123]['on_hit_f'] = teleport_shot_on_hit
+    # Blast Off
+    ADD_BLAST_OFF(124)
     # -----------------------------------------------------------------------------------------
     # ULTIMATES 1000+
     # -----------------------------------------------------------------------------------------
@@ -152,8 +184,9 @@ def initialize_skill_table():
     ADD_BEE_HIVE(1004)
     # Epicenter
     ADD_EPICENTER(1005)
-    # for k, v in sorted(SKILLS_TABLE.items(), key=lambda x: str(x)):
-    #     print(k, v)
+    # Vampiric Swipe
+    SKILLS_TABLE[1006] = _auto_melee('Vampiric Swipe', 30, 30, math.pi/2, 40, 40, 400, 400, RED, 0, 6)
+    SKILLS_TABLE[1006]['on_hit_f'] = vampiric_swipe_on_hit
 
 # Templates=================================================
 def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
@@ -196,9 +229,6 @@ def teleport_start(sid, player, up, down):
     out_of_arena_fix(player)
     return None
 
-def shield_start(sid, player, up, down):
-    sh = classes.Shield(10000, 10)
-    return None
 
 # Example of a special function
 # Takes in two parameters: the particle object, and time
@@ -665,10 +695,128 @@ def wall_start(sid, player, up, down):
     return [terrain_nt(x1, y1, 30, 30, BLACK, 1, False),
             terrain_nt(x2, y2, 30, 30, BLACK, 1, False),
             terrain_nt(x3, y3, 30, 30, BLACK, 1, False)]
+            
+def life_tap_start(sid, player, up, down):
+    if player.hit_points >= 15:
+        handle_damage(player, 10, -1)
+        handle_energy(player, int(10-player.energy), -500)
+    return None
+    
+def adrenaline_start(sid,player,up,down):
+    b1 = classes.Speed(5000,0.5)
+    b2 = classes.Invigorated(5000)
+    b3 = classes.Empowered(5000)
+    b1.begin(-1,player)
+    b2.begin(-1,player)
+    b3.begin(-1,player)
+    return None
+    
+def quick_shot_on_hit(particle,target,time):
+    handle_damage(target, int(particle.dx/4), time)
+    
+def gravity_shot_on_hit(particle,target,time):
+    if not target.touching_ground:
+        handle_damage(target, 20, time)
+        stun = classes.Stun(2000)
+        stun.begin(time, target)
+    else:
+        handle_damage(target, 5, time)
+    target.dy += 60
+    
+def lifting_shot_on_hit(particle, target, time):
+    target.dy -= 60
+    
+def teleport_shot_on_hit(particle, target, time):
+    if not isinstance(target, classes.Monster):
+        slow = classes.Slow(3000, 0.8)
+        slow.begin(time,target)
+        x = target.centerx
+        y = target.centery
+        if particle.direction == RIGHT:
+            x -= 50
+        else:
+            x += 50
+        particle.belongs_to.centerx = x
+        particle.belongs_to.centery = y
+        
+def vampiric_swipe_on_hit(particle,target,time):
+    if particle.belongs_to.hit_points < particle.belongs_to.hit_points_max:
+        v = min(particle.belongs_to.hit_points_max - particle.belongs_to.hit_points,min(15,int(target.hit_points/10)))
+        handle_hp_gain(particle.belongs_to, v, time)
+        
+def ADD_BLAST_OFF(i):
+    SKILLS_TABLE[i] = {'name':'Blast Off', 'type':None, 'start': blast_off_start, 'cooldown': 250, 'energy':2}
+    SKILLS_TABLE['blast_off'] = _auto_melee('',70, 80, 0, 0, 0, 250, 250, RED, 5, 0)
+    SKILLS_TABLE['blast_off']['special_path'] = blast_off_path
+    SKILLS_TABLE['blast_off']['conditions'] = [classes.Dot(2,3,1000)]
+def blast_off_start(sid, player, up, down):
+    speed = classes.Speed(250, 0.75)
+    speed.begin(-1, player)
+    if up != down:
+        if up:
+            player.dy -= 70
+        else:
+            player.dy += 50
+    else:
+        if player.facing_direction == RIGHT:
+            player.dx += 40
+            if not player.touching_ground:
+                player.dy -= 8
+        else:
+            player.dx -= 40
+            if not player.touching_ground:
+                player.dy -= 8
+            
+    return classes.MeleeParticle('blast_off', player)
+def blast_off_path(particle, time):
+    x = particle.belongs_to.left + 25
+    y = particle.belongs_to.top + 30
+    return x,y
+    
+def ADD_FALCON_PUNCH(i):
+    SKILLS_TABLE[i] = {'name':'Falcon Punch','type': None, 'start': falcon_punch_start, 'cooldown': 1500, 'energy': 0}
+    SKILLS_TABLE['falcon_punch'] = _auto_melee('',30, 30, 0, 0, 0, 1500, 1500, RED, 35, 0)
+    SKILLS_TABLE['falcon_punch']['special_path'] = falcon_punch_path
+    SKILLS_TABLE['falcon_punch']['on_hit_f'] = falcon_punch_on_hit
+    SKILLS_TABLE['falcon_punch']['conditions']=[classes.Stun(2000), classes.Speed(1000,1)]
+def falcon_punch_start(sid, player, up=False, down=False):
+    player.dx = 0
+    punch = classes.MeleeParticle('falcon_punch', player)
+    punch.centery = player.centery
 
+    if punch.direction == RIGHT:
+        punch.max_x = player.centerx + 35
+        punch.centerx = punch.belongs_to.centerx
+        punch.dx = -2
+        punch.ddx = 0.01
+        punch.dddx = 0.1
+    else:
+        punch.max_x = player.centerx - 35
+        punch.centerx = punch.belongs_to.centerx
+        punch.dx = 2
+        punch.ddx = -0.01
+        punch.dddx = -0.1
+    return punch
+def falcon_punch_path(particle, time):
+    particle.ddx += particle.dddx
+    particle.dx += particle.ddx
+    if particle.direction == RIGHT:
+        x = min(particle.max_x, particle.centerx + particle.dx)
+    else:
+        x = max(particle.max_x, particle.centerx + particle.dx)
+    return x, particle.belongs_to.centery
+def falcon_punch_on_hit(particle,target,time):
+    if particle.direction == RIGHT:
+        target.dx += 50
+        target.ddx = 0
+    else:
+        target.dx += -50
+        target.ddx = 0
+    target.dy = -20
+    
 # ----------------------------------------------------------------------------
 def get_dropped_skill(monster):
-    if monster.kind == WEAK:
+    if monster.kind == WEAK: 
         li = auto_attack_skills()
     elif monster.kind == MEDIUM:
         li = regular_skills()
