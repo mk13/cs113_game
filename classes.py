@@ -572,6 +572,7 @@ class Arena:
 # -------------------------------------------------------------------------
 class Particle(Rect2):
     def __init__(self, sid, player):
+        self.sid = sid
         self.left = 0
         self.top = 0
         self.width = SKILLS_TABLE[sid]['width']
@@ -610,7 +611,7 @@ class MeleeParticle(Particle):
     def __init__(self, sid, player):
         # super().__init__(particle.width, particle.height, particle.radius, particle.cooldown, particle.duration, particle.color)
         super().__init__(sid, player)
-        self.arc = SKILLS_TABLE[sid]['arc']
+        self.arc = self.progress = SKILLS_TABLE[sid]['arc']
         self.radius = SKILLS_TABLE[sid]['start_radius']
         self.max_radius = SKILLS_TABLE[sid]['max_radius']
         self.has_hit = []  # Need this to keep track of what it has hit;
@@ -639,6 +640,7 @@ class MeleeParticle(Particle):
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
+        self.progress = (1-r)*self.arc
 
         if self.special_f:
             self.centerx, self.centery = self.special_f(self,time)
