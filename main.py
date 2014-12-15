@@ -357,7 +357,13 @@ class GameLoop:
             for m in self.active_monsters:
                 if m.is_dead():
                     dropped_skill_id = get_dropped_skill(m)
-                    dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=BLACK)
+                    col = RED
+                    if dropped_skill_id >= 100 and dropped_skill_id < 1000:
+                        col = BLUE
+                    elif dropped_skill_id >= 1000:
+                        col = YELLOW
+
+                    dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=col)
                     self.arena.dropped_skills.append(dropped_skill_rect)
                     if m.kind == ULTIMATE:
                         self.ultimate_monster_active = False
@@ -605,10 +611,15 @@ class GameLoop:
         def _draw_dropped_skills():
             for skill in self.arena.dropped_skills:
                 pygame.draw.rect(GL.SCREEN, skill.color, skill)
-                skill_text = str(skill.id)
-                skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
-                skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
-                GL.SCREEN.blit(skill_font, skill_text_xy)
+                if skill.id not in ICONS_TABLE.keys():
+                    skill_text = str(skill.id)
+                    skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
+                    skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
+                    GL.SCREEN.blit(skill_font, skill_text_xy)
+                else:
+                    icon = ICONS_TABLE[skill.id]
+                    icon = pygame.transform.scale(icon, (20,20))
+                    GL.SCREEN.blit(icon, (skill[0]+2.5, skill[1]+2.5))
 
         def _draw_particles():
             for p in self.active_particles:
