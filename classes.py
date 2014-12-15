@@ -111,11 +111,11 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 1005
-        self.skill1_id = 1001
-        self.skill2_id = 120
-        self.skill3_id = 1007
-        self.ult_id = 1004
+        self.attack_id = 10
+        self.skill1_id = 125
+        self.skill2_id = 122
+        self.skill3_id = 124
+        self.ult_id = 1007
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -154,7 +154,7 @@ class Player(Rect2):
 
     def is_dead(self):
         return self.hit_points <= 0
-        
+
     def handle_exp(self,exp_gain,time):
         if self.level < 10:
             self.current_exp += exp_gain
@@ -320,7 +320,7 @@ class Player(Rect2):
             # If a valid skill is pressed
             if (isinstance(i,str) or i > 0) and self.attack_cooldown_expired:
                 self.pickup_time = -1
-                if self.energy >= SKILLS_TABLE[i]['energy']:                    
+                if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.attack_state = SKILLS_TABLE[i]['state']
                     self.attack_frame = SKILLS_TABLE[i]['frame']
                     if not(self.attack_state == RUN or self.attack_state == BREATH):
@@ -517,9 +517,6 @@ class AI_Input():
 
     def refresh(self):
         self.RIGHT = self.LEFT = self.JUMP = False
-
-# -------------------------------------------------------------------------
-
 
 # -------------------------------------------------------------------------
 class Arena:
