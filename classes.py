@@ -111,11 +111,11 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 10
-        self.skill1_id = 125
-        self.skill2_id = 122
-        self.skill3_id = 124
-        self.ult_id = 1007
+        self.attack_id = 1005
+        self.skill1_id = 1001
+        self.skill2_id = 120
+        self.skill3_id = 1007
+        self.ult_id = 1004
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -132,6 +132,8 @@ class Player(Rect2):
         self.sprite = sprite
         self.wait_frames = 0
         self.animation_key = -1
+        self.attack_state = ONEHAND
+        self.attack_frame = 1
 
     @property
     def skills(self):
@@ -318,7 +320,11 @@ class Player(Rect2):
             # If a valid skill is pressed
             if (isinstance(i,str) or i > 0) and self.attack_cooldown_expired:
                 self.pickup_time = -1
-                if self.energy >= SKILLS_TABLE[i]['energy']:
+                if self.energy >= SKILLS_TABLE[i]['energy']:                    
+                    self.attack_state = SKILLS_TABLE[i]['state']
+                    self.attack_frame = SKILLS_TABLE[i]['frame']
+                    if not(self.attack_state == RUN or self.attack_state == BREATH):
+                        self.state = RESET
                     self.energy -= SKILLS_TABLE[i]['energy']
                     self.new_particle = SKILLS_TABLE[i]['start'](i, self, self.input.UP, self.input.DOWN)
                     if SKILLS_TABLE[i]['cooldown']:

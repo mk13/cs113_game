@@ -121,17 +121,27 @@ class GameLoop:
                     return None
 
                 m1 = []
-                # Put spritesheet into list, each sprite is 64x64 pixels large
-                for num in range(1, 7):  # Standing
+                # Put spritesheet into list, each sprite is 64x64 pixels large, except for death        
+                for num in range(1, 8):  # Standing
                     m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
-                for num in range(7, 15):  # Walk Transition
-                    m1.append(spritesheet1.subsurface((64 * (num - 7), 64, 64, 64)))
-                for num in range(15, 23):  # Walk Part 1
-                    m1.append(spritesheet1.subsurface((64 * (num - 15), 128, 64, 64)))
-                for num in range(23, 31):  # Walk Part 2
-                    m1.append(spritesheet1.subsurface((64 * (num - 23), 192, 64, 64)))
-                for num in range(31, 35):  # Jump and Fall
-                    m1.append(spritesheet1.subsurface((64 * (num - 31), 256, 64, 64)))
+                for num in range(8, 16):  # Walk Transition
+                    m1.append(spritesheet1.subsurface((64 * (num - 8), 64, 64, 64)))
+                for num in range(16, 24):  # Walk Part 1
+                    m1.append(spritesheet1.subsurface((64 * (num - 16), 128, 64, 64)))
+                for num in range(24, 32):  # Walk Part 2
+                    m1.append(spritesheet1.subsurface((64 * (num - 24), 192, 64, 64)))
+                for num in range(32, 40):  # Jump and Fall
+                    m1.append(spritesheet1.subsurface((64 * (num - 32), 256, 64, 64)))
+                for num in range(40, 48): 
+                    m1.append(spritesheet1.subsurface((64 * (num - 40), 320, 64, 64)))
+                for num in range(48, 56):
+                    m1.append(spritesheet1.subsurface((64 * (num - 48), 384, 64, 64)))
+                for num in range(56, 64): 
+                    m1.append(spritesheet1.subsurface((64 * (num - 56), 448, 64, 64)))
+                for num in range(64, 71):
+                    m1.append(spritesheet1.subsurface((64 * (num - 64), 512, 64, 64)))
+                for num in range(71, 75): 
+                    m1.append(spritesheet1.subsurface((128 * (num - 71), 576, 128, 64)))
 
                 for num in range(len(m1)):
                     m1[num].set_colorkey((0, 0, 0))  # sprite bg rgb is (0,0,0)
@@ -139,8 +149,8 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
-            p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
+            p1_sprite = _setup_player_sprites('data/pl_human.png')
+            p2_sprite = _setup_player_sprites('data/pl_human.png')
 
             self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), input=GL.INPUT1, sprite=p1_sprite)
             self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), input=GL.INPUT2, sprite=p2_sprite)
@@ -459,21 +469,62 @@ class GameLoop:
                     # -1 because it will always get incremented at the start of each check
                 flip = False  # value for flipping sprite
 
-                # Animations that still need to be implemented
-                # if (p.state == DEATH):
-                # if (p.state == ATTACK):
-                # if (p.state == CAST):
-                # if (p.state == SLIDE):
 
+                if (p.state == DEATH):
+                    if p.facing_direction == LEFT:
+                        flip = True
+                    if p.wait_frames <= 0:
+                        p.wait_frames = 3
+                        if p.animation_key < 3:
+                            p.animation_key +=1
+                    if flip:
+                        GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17-64,p.top-22))
+                    else:
+                        GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17,p.top-22))
+                    
+               # elif (p.state = WIN):
+                    
+                elif p.state == ATTACK or p.state == RESET:
+                    # Starting Indexes and how much sprites for each attack state are as follows
+                    # ONEHAND = 28, 4
+                    # TWOHAND = 32, 4
+                    # CAST1 = 36, 3
+                    # CAST2 = 39, 4
+                    # CAST3 = 43, 1
+                    # THROW = 44, 4
+                    # MACHGUN = 52, 2
+                    # BREATH = 54, 3
+                    # POKE = 57, 4
+                    # BULLET = 61, 4
+                    # DASH = 7, 1
+                    # RUN = 8, 16
+                    
+                    if p.facing_direction == LEFT:
+                        flip = True
+
+                    if p.attack_state == 'RUN':
+                        if p.wait_frames <= 0:
+                            p.wait_frames = 2
+                            p.animation_key = (p.animation_key + 1)%16
+                        GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 8], flip, False), (p.left-17,p.top-22))
+                    elif p.attack_state == 'none':
+                            p.wait_frames = 1
+                    else:
+                        if p.wait_frames <= 0:
+                            p.wait_frames = p.attack_frame
+                            if p.animation_key < PL_ATTACK_TABLE[p.attack_state][1]:
+                                p.animation_key +=1
+                        GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + PL_ATTACK_TABLE[p.attack_state][0]], flip, False), (p.left-17,p.top-22))
+                    
                 # JUMP
-                if p.state == JUMP:
+                elif p.state == JUMP:
                     if p.facing_direction == LEFT:
                         flip = True
                     if p.wait_frames <= 0:
                         p.wait_frames = 5
                         if p.animation_key <= 0:
                             p.animation_key += 1
-                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 30], flip, False), (p.left-17,p.top-22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 24], flip, False), (p.left-17,p.top-22))
                 # FALL
                 elif p.state == FALL:
                     if p.facing_direction == LEFT:
@@ -482,7 +533,7 @@ class GameLoop:
                         p.wait_frames = 5
                         if p.animation_key <= 0:
                             p.animation_key += 1
-                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 32], flip, False), (p.left-17,p.top-22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 26], flip, False), (p.left-17,p.top-22))
                 # WALK
                 elif p.state == RWALK or p.state == LWALK:
                     if p.facing_direction == LEFT:
@@ -496,7 +547,7 @@ class GameLoop:
                         p.animation_key += 1
                         if p.animation_key > 0:
                             p.animation_key %= 16  # Loops the key
-                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 14], flip, False), (p.left - 17, p.top - 22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 8], flip, False), (p.left - 17, p.top - 22))
                 # STAND (default animation)
                 else:
                     if p.facing_direction == LEFT:
