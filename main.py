@@ -81,15 +81,15 @@ class GameLoop:
             self.debug_font_xy7 = 800, 540
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
-            
-            #Scrolling text stuff
+
+            # Scrolling text stuff
             self.st_dmg_font = pygame.font.Font(main_font, 12)
             self.st_energy_font = pygame.font.Font(main_font, 12)
             self.st_condition_font = pygame.font.Font(main_font, 15)
             self.st_level_up_font = pygame.font.Font(main_font, 30)
-            
-            #Other text
-            self.oor_font = pygame.font.Font(main_font,20)
+
+            # Other text
+            self.oor_font = pygame.font.Font(main_font, 20)
 
         def _setup_particles():
             self.active_particles = []
@@ -121,7 +121,7 @@ class GameLoop:
                     return None
 
                 m1 = []
-                # Put spritesheet into list, each sprite is 64x64 pixels large, except for death        
+                # Put spritesheet into list, each sprite is 64x64 pixels large, except for death
                 for num in range(1, 8):  # Standing
                     m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
                 for num in range(8, 16):  # Walk Transition
@@ -132,15 +132,15 @@ class GameLoop:
                     m1.append(spritesheet1.subsurface((64 * (num - 24), 192, 64, 64)))
                 for num in range(32, 40):  # Jump and Fall
                     m1.append(spritesheet1.subsurface((64 * (num - 32), 256, 64, 64)))
-                for num in range(40, 48): 
+                for num in range(40, 48):
                     m1.append(spritesheet1.subsurface((64 * (num - 40), 320, 64, 64)))
                 for num in range(48, 56):
                     m1.append(spritesheet1.subsurface((64 * (num - 48), 384, 64, 64)))
-                for num in range(56, 64): 
+                for num in range(56, 64):
                     m1.append(spritesheet1.subsurface((64 * (num - 56), 448, 64, 64)))
                 for num in range(64, 71):
                     m1.append(spritesheet1.subsurface((64 * (num - 64), 512, 64, 64)))
-                for num in range(71, 75): 
+                for num in range(71, 75):
                     m1.append(spritesheet1.subsurface((128 * (num - 71), 576, 128, 64)))
 
                 for num in range(len(m1)):
@@ -361,7 +361,7 @@ class GameLoop:
                     if m.last_hit_by != None:
                         m.last_hit_by.handle_exp(m.exp_value,self.game_time.msec)
                     #Debugging: kill button used
-                    else: 
+                    else:
                         self.player1.handle_exp(m.exp_value,self.game_time.msec)
                     self.active_monsters.remove(m)
 
@@ -390,7 +390,6 @@ class GameLoop:
             pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
             pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
             pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
-
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -432,10 +431,10 @@ class GameLoop:
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
-                
+
                 if i < 5 :
                     if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
-                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
                 else:
                     if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
                         GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
@@ -481,9 +480,9 @@ class GameLoop:
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17-64,p.top-22))
                     else:
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17,p.top-22))
-                    
+
                # elif (p.state = WIN):
-                    
+
                 elif p.state == ATTACK or p.state == RESET:
                     # Starting Indexes and how much sprites for each attack state are as follows
                     # ONEHAND = 28, 4
@@ -498,7 +497,7 @@ class GameLoop:
                     # BULLET = 61, 4
                     # DASH = 7, 1
                     # RUN = 8, 16
-                    
+
                     if p.facing_direction == LEFT:
                         flip = True
 
@@ -515,7 +514,7 @@ class GameLoop:
                             if p.animation_key < PL_ATTACK_TABLE[p.attack_state][1]:
                                 p.animation_key +=1
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + PL_ATTACK_TABLE[p.attack_state][0]], flip, False), (p.left-17,p.top-22))
-                    
+
                 # JUMP
                 elif p.state == JUMP:
                     if p.facing_direction == LEFT:
@@ -561,7 +560,7 @@ class GameLoop:
                 _draw_player(self.player1)
             if self.player2.sprite is not None:
                 _draw_player(self.player2)
-            
+
             #If player is above screen
             for p in [self.player1, self.player2]:
                 if p.bottom < 0:
@@ -572,7 +571,7 @@ class GameLoop:
                     v2 = (p.centerx-10, 30)
                     v3 = (p.centerx+10, 30)
                     vlist = [v1,v2,v3]
-                    
+
                     GL.SCREEN.blit(self.oor_font.render(text, True, color),
                         (p.centerx-20, 40))
                     GL.SCREEN.blit(self.st_dmg_font.render(text2, True, color),
@@ -616,7 +615,7 @@ class GameLoop:
                     if t[0] == ST_DMG:
                         text = "-" + str(int(t[1]))
                         color = RED
-                        
+
                         GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
                         (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     #Health Gain text
@@ -639,7 +638,7 @@ class GameLoop:
                         (unit.centerx, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     if t[2] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
-                
+
                 #Condition scrolling text
                 #Process list
                 print_list = []
@@ -663,8 +662,6 @@ class GameLoop:
                 for i,v in enumerate(print_list):
                     GL.SCREEN.blit(self.st_condition_font.render(v[1], True, v[0]),
                     (unit.centerx-70, unit.top - 20 - (15 * i)))
-                
-                            
 
         def _draw_rain():
             if self.make_rain:
@@ -692,7 +689,7 @@ class GameLoop:
         _draw_scrolling_text()
         _draw_ui2()
         _draw_timer()
-        _draw_rain()
+        # _draw_rain()
 
     # -------------------------------------------------------------------------
     def draw_debug(self):
