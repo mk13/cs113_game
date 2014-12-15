@@ -30,6 +30,7 @@ class Application:
         start = StartMenu()
         options = OptionsPage()
         help = HelpPage()
+        pause = PauseMenu()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -38,21 +39,31 @@ class Application:
 # ----------------------------------------------------------------------------
 class GameLoop:
     def __init__(self):
-        def _setup_display():
-            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
-
         def _setup_time():
             pygame.time.set_timer(TIME_TICK_EVENT, 250)
             pygame.time.set_timer(REGENERATION_EVENT, 1000)
             self.game_time = GameTime()
 
         def _setup_ui():
-            self.window = GL.SCREEN.get_rect()
+            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
             self.left_grey_fill = Rect2(left=0, top=0, width=65, height=600)
             self.right_grey_fill = Rect2(left=1215, top=0, width=60, height=600)
             self.bottom_grey_fill = Rect2(left=0, top=475, width=1280, height=125)
+            self.skill_boxes = [
+                # player 1 skill boxes
+                Rect2(topleft=(90, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
+                # player 2 skill boxes
+                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
 
         def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
@@ -67,8 +78,6 @@ class GameLoop:
             self.health_font_xy = 60, 490
             self.energy_font = pygame.font.Font(main_font, 55)
             self.energy_font_xy = 80, 535
-            self.pause_font = pygame.font.Font(main_font, 200)
-            self.pause_font_xy = font_position_center(self.window, self.pause_font, '-PAUSE-')
             self.debug_font_small = pygame.font.SysFont('consolas', 12)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace
@@ -81,18 +90,18 @@ class GameLoop:
             self.debug_font_xy7 = 800, 540
             self.cpu_avg = 0.0
             self.cpu_deque = deque((0,), maxlen=5)
-            
-            #Scrolling text stuff
+
+            # Scrolling text stuff
             self.st_dmg_font = pygame.font.Font(main_font, 12)
             self.st_energy_font = pygame.font.Font(main_font, 12)
             self.st_condition_font = pygame.font.Font(main_font, 15)
             self.st_level_up_font = pygame.font.Font(main_font, 30)
-            
-            #Icon text
+
+            # Icon text
             self.icon_energy_font = pygame
-            
-            #Other text
-            self.oor_font = pygame.font.Font(main_font,20)
+
+            # Other text
+            self.oor_font = pygame.font.Font(main_font, 20)
 
         def _setup_particles():
             self.active_particles = []
@@ -124,7 +133,7 @@ class GameLoop:
                     return None
 
                 m1 = []
-                # Put spritesheet into list, each sprite is 64x64 pixels large, except for death        
+                # Put spritesheet into list, each sprite is 64x64 pixels large, except for death
                 for num in range(1, 8):  # Standing
                     m1.append(spritesheet1.subsurface((64 * (num - 1), 0, 64, 64)))
                 for num in range(8, 16):  # Walk Transition
@@ -135,15 +144,15 @@ class GameLoop:
                     m1.append(spritesheet1.subsurface((64 * (num - 24), 192, 64, 64)))
                 for num in range(32, 40):  # Jump and Fall
                     m1.append(spritesheet1.subsurface((64 * (num - 32), 256, 64, 64)))
-                for num in range(40, 48): 
+                for num in range(40, 48):
                     m1.append(spritesheet1.subsurface((64 * (num - 40), 320, 64, 64)))
                 for num in range(48, 56):
                     m1.append(spritesheet1.subsurface((64 * (num - 48), 384, 64, 64)))
-                for num in range(56, 64): 
+                for num in range(56, 64):
                     m1.append(spritesheet1.subsurface((64 * (num - 56), 448, 64, 64)))
                 for num in range(64, 71):
                     m1.append(spritesheet1.subsurface((64 * (num - 64), 512, 64, 64)))
-                for num in range(71, 75): 
+                for num in range(71, 75):
                     m1.append(spritesheet1.subsurface((128 * (num - 71), 576, 128, 64)))
 
                 for num in range(len(m1)):
@@ -155,28 +164,12 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/pl_human.png')
             p2_sprite = _setup_player_sprites('data/pl_human.png')
 
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), input=GL.INPUT1, sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), input=GL.INPUT2, sprite=p2_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=p1_sprite)
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=p2_sprite)
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
 
-        def _setup_skill_boxes():
-            self.skill_boxes = [
-                # player 1 skill boxes
-                Rect2(topleft=(90, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
-                # player 2 skill boxes
-                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
-
-        _setup_display()
         _setup_time()
         _setup_ui()
         _setup_arena()
@@ -187,13 +180,12 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_players()
-        _setup_skill_boxes()
 
     # ------------------------------------------------------------------------
     def __call__(self):
         self.return_now = False
         while not self.return_now:
-            if not self.player1.input.START_PRESS_EVENT:
+            if not GL.INPUT1.START_PRESS_EVENT:
                 self.handle_players_inputs()
                 self.handle_monsters(self.game_time.msec)
                 self.handle_particles()
@@ -210,21 +202,22 @@ class GameLoop:
     def handle_players_inputs(self):
 
         def _refresh_inputs():
-            self.player1.input.refresh()
-            self.player2.input.refresh()
+            GL.INPUT1.refresh()
+            GL.INPUT2.refresh()
 
         def _handle_players_inputs():
-            if not self.player1.input.START_PRESS_EVENT:
+            if not GL.INPUT1.START_PRESS_EVENT:
                 self.player1(self.arena)
                 self.player2(self.arena)
 
         def _handle_special_input():
-            if self.player1.input.START_PRESS_EVENT:
-                rendered_font = self.pause_font.render('-PAUSE-', True, RED)
-                GL.SCREEN.blit(rendered_font, self.pause_font_xy)
-                pygame.display.update()
+            if GL.INPUT1.START_PRESS_EVENT:
+                GL.INPUT1.START_PRESS_EVENT = False
+                self.return_now = True
+                GL.CURR_GAME = self
+                GL.NEXT_PAGE = 'pause'
 
-            if self.player1.input.RESPAWN and not self.player1.input.START_PRESS_EVENT:
+            if GL.INPUT1.RESPAWN and not GL.INPUT1.START_PRESS_EVENT:
                 self.player1.topleft = self.player1.topleft_initial
                 self.player1.dx = self.player1.dx_initial
                 self.player1.facing_direction = self.player1.facing_direction_initial
@@ -232,7 +225,7 @@ class GameLoop:
                 self.player2.dx = self.player2.dx_initial
                 self.player2.facing_direction = self.player2.facing_direction_initial
 
-            if self.player1.input.KILLALL and not self.player1.input.START_PRESS_EVENT:
+            if GL.INPUT1.KILLALL and not GL.INPUT1.START_PRESS_EVENT:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
@@ -370,7 +363,7 @@ class GameLoop:
                     if m.last_hit_by != None:
                         m.last_hit_by.handle_exp(m.exp_value,self.game_time.msec)
                     #Debugging: kill button used
-                    else: 
+                    else:
                         self.player1.handle_exp(m.exp_value,self.game_time.msec)
                     self.active_monsters.remove(m)
 
@@ -399,7 +392,6 @@ class GameLoop:
             pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
             pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
             pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
-
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -441,24 +433,23 @@ class GameLoop:
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
-                
 
-                #If icon picture exists        
+                # If icon picture exists
                 if skill_ids[i] in ICONS_TABLE.keys():
-                    #Draw picture
+                    # Draw picture
                     GL.SCREEN.blit(GL.WHITE_BACKGROUND, (skill_box.left, skill_box.top))
                     GL.SCREEN.blit(ICONS_TABLE[skill_ids[i]], (skill_box.left, skill_box.top))
-                    #Draw energy text
-                #otherwise
+                    # Draw energy text
+                # otherwise
                 else:
                     skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
                     skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                     skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
                     GL.SCREEN.blit(skill_font, skill_text_xy)
-                
+
                 if i < 5 :
                     if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
-                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top)) 
+                        GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
                 else:
                     if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
                         GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
@@ -499,9 +490,9 @@ class GameLoop:
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17-64,p.top-22))
                     else:
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 70], flip, False), (p.left-17,p.top-22))
-                    
+
                # elif (p.state = WIN):
-                    
+
                 elif p.state == ATTACK or p.state == RESET:
                     # Starting Indexes and how much sprites for each attack state are as follows
                     # ONEHAND = 28, 4
@@ -516,7 +507,7 @@ class GameLoop:
                     # BULLET = 61, 4
                     # DASH = 7, 1
                     # RUN = 8, 16
-                    
+
                     if p.facing_direction == LEFT:
                         flip = True
 
@@ -533,7 +524,7 @@ class GameLoop:
                             if p.animation_key < PL_ATTACK_TABLE[p.attack_state][1]:
                                 p.animation_key +=1
                         GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + PL_ATTACK_TABLE[p.attack_state][0]], flip, False), (p.left-17,p.top-22))
-                    
+
                 # JUMP
                 elif p.state == JUMP:
                     if p.facing_direction == LEFT:
@@ -579,7 +570,7 @@ class GameLoop:
                 _draw_player(self.player1)
             if self.player2.sprite is not None:
                 _draw_player(self.player2)
-            
+
             #If player is above screen
             for p in [self.player1, self.player2]:
                 if p.bottom < 0:
@@ -590,7 +581,7 @@ class GameLoop:
                     v2 = (p.centerx-10, 30)
                     v3 = (p.centerx+10, 30)
                     vlist = [v1,v2,v3]
-                    
+
                     GL.SCREEN.blit(self.oor_font.render(text, True, color),
                         (p.centerx-20, 40))
                     GL.SCREEN.blit(self.st_dmg_font.render(text2, True, color),
@@ -629,7 +620,7 @@ class GameLoop:
                     #If icon art exists
                     if p.sid in PARTICLES_TABLE.keys():
                         pimg = PARTICLES_TABLE[p.sid]
-                        if p.direction == LEFT: 
+                        if p.direction == LEFT:
                             pimg = pygame.transform.flip(pimg, True, False)
                         #melee rotate
                         if isinstance(p, MeleeParticle):
@@ -660,7 +651,7 @@ class GameLoop:
                     if t[0] == ST_DMG:
                         text = "-" + str(int(t[1]))
                         color = RED
-                        
+
                         GL.SCREEN.blit(self.st_dmg_font.render(text, True, color),
                         (unit.centerx+30, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     #Health Gain text
@@ -683,7 +674,7 @@ class GameLoop:
                         (unit.centerx, unit.top - (3000 - t[2] + self.game_time.msec)/50))
                     if t[2] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
-                
+
                 #Condition scrolling text
                 #Process list
                 print_list = []
@@ -707,8 +698,6 @@ class GameLoop:
                 for i,v in enumerate(print_list):
                     GL.SCREEN.blit(self.st_condition_font.render(v[1], True, v[0]),
                     (unit.centerx-70, unit.top - 20 - (15 * i)))
-                
-                            
 
         def _draw_rain():
             if self.make_rain:
@@ -730,13 +719,13 @@ class GameLoop:
         _draw_arena()
         _draw_monsters()
         _draw_dropped_skills()
-        if not self.player1.input.DEBUG_VIEW:
+        if not GL.INPUT1.DEBUG_VIEW:
             _draw_players()
         _draw_particles()
         _draw_scrolling_text()
         _draw_ui2()
         _draw_timer()
-        _draw_rain()
+        # _draw_rain()
 
     # -------------------------------------------------------------------------
     def draw_debug(self):
@@ -831,7 +820,7 @@ class GameLoop:
                 for l in locs:
                     pygame.draw.circle(GL.SCREEN, ORANGE, l, 3, 0)
 
-        if self.player1.input.DEBUG_VIEW:
+        if GL.INPUT1.DEBUG_VIEW:
             _draw_spawn_point_rects()
             _draw_play_area_debug_border()
             _draw_debug_text()
@@ -840,7 +829,7 @@ class GameLoop:
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
             _draw_mouse_text()
-        elif not self.player1.input.DEBUG_VIEW:
+        elif not GL.INPUT1.DEBUG_VIEW:
             if self.player1.sprite is None:
                 _draw_players_debug(draw_p1=True, draw_p2=False)
             if self.player2.sprite is None:
@@ -860,10 +849,11 @@ class GameLoop:
                 if 'click' in self.return_button.handleEvent(event):
                     self.return_now = True
                     GL.NEXT_PAGE = 'start'
-            if self.player1.input.SELECT_PRESS_EVENT:
-                self.player1.input.SELECT_PRESS_EVENT = False
+            if GL.INPUT1.SELECT_PRESS_EVENT:
+                GL.INPUT1.SELECT_PRESS_EVENT = False
                 self.return_now = True
-                GL.NEXT_PAGE = 'start'
+                GL.CURR_GAME = self
+                GL.NEXT_PAGE = 'pause'
 
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
@@ -872,7 +862,7 @@ class GameLoop:
                     self.game_time.inc()
 
                     # for CPU usage debug text
-                    if psutil_found and self.player1.input.DEBUG_VIEW:
+                    if psutil_found and GL.INPUT1.DEBUG_VIEW:
                         new_cpu = psutil.cpu_percent(interval=None)
                         self.cpu_deque.append(new_cpu)
                         self.cpu_avg = sum(self.cpu_deque) / len(self.cpu_deque)
@@ -979,7 +969,7 @@ class GameLoop:
                 if event.type == QUIT:
                     EXIT_GAME()
 
-        if not self.player1.input.START_PRESS_EVENT:
+        if not GL.INPUT1.START_PRESS_EVENT:
             _handle_song_end_event()
             _handle_time_tick_event()
             _handle_regeneration_event()
@@ -991,7 +981,7 @@ class GameLoop:
             _handle_return_to_main_menu()
         else:
             _handle_quit_event()
-            self.player1.input.refresh_during_pause()
+            GL.INPUT1.refresh_during_pause()
             pygame.event.clear()
 
 # ----------------------------------------------------------------------------

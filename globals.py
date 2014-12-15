@@ -17,6 +17,7 @@ if os.environ['COMPUTERNAME'] in ('MAX-LT', 'BRIAN-LAPTOP'):
 pygame.init()
 pygame.display.set_caption('Famished Tournament')
 SCREEN = pygame.display.set_mode((1280, 600))
+WINDOW = SCREEN.get_rect()
 RED_MASK = pygame.Surface((40,40))
 RED_MASK.fill((255,0,0))
 RED_MASK.set_alpha(100)
@@ -407,14 +408,14 @@ class Input:
             self._handle_mouse_visibility()
 
     def refresh_during_pause(self):
+        self.refreshing_during_pause = True
         if self.player_id == 1:
-            for event in pygame.event.get(KEYDOWN):
-                if event.key == K_RETURN:
-                    self.START_PRESS_EVENT = not self.START_PRESS_EVENT
-        if self.gamepad_found:
-            for event in pygame.event.get(JOYBUTTONDOWN):
-                if event.button == self.GP_INPUTS_DICT['GP_START'].number:
-                    self.START_PRESS_EVENT = not self.START_PRESS_EVENT
+            self._get_keyboard_pressed()
+            self._get_keyboard_events()
+            self._get_gamepad_pressed2()
+            self._combine_all_pressed()
+            self._handle_mouse_visibility()
+        self.refreshing_during_pause = False
 
     def _get_keyboard_pressed(self):
         sucky_kb_input = pygame.key.get_pressed()
@@ -510,9 +511,19 @@ class Input:
         self.B_PRESS_EVENT = self.gp_input['GP_B_PRESS_EVENT']
 
     def __setattr__(self, name, value):
-        if name in 'LEFT_PRESS_EVENT, RIGHT_PRESS_EVENT, UP_PRESS_EVENT, DOWN_PRESS_EVENT, START_PRESS_EVENT, SELECT_PRESS_EVENT, A_PRESS_EVENT, B_PRESS_EVENT'.split(', '):
-            self.__dict__['gp_input']['GP_' + name] = value
-        self.__dict__[name] = value
+        if name == 'refreshing_during_pause':
+            self.__dict__[name] = value  # update like normal (otherwise infinite recursion)
+
+        if self.refreshing_during_pause:  # if paused
+            if name not in 'LEFT, RIGHT, UP, DOWN, JUMP, ATTACK, SKILL1, SKILL2, SKILL3, ULT, DROP_SKILL, RESPAWN, KILLALL, DEBUG_VIEW'.split(', '):  # and NOT one of these
+                if name in 'LEFT_PRESS_EVENT, RIGHT_PRESS_EVENT, UP_PRESS_EVENT, DOWN_PRESS_EVENT, START_PRESS_EVENT, SELECT_PRESS_EVENT, A_PRESS_EVENT, B_PRESS_EVENT'.split(', '):  # and if one of these
+                    self.__dict__['gp_input']['GP_' + name] = value  # sync X_PRESS_EVENT with self.gp_input[GP_X_PRESS_EVENT]
+                self.__dict__[name] = value  # update like normal
+
+        elif not self.refreshing_during_pause:
+            if name in 'LEFT_PRESS_EVENT, RIGHT_PRESS_EVENT, UP_PRESS_EVENT, DOWN_PRESS_EVENT, START_PRESS_EVENT, SELECT_PRESS_EVENT, A_PRESS_EVENT, B_PRESS_EVENT'.split(', '):  # if one of these
+                self.__dict__['gp_input']['GP_' + name] = value  # sync X_PRESS_EVENT with self.gp_input[GP_X_PRESS_EVENT]
+            self.__dict__[name] = value  # update like normal
 
     def _handle_mouse_visibility(self):
         global NEXT_PAGE

@@ -7,6 +7,7 @@ from collections import namedtuple
 import pygame
 from pygame.locals import *
 
+import globals as GL
 from globals import *
 from skills import *
 
@@ -57,13 +58,11 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, topleft, size, input=None, sprite=None):
+    def __init__(self, id, topleft, sprite=None):
         self.id = id  # 1 for player1, 2 for player2
-        self.input = input
-        # self.input = Input(self.id)
 
         # position
-        super().__init__(topleft, size)
+        super().__init__(topleft, (30, 40))
         self.topleft_initial = self.topleft
 
         # speed
@@ -117,7 +116,6 @@ class Player(Rect2):
         self.skill3_id = 117
         self.ult_id = 104
 
-
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
         self.facing_direction_initial = self.facing_direction
@@ -135,6 +133,13 @@ class Player(Rect2):
         self.animation_key = -1
         self.attack_state = ONEHAND
         self.attack_frame = 1
+
+    @property
+    def input(self):
+        if self.id == 1:
+            return GL.INPUT1
+        elif self.id == 2:
+            return GL.INPUT2
 
     @property
     def skills(self):
@@ -155,7 +160,7 @@ class Player(Rect2):
 
     def is_dead(self):
         return self.hit_points <= 0
-        
+
     def handle_exp(self,exp_gain,time):
         if self.level < 10:
             self.current_exp += exp_gain
@@ -171,9 +176,7 @@ class Player(Rect2):
         b = self.centery - other.centery
         return math.sqrt(a * a + b * b)
 
-    def __call__(self, arena_map, input=None):
-        if input is not None:
-            self.input = input  # for player2 to duplicate player1's input
+    def __call__(self, arena_map):
         self._handle_facing_direction()
         if not self.conditions[STUN] and not self.conditions[SILENCE]:
             self._handle_inputs(arena_map)
@@ -321,7 +324,7 @@ class Player(Rect2):
             # If a valid skill is pressed
             if (isinstance(i,str) or i > 0) and self.attack_cooldown_expired:
                 self.pickup_time = -1
-                if self.energy >= SKILLS_TABLE[i]['energy']:                    
+                if self.energy >= SKILLS_TABLE[i]['energy']:
                     self.attack_state = SKILLS_TABLE[i]['state']
                     self.attack_frame = SKILLS_TABLE[i]['frame']
                     if not(self.attack_state == RUN or self.attack_state == BREATH):
@@ -417,7 +420,7 @@ class Monster(Player):
         self.p1, self.p2 = player1, player2
         self.target, self.status = None, IDLE
         self.last_status_change = 0
-        self.input = AI_Input()
+        self.ai_input = AI_Input()
         self.color = color
         self.kind = info.kind
 
@@ -429,6 +432,10 @@ class Monster(Player):
         self.hit_by = {1: False, 2: False}
         self.hit_by_time = {1: 0, 2: 0}
         self.last_hit_by = None
+
+    @property
+    def input(self):
+        return self.ai_input
 
     def _pick_new_target(self):
         d1 = self.distance_from(self.p1)
@@ -518,9 +525,6 @@ class AI_Input():
 
     def refresh(self):
         self.RIGHT = self.LEFT = self.JUMP = False
-
-# -------------------------------------------------------------------------
-
 
 # -------------------------------------------------------------------------
 class Arena:
