@@ -111,11 +111,11 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 10
-        self.skill1_id = 125
-        self.skill2_id = 122
-        self.skill3_id = 124
-        self.ult_id = 1007
+        self.attack_id = 1002
+        self.skill1_id = 1004
+        self.skill2_id = 1006
+        self.skill3_id = 1007
+        self.ult_id = 104
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -561,6 +561,7 @@ class Arena:
 # -------------------------------------------------------------------------
 class Particle(Rect2):
     def __init__(self, sid, player):
+        self.sid = sid
         self.left = 0
         self.top = 0
         self.width = SKILLS_TABLE[sid]['width']
@@ -599,7 +600,7 @@ class MeleeParticle(Particle):
     def __init__(self, sid, player):
         # super().__init__(particle.width, particle.height, particle.radius, particle.cooldown, particle.duration, particle.color)
         super().__init__(sid, player)
-        self.arc = SKILLS_TABLE[sid]['arc']
+        self.arc = self.progress = SKILLS_TABLE[sid]['arc']
         self.radius = SKILLS_TABLE[sid]['start_radius']
         self.max_radius = SKILLS_TABLE[sid]['max_radius']
         self.has_hit = []  # Need this to keep track of what it has hit;
@@ -628,6 +629,7 @@ class MeleeParticle(Particle):
         elapsed_time = time - self.spawn_time
         self.expired = (elapsed_time >= self.duration)
         r = (elapsed_time / self.duration)
+        self.progress = (1-r)*self.arc
 
         if self.special_f:
             self.centerx, self.centery = self.special_f(self,time)
