@@ -58,11 +58,11 @@ class Rect2(pygame.Rect):
 
 # -------------------------------------------------------------------------
 class Player(Rect2):
-    def __init__(self, id, topleft, size, sprite=None):
+    def __init__(self, id, topleft, sprite=None):
         self.id = id  # 1 for player1, 2 for player2
 
         # position
-        super().__init__(topleft, size)
+        super().__init__(topleft, (30, 40))
         self.topleft_initial = self.topleft
 
         # speed
