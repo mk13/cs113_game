@@ -39,20 +39,31 @@ class Application:
 # ----------------------------------------------------------------------------
 class GameLoop:
     def __init__(self):
-        def _setup_display():
-            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
-
         def _setup_time():
             pygame.time.set_timer(TIME_TICK_EVENT, 250)
             pygame.time.set_timer(REGENERATION_EVENT, 1000)
             self.game_time = GameTime()
 
         def _setup_ui():
+            self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
             self.left_grey_fill = Rect2(left=0, top=0, width=65, height=600)
             self.right_grey_fill = Rect2(left=1215, top=0, width=60, height=600)
             self.bottom_grey_fill = Rect2(left=0, top=475, width=1280, height=125)
+            self.skill_boxes = [
+                # player 1 skill boxes
+                Rect2(topleft=(90, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
+                # player 2 skill boxes
+                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
+                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
 
         def _setup_arena():
             self.arena = Arena(random.choice((arena1, arena2, arena3)))
@@ -156,22 +167,6 @@ class GameLoop:
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
 
-        def _setup_skill_boxes():
-            self.skill_boxes = [
-                # player 1 skill boxes
-                Rect2(topleft=(90, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(140, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(190, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(240, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(290, 500), size=(40, 40), color=BLACK),
-                # player 2 skill boxes
-                Rect2(topleft=(950, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1000, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
-                Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
-
-        _setup_display()
         _setup_time()
         _setup_ui()
         _setup_arena()
@@ -182,7 +177,6 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_players()
-        _setup_skill_boxes()
 
     # ------------------------------------------------------------------------
     def __call__(self):
