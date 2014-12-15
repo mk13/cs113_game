@@ -97,6 +97,9 @@ class GameLoop:
             self.st_condition_font = pygame.font.Font(main_font, 15)
             self.st_level_up_font = pygame.font.Font(main_font, 30)
 
+            # Icon text
+            self.icon_energy_font = pygame
+
             # Other text
             self.oor_font = pygame.font.Font(main_font, 20)
 
@@ -347,7 +350,13 @@ class GameLoop:
             for m in self.active_monsters:
                 if m.is_dead():
                     dropped_skill_id = get_dropped_skill(m)
-                    dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=BLACK)
+                    col = RED
+                    if dropped_skill_id >= 100 and dropped_skill_id < 1000:
+                        col = BLUE
+                    elif dropped_skill_id >= 1000:
+                        col = YELLOW
+
+                    dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=col)
                     self.arena.dropped_skills.append(dropped_skill_rect)
                     if m.kind == ULTIMATE:
                         self.ultimate_monster_active = False
@@ -425,17 +434,25 @@ class GameLoop:
             for i, skill_box in enumerate(self.skill_boxes):
                 pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
 
+                # If icon picture exists
+                if skill_ids[i] in ICONS_TABLE.keys():
+                    # Draw picture
+                    GL.SCREEN.blit(GL.WHITE_BACKGROUND, (skill_box.left, skill_box.top))
+                    GL.SCREEN.blit(ICONS_TABLE[skill_ids[i]], (skill_box.left, skill_box.top))
+                    # Draw energy text
+                # otherwise
+                else:
+                    skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
+                    skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
+                    skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
+                    GL.SCREEN.blit(skill_font, skill_text_xy)
+
                 if i < 5 :
                     if self.player1.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
                         GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
                 else:
                     if self.player2.energy < SKILLS_TABLE[skill_ids[i]]['energy']:
                         GL.SCREEN.blit(GL.RED_MASK, (skill_box.left, skill_box.top))
-
-                skill_text = str(SKILLS_TABLE[skill_ids[i]]['name'])
-                skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
-                skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
-                GL.SCREEN.blit(skill_font, skill_text_xy)
 
             self.return_button.draw(GL.SCREEN)
 
@@ -585,17 +602,43 @@ class GameLoop:
         def _draw_dropped_skills():
             for skill in self.arena.dropped_skills:
                 pygame.draw.rect(GL.SCREEN, skill.color, skill)
-                skill_text = str(skill.id)
-                skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
-                skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
-                GL.SCREEN.blit(skill_font, skill_text_xy)
+                if skill.id not in ICONS_TABLE.keys():
+                    skill_text = str(skill.id)
+                    skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
+                    skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
+                    GL.SCREEN.blit(skill_font, skill_text_xy)
+                else:
+                    icon = ICONS_TABLE[skill.id]
+                    icon = pygame.transform.scale(icon, (20,20))
+                    GL.SCREEN.blit(icon, (skill[0]+2.5, skill[1]+2.5))
 
         def _draw_particles():
             for p in self.active_particles:
                 if isinstance(p, FieldParticle):
                     pygame.draw.circle(GL.SCREEN, p.color, (p.centerx, p.centery), p.radius, 1)
                 else:
-                    pygame.draw.rect(GL.SCREEN, p.color, p)
+                    #If icon art exists
+                    if p.sid in PARTICLES_TABLE.keys():
+                        pimg = PARTICLES_TABLE[p.sid]
+                        if p.direction == LEFT:
+                            pimg = pygame.transform.flip(pimg, True, False)
+                        #melee rotate
+                        if isinstance(p, MeleeParticle):
+                            if p.direction == LEFT:
+                                pimg = pygame.transform.rotate(pimg, math.degrees(-1*p.progress))
+                            else:
+                                pimg = pygame.transform.rotate(pimg, math.degrees(p.progress))
+                        #Special rotate cases
+                        elif p.sid in [5,112,123,125,'beehive']:
+                            if "rotator" not in p.__dict__.keys():
+                                p.rotator = 0
+                            else:
+                                p.rotator += 10
+                            pimg = pygame.transform.rotate(pimg, p.rotator)
+                        GL.SCREEN.blit(pimg, (p.left, p.top))
+                    #else(no particle)
+                    else:
+                        pygame.draw.rect(GL.SCREEN, p.color, p)
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:

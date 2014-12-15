@@ -21,6 +21,8 @@ WINDOW = SCREEN.get_rect()
 RED_MASK = pygame.Surface((40,40))
 RED_MASK.fill((255,0,0))
 RED_MASK.set_alpha(100)
+WHITE_BACKGROUND = pygame.Surface((40,40))
+WHITE_BACKGROUND.fill((100,100,100))
 CLOCK = pygame.time.Clock()
 FPS = 30
 NEXT_PAGE = 'start'
@@ -45,6 +47,7 @@ PURPLE = Color(255, 0, 255)
 DKPURPLE = Color(153, 0, 153)
 ORANGE = Color(255, 153, 0)
 DKORANGE = Color(153, 92, 0)
+TRANSPARENT = Color(235,0,255)
 
 # Music
 SONGS = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3',
@@ -336,13 +339,13 @@ class Input:
         #         self.gp_input['ult'] = self.gamepad.get_button(7)           R2
 
         if self.gamepad.get_name() == "Gioteck PS3 Wired Controller":  # Max's gamepad
-
+            print("HELLO")
             di = {
                   # HAT SETTINGS OPTION 1
-                  'GP_LEFT': input_nt(kind='hat', number=0, value1=0, value2=-1),
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=0, value2=+1),
-                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=+1),
-                  'GP_DOWN': input_nt(kind='hat', number=0, value1=1, value2=-1),
+                  'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=-1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=+1),
 
                   # HAT SETTINGS OPTION 2
                   # 'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
@@ -593,7 +596,7 @@ arena3 = arena_nt(
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, WEAK_EXP_VALUE, 10),
-    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 15),
-    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 30)}
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, WEAK_EXP_VALUE, 3),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 5),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 8)}
 
