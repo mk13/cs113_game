@@ -30,6 +30,7 @@ class Application:
         start = StartMenu()
         options = OptionsPage()
         help = HelpPage()
+        pause = PauseMenu()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -47,7 +48,6 @@ class GameLoop:
             self.game_time = GameTime()
 
         def _setup_ui():
-            self.window = GL.SCREEN.get_rect()
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
             self.left_grey_fill = Rect2(left=0, top=0, width=65, height=600)
@@ -67,8 +67,6 @@ class GameLoop:
             self.health_font_xy = 60, 490
             self.energy_font = pygame.font.Font(main_font, 55)
             self.energy_font_xy = 80, 535
-            self.pause_font = pygame.font.Font(main_font, 200)
-            self.pause_font_xy = font_position_center(self.window, self.pause_font, '-PAUSE-')
             self.debug_font_small = pygame.font.SysFont('consolas', 12)  # monospace
             self.debug_font_small_2 = pygame.font.SysFont('lucidasans', 12)  # monospace
             self.debug_font = pygame.font.SysFont('consolas', 20)  # monospace

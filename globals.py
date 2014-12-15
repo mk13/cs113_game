@@ -17,6 +17,7 @@ if os.environ['COMPUTERNAME'] in ('MAX-LT', 'BRIAN-LAPTOP'):
 pygame.init()
 pygame.display.set_caption('Famished Tournament')
 SCREEN = pygame.display.set_mode((1280, 600))
+WINDOW = SCREEN.get_rect()
 RED_MASK = pygame.Surface((40,40))
 RED_MASK.fill((255,0,0))
 RED_MASK.set_alpha(100)

@@ -363,8 +363,10 @@ class OptionsPage:
 
 class PauseMenu:
     def __init__(self):
-
         self.menu_box = Rect2(topleft=(475, 200), size=(300, 150), color=BLACK)
+        main_font = 'data/Kremlin.ttf'
+        self.pause_font = pygame.font.Font(main_font, 200)
+        self.pause_font_xy = font_position_center(GL.WINDOW, self.pause_font, '-PAUSE-')
 
     def __call__(self):
         self.return_now = False
@@ -382,6 +384,12 @@ class PauseMenu:
         GL.INPUT1.refresh_during_pause()
         if GL.INPUT1.START_PRESS_EVENT:
             GL.INPUT1.START_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'GL.CURR_GAME'
 
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                EXIT_GAME()
 
 
