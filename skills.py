@@ -889,7 +889,7 @@ def blast_off_path(particle, time):
     return x,y
     
 def ADD_FALCON_PUNCH(i):
-    SKILLS_TABLE[i] = {'name':'Falcon Punch','type': None, 'start': falcon_punch_start, 'cooldown': 1500, 'energy': 0, 'state': 'none', 'frame': 1}
+    SKILLS_TABLE[i] = {'name':'Falcon Punch','type': None, 'start': falcon_punch_start, 'cooldown': 1500, 'energy': 0, 'state': ONEHAND, 'frame': 1}
     SKILLS_TABLE['falcon_punch'] = _auto_melee('',30, 30, 0, 0, 0, 1500, 1500, RED, 35, 0)
     SKILLS_TABLE['falcon_punch']['special_path'] = falcon_punch_path
     SKILLS_TABLE['falcon_punch']['on_hit_f'] = falcon_punch_on_hit
