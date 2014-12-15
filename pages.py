@@ -47,7 +47,7 @@ class StartMenu:
         GL.SCREEN.blit(self.title_font1, (495, 120))
         GL.SCREEN.blit(self.title_font2, (450, 175))
         self.selection_box = Rect2(self.selection_box_properties[self.selection_box_i], color=BLUE)
-        pygame.draw.rect(GL.SCREEN, BLUE, self.selection_box, selection_box_width)
+        pygame.draw.rect(GL.SCREEN, self.selection_box.color, self.selection_box, selection_box_width)
         pygame.display.update()
 
     def input(self):
@@ -98,18 +98,22 @@ class StartMenu:
     def events(self):
         for event in pygame.event.get():
             if 'click' in self.start_button.handleEvent(event):
+                self.selection_box_i = 0
                 self.return_now = True
                 GL.NEXT_PAGE = 'GameLoop()'
 
             if 'click' in self.help_button.handleEvent(event):
+                self.selection_box_i = 1
                 self.return_now = True
                 GL.NEXT_PAGE = 'help'
 
             if 'click' in self.options_button.handleEvent(event):
+                self.selection_box_i = 2
                 self.return_now = True
                 GL.NEXT_PAGE = 'options'
 
             if 'click' in self.exit_button.handleEvent(event):
+                self.selection_box_i = 3
                 EXIT_GAME()
 
             if event.type == pygame.QUIT:
@@ -164,7 +168,7 @@ class HelpPage:
 
         self.return_button.draw(GL.SCREEN)
         self.selection_box = Rect2(self.selection_box_properties[self.selection_box_i], color=BLUE)
-        pygame.draw.rect(GL.SCREEN, BLUE, self.selection_box, selection_box_width)
+        pygame.draw.rect(GL.SCREEN, self.selection_box.color, self.selection_box, selection_box_width)
         pygame.display.update()
 
     def input(self):
@@ -172,9 +176,13 @@ class HelpPage:
 
         if GL.INPUT1.START_PRESS_EVENT:
             GL.INPUT1.START_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.SELECT_PRESS_EVENT:
             GL.INPUT1.SELECT_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.B_PRESS_EVENT:
             GL.INPUT1.B_PRESS_EVENT = False
@@ -258,7 +266,7 @@ class OptionsPage:
         row = self.selection_box_row
         col = self.selection_box_col_indices[row]
         self.selection_box = Rect2(self.selection_box_row_properties[col][row], color=BLUE)
-        pygame.draw.rect(GL.SCREEN, BLUE, self.selection_box, selection_box_width)
+        pygame.draw.rect(GL.SCREEN, self.selection_box.color, self.selection_box, selection_box_width)
         pygame.display.update()
 
     def input(self):
@@ -266,13 +274,17 @@ class OptionsPage:
 
         if GL.INPUT1.START_PRESS_EVENT:
             GL.INPUT1.START_PRESS_EVENT = False
+            if self.selection_box_row == 0:
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.SELECT_PRESS_EVENT:
             GL.INPUT1.SELECT_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
 
         if GL.INPUT1.B_PRESS_EVENT:
-            if GL.INPUT1.B_PRESS_EVENT:
-                GL.INPUT1.B_PRESS_EVENT = False
+            GL.INPUT1.B_PRESS_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
@@ -324,17 +336,52 @@ class OptionsPage:
                 EXIT_GAME()
 
             if 'click' in self.music_on_button.handleEvent(event):
+                self.selection_box_row = 2
+                self.selection_box_col_indices[self.selection_box_row] = 0
                 AUDIO.turn_on_music()
 
             if 'click' in self.music_off_button.handleEvent(event):
+                self.selection_box_row = 2
+                self.selection_box_col_indices[self.selection_box_row] = 1
                 AUDIO.turn_off_music()
 
             if 'click' in self.effects_on_button.handleEvent(event):
+                self.selection_box_row = 1
+                self.selection_box_col_indices[self.selection_box_row] = 0
                 AUDIO.turn_on_effects()
 
             if 'click' in self.effects_off_button.handleEvent(event):
+                self.selection_box_row = 1
+                self.selection_box_col_indices[self.selection_box_row] = 1
                 AUDIO.turn_off_effects()
 
             if 'click' in self.return_button.handleEvent(event):
+                self.selection_box_row = 0
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
+
+
+class PauseMenu:
+    def __init__(self):
+
+        self.menu_box = Rect2(topleft=(475, 200), size=(300, 150), color=BLACK)
+
+    def __call__(self):
+        self.return_now = False
+        while not self.return_now:
+            self.draw()
+            self.input()
+            self.events()
+            GL.CLOCK.tick(GL.FPS)
+
+    def draw(self):
+        pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box)
+        pygame.display.update()
+
+    def input(self):
+        GL.INPUT1.refresh_during_pause()
+        if GL.INPUT1.START_PRESS_EVENT:
+            GL.INPUT1.START_PRESS_EVENT = False
+
+
+

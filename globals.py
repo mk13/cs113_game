@@ -75,9 +75,37 @@ LWALK = 'LWALK'
 RWALK = 'RWALK'
 JUMP = 'JUMP'
 FALL = 'FALL'
+WIN = 'WIN'
 DEATH = 'DEATH'
-ATTACK = 'ATTACK'
-CAST = 'CAST'
+RESET = 'RESET'
+ATTACK = 'ATTACK' # Rest is attacks
+ONEHAND = 'ONEHAND'
+TWOHAND = 'TWOHAND'
+CAST1 = 'CAST1'
+CAST2 = 'CAST2'
+CAST3 = 'CAST3'
+THROW = 'THROW'
+MACHGUN = 'MACHGUN'
+BREATH = 'BREATH'
+POKE = 'POKE'
+BULLET = 'BULLET'
+DASH = 'DASH'
+RUN = 'RUN'
+
+# Player Attack State Info Table [index, max value]
+PL_ATTACK_TABLE = { 'ONEHAND':[28,3],
+                    'TWOHAND':[32,3],
+                    'CAST1':[36,2],
+                    'CAST2':[39,3],
+                    'CAST3':[43,0],
+                    'THROW':[44,3],
+                    'MACHGUN':[48,1],
+                    'BREATH':[50,2],
+                    'POKE':[53,3],
+                    'BULLET':[57,3],
+                    'DASH':[7,0],
+                    'RUN':[8,15]
+                    }
 
 # Inputs
 LEFT = 'LEFT'

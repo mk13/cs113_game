@@ -86,38 +86,41 @@ def initialize_skill_table():
     # -----------------------------------------------------------------------------------------
     SKILLS_TABLE[0] = {'name':'Blank','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0}
     # Monster Slayer (Default auto attack)
-    SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0)
+    SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0, ONEHAND, 3)
     SKILLS_TABLE[1]['on_hit_f'] = monster_slayer_on_hit
     ICONS_TABLE[1] = icon_image("1.png")
     PARTICLES_TABLE[1] = particle_image("1.png")
     # Peashooter
-    SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 250, 5000, GREEN, 5, 0)
+
+    SKILLS_TABLE[2] = _auto_range('Peashooter', 10, 10, 20, 0, 250, 5000, GREEN, 5, 0, MACHGUN, 2)
     ICONS_TABLE[2] = icon_image("2.png")
     PARTICLES_TABLE[2] = particle_image("2.png")
+
     # Spear
-    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 250, 250, DGREY, 15, 0, True)
+    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 250, 250, DGREY, 15, 0, POKE, 2, 'none', True)
     SKILLS_TABLE[3]['conditions'] = [classes.Wounded(2000)]
     ICONS_TABLE[3] = icon_image("3.png")
     # Nail-on-plank
-    SKILLS_TABLE[4] = _auto_melee('Nail-on-Plank', 20, 20, math.pi/2, 30, 30, 20, 500, BROWN, 2, 0)
+    SKILLS_TABLE[4] = _auto_melee('Nail-on-Plank', 20, 20, math.pi/2, 30, 30, 20, 500, BROWN, 2, 0, ONEHAND, 3)
     SKILLS_TABLE[4]['on_hit_f'] = knock_back
     ICONS_TABLE[4] = icon_image("4.png")
     PARTICLES_TABLE[4] = particle_image("4.png")
     # Boomerang
-    SKILLS_TABLE[5] = _auto_range('Boomerang', 20, 20, 25, -2, 250, 5000, GREEN, 5, 0)
+
+    SKILLS_TABLE[5] = _auto_range('Boomerang', 20, 20, 25, -2, 250, 5000, GREEN, 5, 0, THROW, 1)
     ICONS_TABLE[5] = icon_image("5.png")
     PARTICLES_TABLE[5] = particle_image("5.png")
     # Heavy Bar
-    SKILLS_TABLE[6] = _auto_melee('Heavy Bar', 40, 40, math.pi/2, 40, 40, 1000, 750, BLACK, 30, 0)
+    SKILLS_TABLE[6] = _auto_melee('Heavy Bar', 40, 40, math.pi/2, 40, 40, 1000, 750, BLACK, 30, 0, TWOHAND, 6)
     SKILLS_TABLE[6]['conditions'] = [classes.Stun(500)]
     ICONS_TABLE[6] = icon_image("6.png")
     PARTICLES_TABLE[6] = particle_image("6.png")
     # Quick Shot
-    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 3, 0)
+    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 3, 0, MACHGUN, 2)
     SKILLS_TABLE[7]['on_hit_f'] = quick_shot_on_hit
     ICONS_TABLE[7] = icon_image("7.png")
     # Plague Swipe
-    SKILLS_TABLE[8] = _auto_melee('Plague Swipe', 15, 15, math.pi/2, 40, 40, 400, 400, GREEN, 0, 0)
+    SKILLS_TABLE[8] = _auto_melee('Plague Swipe', 15, 15, math.pi/2, 40, 40, 400, 400, GREEN, 0, 0, ONEHAND, 3)
     SKILLS_TABLE[8]['conditions'] = [classes.Dot(6, 3, 1500), classes.Wounded(5000)]
     ICONS_TABLE[8] = icon_image("8.png")
     PARTICLES_TABLE[8] = particle_image("8.png")
@@ -131,14 +134,15 @@ def initialize_skill_table():
     # SKILLS 100-999
     # -----------------------------------------------------------------------------------------
     # Teleport
-    SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5}
+    SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5, 'state': CAST2, 'frame': 2}
     ICONS_TABLE[100] = icon_image("100.png")
     # Fireball
-    SKILLS_TABLE[101] = _auto_range('Fireball',50, 50, 5, 2, 500, 10000, RED, 10, 2)
+    SKILLS_TABLE[101] = _auto_range('Fireball',50, 50, 5, 2, 500, 10000, RED, 10, 2, CAST1, 1)
     ICONS_TABLE[101] = icon_image("101.png")
     PARTICLES_TABLE[101] = particle_image("101.png")
+
     # Static Bolt
-    SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2)
+    SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2, CAST1, 2)
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_path
     ICONS_TABLE[102] = icon_image("102.png")
     PARTICLES_TABLE[102] = particle_image("102.png")
@@ -146,9 +150,11 @@ def initialize_skill_table():
     ADD_BOULDER_TOSS(103)
     ICONS_TABLE[103] = icon_image("103.png")
     # Mines
-    SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3)
+
+    SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3, CAST3, 1)
     ICONS_TABLE[104] = icon_image("104.png")
     PARTICLES_TABLE[104] = particle_image("104.png")
+
     # Shrapnel Bomb
     ADD_SHRAPNEL_BOMB(105)
     ICONS_TABLE[105] = icon_image("105.png")
@@ -158,9 +164,10 @@ def initialize_skill_table():
     ICONS_TABLE[106] = icon_image("106.png")
     
     # Flailing Flail
-    SKILLS_TABLE[107] = _auto_melee('Flailing Flail',20, 20, math.pi*10, 35, 35, 200, 5000, RED, 3, 5)
+    SKILLS_TABLE[107] = _auto_melee('Flailing Flail',20, 20, math.pi*10, 35, 35, 200, 5000, RED, 3, 5, CAST2, 2)
     ICONS_TABLE[107] = icon_image("107.png")
     PARTICLES_TABLE[107] = particle_image("107.png")
+
     # Napalm
     ADD_NAPALM(108)
     ICONS_TABLE[108] = icon_image("108.png")
@@ -168,19 +175,20 @@ def initialize_skill_table():
     ADD_FIRE_AND_ICE(109)
     ICONS_TABLE[109] = icon_image("109.png")
     # Machine Gun
-    SKILLS_TABLE[110] = _auto_range('Machine Gun',10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0)
+    SKILLS_TABLE[110] = _auto_range('Machine Gun',10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0, MACHGUN, 1)
     ICONS_TABLE[110] = icon_image("110.png")
+
     # Vile Breath
     ADD_VILE_BREATH(111)
     ICONS_TABLE[111] = icon_image("111.png")
     # Ice Bolt
-    SKILLS_TABLE[112] = _auto_range('Ice Bolt',25, 25, 10, 0, 500, 5000, BLUE, 3, 4)
+    SKILLS_TABLE[112] = _auto_range('Ice Bolt',25, 25, 10, 0, 500, 5000, BLUE, 3, 4, CAST1, 2)
     SKILLS_TABLE[112]['conditions'] = [classes.Snare(2500)]
     ICONS_TABLE[112] = icon_image("112.png")
     PARTICLES_TABLE[112] = particle_image("112.png")
     
     # Shatter
-    SKILLS_TABLE[113] = _auto_range('Shatter',25, 25, 15, 0, 250, 5000, LBLUE, 10, 3)
+    SKILLS_TABLE[113] = _auto_range('Shatter',25, 25, 15, 0, 250, 5000, LBLUE, 10, 3, CAST1, 1)
     SKILLS_TABLE[113]['on_hit_f'] = shatter_on_hit
     ICONS_TABLE[113] = icon_image("113.png")
     PARTICLES_TABLE[113] = particle_image("113.png")
@@ -188,7 +196,7 @@ def initialize_skill_table():
     ADD_CROP_DUST(114)
     ICONS_TABLE[114] = icon_image("114.png")
     # Redirect Monster
-    SKILLS_TABLE[115] = _auto_range('Redirect Monster', 25, 25, 15, 0, 250, 5000, GREEN, 5, 3)
+    SKILLS_TABLE[115] = _auto_range('Redirect Monster', 25, 25, 15, 0, 250, 5000, GREEN, 5, 3, CAST1, 1)
     SKILLS_TABLE[115]['on_hit_f'] = redirect_on_hit
     ICONS_TABLE[115] = icon_image("115.png")
     PARTICLES_TABLE[115] = particle_image("115.png")
@@ -196,31 +204,33 @@ def initialize_skill_table():
     ADD_SKILL_PERSONAL_FAERIE(116)
     ICONS_TABLE[116] = icon_image("116.png")
     # Junk Wall
-    SKILLS_TABLE[117] = {'name':'Junk Wall','type': None, 'start': wall_start, 'cooldown': 200, 'energy': 5}
+    SKILLS_TABLE[117] = {'name':'Junk Wall','type': None, 'start': wall_start, 'cooldown': 200, 'energy': 5, 'state': CAST1, 'frame': 1}
+    # Life Tap
     ICONS_TABLE[117] = icon_image("117.png")
     # Life Tap
-    SKILLS_TABLE[118] = {'name':'Life Tap', 'type':None, 'start':life_tap_start, 'cooldown':300, 'energy':0}
+    SKILLS_TABLE[118] = {'name':'Life Tap', 'type':None, 'start':life_tap_start, 'cooldown':300, 'energy':0, 'state': CAST2, 'frame': 1}
     ICONS_TABLE[118] = icon_image("118.png")
     # Adrenaline
-    SKILLS_TABLE[119] = {'name':'Adrenaline', 'type':None, 'start':adrenaline_start, 'cooldown':300, 'energy': 4}
+    SKILLS_TABLE[119] = {'name':'Adrenaline', 'type':None, 'start':adrenaline_start, 'cooldown':300, 'energy': 4, 'state': CAST2, 'frame': 1}
     ICONS_TABLE[119] = icon_image("119.png")
+
     # Silencer
-    SKILLS_TABLE[120] = _auto_melee(name='Silencer', width=40, height=40, arc=math.pi/2, start_radius=40, max_radius=40, cooldown=100, duration=500, color=RED, dmg=15, energy=5, extend = False)
+    SKILLS_TABLE[120] = _auto_melee(name='Silencer', width=40, height=40, arc=math.pi/2, start_radius=40, max_radius=40, cooldown=100, duration=500, color=RED, dmg=15, energy=5, state = TWOHAND, frame = 1, subsprite = 'none', extend = False)
     SKILLS_TABLE[120]['conditions'] = [classes.Silence(3000)]
     ICONS_TABLE[120] = icon_image("120.png")
     PARTICLES_TABLE[120] = particle_image("120.png")
     # Gravity shot
-    SKILLS_TABLE[121] = _auto_range('Gravity Shot', 35, 35, 20, 0, 200, 5000, DKORANGE, 3, 4)
+    SKILLS_TABLE[121] = _auto_range('Gravity Shot', 35, 35, 20, 0, 200, 5000, DKORANGE, 3, 4, MACHGUN, 2)
     SKILLS_TABLE[121]['on_hit_f'] = gravity_shot_on_hit
     ICONS_TABLE[121] = icon_image("121.png")
     PARTICLES_TABLE[121] = particle_image("121.png")
     # Lifting shot
-    SKILLS_TABLE[122] = _auto_range('Lifting Shot', 15, 15, 20, 0, 200, 5000, DKORANGE, 0, 2)
+    SKILLS_TABLE[122] = _auto_range('Lifting Shot', 15, 15, 20, 0, 200, 5000, DKORANGE, 0, 2, MACHGUN, 2)
     SKILLS_TABLE[122]['on_hit_f'] = lifting_shot_on_hit
     ICONS_TABLE[122] = icon_image("122.png")
     PARTICLES_TABLE[122] = particle_image("122.png")
     # Teleport shot
-    SKILLS_TABLE[123] = _auto_range('Teleport Shot', 20, 20, 20, 0, 200, 5000, BLUE, 5, 4)
+    SKILLS_TABLE[123] = _auto_range('Teleport Shot', 20, 20, 20, 0, 200, 5000, BLUE, 5, 4, MACHGUN, 2)
     SKILLS_TABLE[123]['on_hit_f'] = teleport_shot_on_hit
     ICONS_TABLE[123] = icon_image("123.png")
     PARTICLES_TABLE[123] = particle_image("123.png")
@@ -228,7 +238,7 @@ def initialize_skill_table():
     ADD_BLAST_OFF(124)
     ICONS_TABLE[124] = icon_image("124.png")
     # Swap shot
-    SKILLS_TABLE[125] = _auto_range('Swap Shot', 20, 20, 20, 0, 200, 5000, LLBLUE, 5, 4)
+    SKILLS_TABLE[125] = _auto_range('Swap Shot', 20, 20, 20, 0, 200, 5000, LLBLUE, 5, 4, MACHGUN, 2)
     SKILLS_TABLE[125]['on_hit_f'] = swap_shot_on_hit
     ICONS_TABLE[125] = icon_image("125.png")
     PARTICLES_TABLE[125] = particle_image("125.png")
@@ -240,7 +250,7 @@ def initialize_skill_table():
     ADD_BIG_HAMMER(1000)
     ICONS_TABLE[1000] = icon_image("1000.png")
     # Silver Bullet
-    SKILLS_TABLE[1001] = _auto_range('Silver Bullet', 10, 10, 20, 1, 1500, 5000, WHITE, 10, 6)
+    SKILLS_TABLE[1001] = _auto_range('Silver Bullet', 10, 10, 20, 1, 1500, 5000, WHITE, 10, 5, BULLET, 1)
     SKILLS_TABLE[1001]['on_hit_f'] = silver_bullet_on_hit
     ICONS_TABLE[1001] = icon_image("1001.png")
     # Electric Field
@@ -256,7 +266,7 @@ def initialize_skill_table():
     ADD_EPICENTER(1005)
     ICONS_TABLE[1005] = icon_image("1005.png")
     # Vampiric Swipe
-    SKILLS_TABLE[1006] = _auto_melee('Vampiric Swipe', 30, 30, math.pi/2, 40, 40, 400, 400, RED, 0, 6)
+    SKILLS_TABLE[1006] = _auto_melee('Vampiric Swipe', 30, 30, math.pi/2, 40, 40, 400, 400, RED, 0, 6, ONEHAND, 2)
     SKILLS_TABLE[1006]['on_hit_f'] = vampiric_swipe_on_hit
     ICONS_TABLE[1006] = icon_image("1006.png")
     PARTICLES_TABLE[1006] = particle_image("1006.png")
@@ -265,24 +275,25 @@ def initialize_skill_table():
     ICONS_TABLE[1007] = icon_image("1007.png")
 
 # Templates=================================================
-def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, extend = False):
+def _auto_melee(name, width, height, arc, start_radius, max_radius, cooldown, duration, color, dmg, energy, state = 'none', frame = 1, subsprite = 'none',extend = False):
     return {'name': name, 'type': MELEE, 'start': (lambda sid, p, u, d: classes.MeleeParticle(sid, p)),
             'width': width, 'height': height, 'arc': arc, 'start_radius': start_radius, 'max_radius':max_radius, 'cooldown': cooldown,
-            'duration': duration, 'color': color, 'dmg': dmg, 'energy': energy, 'extend':extend}
+            'duration': duration, 'color': color, 'dmg': dmg, 'energy': energy, 'state': state, 'frame': frame,
+            'subsprite': subsprite, 'extend':extend}
 
 
-def _auto_range(name, width, height, speed, acceleration, cooldown, duration, color, dmg, energy):
+def _auto_range(name, width, height, speed, acceleration, cooldown, duration, color, dmg, energy, state = 'none', frame = 1, subsprite = 'none'):
     return {'name': name, 'type': RANGE,
             'start': (lambda sid, player, up, down: classes.RangeParticle(sid, player, up, down)),
             'width': width, 'height': height, 'speed': speed, 'acceleration': acceleration,
             'cooldown': cooldown, 'duration': duration, 'color': color, 'dmg': dmg,
-            'energy': energy}
+            'energy': energy, 'state': state, 'frame': frame, 'subsprite': subsprite}
 
-def _auto_field(name, radius, cooldown, duration, color, dmg, energy):
+def _auto_field(name, radius, cooldown, duration, color, dmg, energy,  state = 'none', frame = 1, subsprite = 'none'):
     return {'name': name, 'type': FIELD,
             'start':(lambda sid, player: classes.FieldParticle(sid,player)),
             'radius':radius, 'width':radius*2, 'height':radius*2, 'cooldown':cooldown, 'duration':duration,
-            'color':color, 'dmg':dmg, 'energy':energy}
+            'color':color, 'dmg':dmg, 'energy':energy, 'state': state, 'frame': frame, 'subsprite': subsprite}
 
 # Individual skills =========================================
 def blank_start(sid, player, up, down):
@@ -326,7 +337,7 @@ def lob_motion(particle, time):
     return x,y
 
 def ADD_BIG_HAMMER(i):
-    SKILLS_TABLE[i] = _auto_melee("Big Hammer",75, 75, math.pi / 2, 125, 125, 500, 500, DGREY, 20, 5)
+    SKILLS_TABLE[i] = _auto_melee("Big Hammer",75, 75, math.pi / 2, 125, 125, 500, 500, DGREY, 20, 5, TWOHAND, 3)
     SKILLS_TABLE[i]['on_hit_f'] = knock_back
     SKILLS_TABLE[i]['conditions'] = [classes.Stun(3000)]
     SKILLS_TABLE[i]['start'] = big_hammer
@@ -343,7 +354,7 @@ def knock_back(particle,target,time):
     out_of_arena_fix(target)
 
 def ADD_BOULDER_TOSS(i):
-    SKILLS_TABLE[i] = {'name': "Boulder Toss", 'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6}
+    SKILLS_TABLE[i] = {'name': "Boulder Toss", 'type': None, 'start':boulder_toss_start, 'cooldown':200, 'energy': 6, 'state': THROW, 'frame': 2}
     SKILLS_TABLE["boulder_toss"] = _auto_range('',30, 30, 5, 0, 500, 3000, BLACK, 2, 0)
     SKILLS_TABLE["boulder_toss"]["conditions"] = [classes.Stun(2000)]
     SKILLS_TABLE["boulder_toss"]["special_path"] = lob_motion
@@ -359,7 +370,7 @@ def boulder_toss_start(sid, player, up=False, down=False):
     return obj
 
 def ADD_SHRAPNEL_BOMB(i):
-    SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2}
+    SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2, 'state': THROW, 'frame': 1}
     SKILLS_TABLE["shrapnel_base"] = _auto_range('',25, 25, 5, 0, 200, 3000, DGREY, 10, 0)
     PARTICLES_TABLE["shrapnel_base"] = particle_image("shrapnel_base.png")
     SKILLS_TABLE["shrapnel_base"]["special_path"] = lob_motion
@@ -462,13 +473,13 @@ def shrapnel_on_terrain(particle):
 
 
 def ADD_SHIELD(i):
-    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6}
+    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6, 'state': CAST2, 'frame': 1}
 def shield_start(sid, player, up=False, down=False):
     sh = classes.Shield(10000,10)
     sh.begin(-1,player)
     return None
 def ADD_NAPALM(i):
-    SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5}
+    SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5, 'state': THROW, 'frame': 2}
     SKILLS_TABLE['napalm_main'] = _auto_range('',30, 30, 2, 0, 500, 500, RED, 10, 0)
     SKILLS_TABLE['napalm0'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
     SKILLS_TABLE['napalm1'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
@@ -525,7 +536,7 @@ def napalm_on_expire(p):
         p.belongs_to.new_particle = [temp, obj0, obj1, obj2]
 
 def ADD_FIRE_AND_ICE(i):
-    SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5}
+    SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5, 'state': CAST1, 'frame': 1}
     SKILLS_TABLE['fai_fire'] = _auto_range('',20, 20, 5, 2, 500, 10000, RED, 10, 2)
     SKILLS_TABLE['fai_fire']['special_path'] = fai_fire_path
     SKILLS_TABLE['fai_fire']['conditions'] = [classes.Dot(5, 3, 1000)]
@@ -557,7 +568,7 @@ def fai_ice_path(particle, time):
 
 
 def ADD_VILE_BREATH(i):
-    SKILLS_TABLE[i] = {'name':'Vile Breath','type': None, 'start': vile_breath_start, 'cooldown':20, 'energy': 1}
+    SKILLS_TABLE[i] = {'name':'Vile Breath','type': None, 'start': vile_breath_start, 'cooldown':20, 'energy': 1, 'state': BREATH, 'frame': 1}
     SKILLS_TABLE['vbreath'] = _auto_range('',10,10,5,0,500,1000,GREEN,2,1)
     SKILLS_TABLE['vbreath']['special_path'] = vile_breath_path
     SKILLS_TABLE['vbreath']['conditions'] = [classes.Weakened(random.randint(1,3)*1000),
@@ -584,7 +595,7 @@ def shatter_on_hit(particle,target,time):
         handle_damage(target, 10, time+500)
 
 def ADD_CROP_DUST(i):
-    SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1}
+    SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1, 'state': RUN, 'frame': 2}
     SKILLS_TABLE['cropdust'] = _auto_range('',10,10,5,0,500,1000,BROWN,1,1)
     SKILLS_TABLE['cropdust']['special_path'] = crop_dust_path
     SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.50)]
@@ -617,7 +628,7 @@ def redirect_on_hit(particle, target, time):
         target.target = particle.belongs_to.opposite
 
 def ADD_ELECTRIC_FIELD(i):
-    SKILLS_TABLE[i] = {'name':'Electric Field', 'type':None, 'start':electric_field_start, 'cooldown': 200, 'energy':4}
+    SKILLS_TABLE[i] = {'name':'Electric Field', 'type':None, 'start':electric_field_start, 'cooldown': 200, 'energy':4, 'state': CAST1, 'frame':2}
     SKILLS_TABLE['ef0'] = _auto_melee('', 20, 20, math.pi*3, 100, 100, 100, 5000, BLUE, 10, 1)
     SKILLS_TABLE['ef1'] = _auto_melee('', 10, 10, math.pi*4, 50, 50, 100, 5000, BLUE, 10, 1)
     SKILLS_TABLE['ef2'] = _auto_melee('', 5, 5, math.pi*5, 25, 25, 100, 5000, BLUE, 10, 1)
@@ -631,7 +642,7 @@ def electric_field_start(sid,player,up=False,down=False):
     return [ef0, ef1, ef2]
 
 def ADD_POLARITY_SHIFT(i):
-    SKILLS_TABLE[i] = {'name':'Polarity Shift', 'type':None, 'start':polarity_shift_start, 'cooldown': 200, 'energy':7}
+    SKILLS_TABLE[i] = {'name':'Polarity Shift', 'type':None, 'start':polarity_shift_start, 'cooldown': 200, 'energy':7, 'state': CAST3, 'frame': 1}
 def polarity_shift_start(sid, player,up=False, down =False):
     tar = player.opposite
     d = player.distance_from(tar)
@@ -646,7 +657,7 @@ def polarity_shift_start(sid, player,up=False, down =False):
 
 
 def ADD_BEE_HIVE(i):
-    SKILLS_TABLE[i] = {'name':'Bee Hive', 'type': None, 'start':bee_hive_start, 'cooldown':300, 'energy':8}
+    SKILLS_TABLE[i] = {'name':'Bee Hive', 'type': None, 'start':bee_hive_start, 'cooldown':300, 'energy':8, 'state': CAST1, 'frame': 2}
     SKILLS_TABLE['beehive'] = _auto_range('',40,40, 3, 0, 500, 5000, WHITE, 4, 0)
     SKILLS_TABLE['beehive']['special_path'] = bee_hive_path
     SKILLS_TABLE['beehive']['conditions'] = [classes.Dot(3,5,1000)]
@@ -712,7 +723,7 @@ def bee_hive_path(particle,time):
     return particle.centerx + particle.dx, particle.centery
 
 def ADD_SKILL_PERSONAL_FAERIE(i):
-    SKILLS_TABLE[i] = {'name':'Personal Faerie', 'type': None, 'start':personal_faerie_start, 'cooldown':300, 'energy':5}
+    SKILLS_TABLE[i] = {'name':'Personal Faerie', 'type': None, 'start':personal_faerie_start, 'cooldown':300, 'energy':5, 'state': CAST2, 'frame': 2}
     SKILLS_TABLE['personal_faerie'] = _auto_melee('', 10, 10, 0, 5, 5, 300, 5000, LBLUE, 0, 6)
     SKILLS_TABLE['personal_faerie']['special_path'] = faerie_path
     PARTICLES_TABLE['personal_faerie'] = particle_image("personal_faerie.png")
@@ -759,7 +770,7 @@ def faerie_shot_path(p,t):
     return x,y
     
 def ADD_EPICENTER(i):
-    SKILLS_TABLE[i] = {'name':'Epicenter', 'type': None, 'start':epicenter_start, 'cooldown':300, 'energy':8}
+    SKILLS_TABLE[i] = {'name':'Epicenter', 'type': None, 'start':epicenter_start, 'cooldown':300, 'energy':8, 'state': CAST3, 'frame': 2}
     SKILLS_TABLE['epicenter'] = _auto_field('', radius=200, cooldown=200, duration=6000, color=BROWN, dmg=10, energy=2)
     SKILLS_TABLE['epicenter']['frequency'] = 2000
     SKILLS_TABLE['epicenter']['conditions'] = [classes.Slow(2000, 0.5)]
@@ -846,7 +857,7 @@ def vampiric_swipe_on_hit(particle,target,time):
         handle_hp_gain(particle.belongs_to, v, time)
         
 def ADD_BLAST_OFF(i):
-    SKILLS_TABLE[i] = {'name':'Blast Off', 'type':None, 'start': blast_off_start, 'cooldown': 250, 'energy':2}
+    SKILLS_TABLE[i] = {'name':'Blast Off', 'type':None, 'start': blast_off_start, 'cooldown': 250, 'energy':2, 'state': DASH, 'frame': 1}
     SKILLS_TABLE['blast_off'] = _auto_melee('',70, 80, 0, 0, 0, 250, 250, RED, 5, 0)
     SKILLS_TABLE['blast_off']['special_path'] = blast_off_path
     SKILLS_TABLE['blast_off']['conditions'] = [classes.Dot(2,3,1000)]
@@ -878,7 +889,7 @@ def blast_off_path(particle, time):
     return x,y
     
 def ADD_FALCON_PUNCH(i):
-    SKILLS_TABLE[i] = {'name':'Falcon Punch','type': None, 'start': falcon_punch_start, 'cooldown': 1500, 'energy': 0}
+    SKILLS_TABLE[i] = {'name':'Falcon Punch','type': None, 'start': falcon_punch_start, 'cooldown': 1500, 'energy': 0, 'state': 'none', 'frame': 1}
     SKILLS_TABLE['falcon_punch'] = _auto_melee('',30, 30, 0, 0, 0, 1500, 1500, RED, 35, 0)
     SKILLS_TABLE['falcon_punch']['special_path'] = falcon_punch_path
     SKILLS_TABLE['falcon_punch']['on_hit_f'] = falcon_punch_on_hit
@@ -927,7 +938,7 @@ def swap_shot_on_hit(particle, target, time):
     particle.belongs_to.centery = temp[1]
     
 def ADD_BARRAGE(i):
-    SKILLS_TABLE[i] = _auto_range('Barrage',20,20,25, 0, 250, 5000, RED, 0, 7)
+    SKILLS_TABLE[i] = _auto_range('Barrage',20,20,25, 0, 250, 5000, RED, 0, 7, MACHGUN, 2)
     SKILLS_TABLE[i]['on_hit_f'] = barrage_primary_on_hit
     SKILLS_TABLE['barrage'] = _auto_melee('', 30, 30, 0, 0, 0, 250, 5000, DKRED, 10, 0)
     SKILLS_TABLE['barrage']['special_path'] = barrage_path
@@ -973,7 +984,7 @@ def barrage_on_hit_f(particle, target, time):
         particle.expired = True
     
 def ADD_SHOTGUN(i):
-    SKILLS_TABLE[i] = {'name':'Shotgun', 'start':shotgun_start, 'cooldown':500, 'energy':0}
+    SKILLS_TABLE[i] = {'name':'Shotgun', 'start':shotgun_start, 'cooldown':500, 'energy':0, 'state': MACHGUN, 'frame': 4}
     SKILLS_TABLE['shotgun_pellet'] = _auto_range('',10,10,20,1,250,500, ORANGE, 2, 0)
     SKILLS_TABLE['shotgun_pellet']['special_path'] = shotgun_pellet_path
 def shotgun_start(sid, player, up=False, down=False):
