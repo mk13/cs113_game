@@ -111,7 +111,7 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 1002
+        self.attack_id = 7
         self.skill1_id = 1004
         self.skill2_id = 1006
         self.skill3_id = 1007

@@ -175,7 +175,7 @@ def initialize_skill_table():
     ADD_FIRE_AND_ICE(109)
     ICONS_TABLE[109] = icon_image("109.png")
     # Machine Gun
-    SKILLS_TABLE[110] = _auto_range('Machine Gun',10, 10, 7, 0.2, 20, 2000, BLACK, 2, 0, MACHGUN, 1)
+    SKILLS_TABLE[110] = _auto_range('Machine Gun',10, 10, 7, 0.2, 20, 2000, BLACK, 4, 1, MACHGUN, 1)
     ICONS_TABLE[110] = icon_image("110.png")
 
     # Vile Breath
@@ -377,7 +377,7 @@ def ADD_SHRAPNEL_BOMB(i):
     SKILLS_TABLE["shrapnel_base"]["on_hit_f"] = shrapnel_on_hit
     SKILLS_TABLE["shrapnel_base"]["on_expire_f"] = shrapnel_on_expire
     SKILLS_TABLE["shrapnel_base"]["on_terrain_f"] = shrapnel_on_terrain
-    SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0}
+    SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0, 'state': THROW, 'frame': 1}
     SKILLS_TABLE["shrapnel0"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel0"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery))
     SKILLS_TABLE["shrapnel1"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
@@ -824,7 +824,8 @@ def adrenaline_start(sid,player,up,down):
     return None
     
 def quick_shot_on_hit(particle,target,time):
-    handle_damage(target, int(particle.dx/4), time)
+    handle_damage(target, int(abs(particle.dx/4)), time)
+
     
 def gravity_shot_on_hit(particle,target,time):
     if not target.touching_ground:
