@@ -363,11 +363,19 @@ class OptionsPage:
 
 class PauseMenu:
     def __init__(self):
-        self.menu_box = Rect2(topleft=(475, 200), size=(300, 150), color=BLACK)
+        self.menu_box = Rect2(topleft=(320, 120), size=(640, 240), color=BLACK)
         main_font = 'data/Kremlin.ttf'
-        self.pause_font = pygame.font.Font(main_font, 200)
-        self.pause_font_xy = font_position_center(GL.WINDOW, self.pause_font, '-PAUSE-')
-        self.pause_font_rendered = self.pause_font.render('-PAUSE-', True, RED)
+        pause_font = pygame.font.Font(main_font, 100)
+        self.pause_font_xy = font_position_center(self.menu_box, pause_font, '-PAUSE-')
+        self.pause_font_rendered = pause_font.render('-PAUSE-', True, RED)
+
+        self.continue_button_properties = (395, 270, 200, 50)
+        self.quit_button_properties = (730, 270, 100, 50)
+
+        self.continue_button = pygbutton.PygButton(self.continue_button_properties, 'Continue')
+        self.quit_button = pygbutton.PygButton(self.quit_button_properties, 'Quit')
+        self.selection_box_properties = [self.continue_button_properties, self.quit_button_properties]
+        self.selection_box_i = 0
 
     def __call__(self):
         self.return_now = False
@@ -378,20 +386,70 @@ class PauseMenu:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
-        GL.SCREEN.blit(self.pause_font_rendered, self.pause_font_xy)
-        pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box)
+        pygame.draw.rect(GL.SCREEN, WHITE, self.menu_box)
+        pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box, 4)
+        GL.SCREEN.blit(self.pause_font_rendered, (self.pause_font_xy[0], self.menu_box.top))
+        self.continue_button.draw(GL.SCREEN)
+        self.quit_button.draw(GL.SCREEN)
+        self.selection_box = Rect2(self.selection_box_properties[self.selection_box_i], color=BLUE)
+        pygame.draw.rect(GL.SCREEN, self.selection_box.color, self.selection_box, selection_box_width)
         pygame.display.update()
 
     def input(self):
         GL.INPUT1.refresh_during_pause()
-        if GL.INPUT1.START_PRESS_EVENT:
-            GL.INPUT1.START_PRESS_EVENT = False
+        # if GL.INPUT1.START_PRESS_EVENT:
+        #     GL.INPUT1.START_PRESS_EVENT = False
+        #     self.return_now = True
+        #     GL.NEXT_PAGE = 'GL.CURR_GAME'
+
+        if GL.INPUT1.SELECT_PRESS_EVENT:
+            GL.INPUT1.SELECT_PRESS_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'GL.CURR_GAME'
+
+        if GL.INPUT1.START_PRESS_EVENT or GL.INPUT1.A_PRESS_EVENT:
+
+            if GL.INPUT1.START_PRESS_EVENT:
+                GL.INPUT1.START_PRESS_EVENT = False
+
+            if GL.INPUT1.A_PRESS_EVENT:
+                GL.INPUT1.A_PRESS_EVENT = False
+
+            if self.selection_box_i == 0:
+                self.return_now = True
+                GL.NEXT_PAGE = 'GL.CURR_GAME'
+
+            if self.selection_box_i == 1:
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
+
+        if GL.INPUT1.RIGHT_PRESS_EVENT:
+            GL.INPUT1.RIGHT_PRESS_EVENT = False
+            self.selection_box_i += 1
+            if self.selection_box_i > 1:
+                self.selection_box_i = 0
+
+        if GL.INPUT1.LEFT_PRESS_EVENT:
+            GL.INPUT1.LEFT_PRESS_EVENT = False
+            self.selection_box_i -= 1
+            if self.selection_box_i < 0:
+                self.selection_box_i = 1
+
+
+
+
 
     def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 EXIT_GAME()
+
+            if 'click' in self.continue_button.handleEvent(event):
+                self.return_now = True
+                GL.NEXT_PAGE = 'GL.CURR_GAME'
+
+            if 'click' in self.quit_button.handleEvent(event):
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
 
 

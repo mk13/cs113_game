@@ -809,7 +809,8 @@ class GameLoop:
             if GL.INPUT1.SELECT_PRESS_EVENT:
                 GL.INPUT1.SELECT_PRESS_EVENT = False
                 self.return_now = True
-                GL.NEXT_PAGE = 'start'
+                GL.CURR_GAME = self
+                GL.NEXT_PAGE = 'pause'
 
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
