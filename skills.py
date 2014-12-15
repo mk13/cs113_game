@@ -116,7 +116,7 @@ def initialize_skill_table():
     ICONS_TABLE[6] = icon_image("6.png")
     PARTICLES_TABLE[6] = particle_image("6.png")
     # Quick Shot
-    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 3, 0, MACHGUN, 2)
+    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 0, 0, MACHGUN, 2)
     SKILLS_TABLE[7]['on_hit_f'] = quick_shot_on_hit
     ICONS_TABLE[7] = icon_image("7.png")
     # Plague Swipe
@@ -143,6 +143,7 @@ def initialize_skill_table():
 
     # Static Bolt
     SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2, CAST1, 2)
+    SKILLS_TABLE[102]['conditions'] = [classes.Weakened(5000)]
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_path
     ICONS_TABLE[102] = icon_image("102.png")
     PARTICLES_TABLE[102] = particle_image("102.png")
@@ -572,7 +573,8 @@ def ADD_VILE_BREATH(i):
     SKILLS_TABLE['vbreath'] = _auto_range('',10,10,5,0,500,1000,GREEN,2,1)
     SKILLS_TABLE['vbreath']['special_path'] = vile_breath_path
     SKILLS_TABLE['vbreath']['conditions'] = [classes.Weakened(random.randint(1,3)*1000),
-                                             classes.Slow(random.randint(1,3)*1000, 0.5)]
+                                             classes.Slow(random.randint(1,3)*1000, 0.5),
+                                             classes.Wounded(3000)]
 def vile_breath_start(sid,player,up=False, down=False):
     b0 = classes.RangeParticle('vbreath',player,up,down)
     b1 = classes.RangeParticle('vbreath',player,up,down)
@@ -598,8 +600,10 @@ def ADD_CROP_DUST(i):
     SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1, 'state': RUN, 'frame': 2}
     SKILLS_TABLE['cropdust'] = _auto_range('',10,10,5,0,500,1000,BROWN,1,1)
     SKILLS_TABLE['cropdust']['special_path'] = crop_dust_path
-    SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.50)]
+    SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.75)]
 def crop_dust_start(sid,player,up=False,down=False):
+    speed = classes.Speed(2000, 0.5)
+    speed.begin(-1, player)
     c0 = classes.RangeParticle('cropdust',player,up,down)
     c1 = classes.RangeParticle('cropdust',player,up,down)
     c2 = classes.RangeParticle('cropdust',player,up,down)
@@ -661,14 +665,14 @@ def ADD_BEE_HIVE(i):
     SKILLS_TABLE['beehive'] = _auto_range('',40,40, 3, 0, 500, 5000, WHITE, 4, 0)
     SKILLS_TABLE['beehive']['special_path'] = bee_hive_path
     SKILLS_TABLE['beehive']['conditions'] = [classes.Dot(3,5,1000)]
-    SKILLS_TABLE['bee1'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee2'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee3'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee4'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee5'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee1'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee2'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee3'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee4'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee5'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
 
     SKILLS_TABLE["bee1"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery-10))
     SKILLS_TABLE["bee2"]["special_path"] = (lambda p,t: (p.centerx, p.centery-10))
@@ -824,7 +828,7 @@ def adrenaline_start(sid,player,up,down):
     return None
     
 def quick_shot_on_hit(particle,target,time):
-    handle_damage(target, int(abs(particle.dx/4)), time)
+    handle_damage(target, min(10,int(abs(particle.dx/4))), time)
 
     
 def gravity_shot_on_hit(particle,target,time):

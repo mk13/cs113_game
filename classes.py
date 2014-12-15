@@ -112,9 +112,9 @@ class Player(Rect2):
 
         # specific testing:
         self.attack_id = 7
-        self.skill1_id = 1004
-        self.skill2_id = 1006
-        self.skill3_id = 1007
+        self.skill1_id = 114
+        self.skill2_id = 125
+        self.skill3_id = 117
         self.ult_id = 104
 
 
