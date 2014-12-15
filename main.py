@@ -150,8 +150,8 @@ class GameLoop:
             p1_sprite = _setup_player_sprites('data/pl_human.png')
             p2_sprite = _setup_player_sprites('data/pl_human.png')
 
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), input=GL.INPUT1, sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), input=GL.INPUT2, sprite=p2_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), sprite=p1_sprite)
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), sprite=p2_sprite)
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -188,7 +188,7 @@ class GameLoop:
     def __call__(self):
         self.return_now = False
         while not self.return_now:
-            if not self.player1.input.START_PRESS_EVENT:
+            if not GL.INPUT1.START_PRESS_EVENT:
                 self.handle_players_inputs()
                 self.handle_monsters(self.game_time.msec)
                 self.handle_particles()
@@ -205,21 +205,21 @@ class GameLoop:
     def handle_players_inputs(self):
 
         def _refresh_inputs():
-            self.player1.input.refresh()
-            self.player2.input.refresh()
+            GL.INPUT1.refresh()
+            GL.INPUT2.refresh()
 
         def _handle_players_inputs():
-            if not self.player1.input.START_PRESS_EVENT:
+            if not GL.INPUT1.START_PRESS_EVENT:
                 self.player1(self.arena)
                 self.player2(self.arena)
 
         def _handle_special_input():
-            if self.player1.input.START_PRESS_EVENT:
+            if GL.INPUT1.START_PRESS_EVENT:
                 rendered_font = self.pause_font.render('-PAUSE-', True, RED)
                 GL.SCREEN.blit(rendered_font, self.pause_font_xy)
                 pygame.display.update()
 
-            if self.player1.input.RESPAWN and not self.player1.input.START_PRESS_EVENT:
+            if GL.INPUT1.RESPAWN and not GL.INPUT1.START_PRESS_EVENT:
                 self.player1.topleft = self.player1.topleft_initial
                 self.player1.dx = self.player1.dx_initial
                 self.player1.facing_direction = self.player1.facing_direction_initial
@@ -227,7 +227,7 @@ class GameLoop:
                 self.player2.dx = self.player2.dx_initial
                 self.player2.facing_direction = self.player2.facing_direction_initial
 
-            if self.player1.input.KILLALL and not self.player1.input.START_PRESS_EVENT:
+            if GL.INPUT1.KILLALL and not GL.INPUT1.START_PRESS_EVENT:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
@@ -681,7 +681,7 @@ class GameLoop:
         _draw_arena()
         _draw_monsters()
         _draw_dropped_skills()
-        if not self.player1.input.DEBUG_VIEW:
+        if not GL.INPUT1.DEBUG_VIEW:
             _draw_players()
         _draw_particles()
         _draw_scrolling_text()
@@ -782,7 +782,7 @@ class GameLoop:
                 for l in locs:
                     pygame.draw.circle(GL.SCREEN, ORANGE, l, 3, 0)
 
-        if self.player1.input.DEBUG_VIEW:
+        if GL.INPUT1.DEBUG_VIEW:
             _draw_spawn_point_rects()
             _draw_play_area_debug_border()
             _draw_debug_text()
@@ -791,7 +791,7 @@ class GameLoop:
             _draw_players_debug()
             _draw_player_collision_points_for_debugging()
             _draw_mouse_text()
-        elif not self.player1.input.DEBUG_VIEW:
+        elif not GL.INPUT1.DEBUG_VIEW:
             if self.player1.sprite is None:
                 _draw_players_debug(draw_p1=True, draw_p2=False)
             if self.player2.sprite is None:
@@ -811,8 +811,8 @@ class GameLoop:
                 if 'click' in self.return_button.handleEvent(event):
                     self.return_now = True
                     GL.NEXT_PAGE = 'start'
-            if self.player1.input.SELECT_PRESS_EVENT:
-                self.player1.input.SELECT_PRESS_EVENT = False
+            if GL.INPUT1.SELECT_PRESS_EVENT:
+                GL.INPUT1.SELECT_PRESS_EVENT = False
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 
@@ -823,7 +823,7 @@ class GameLoop:
                     self.game_time.inc()
 
                     # for CPU usage debug text
-                    if psutil_found and self.player1.input.DEBUG_VIEW:
+                    if psutil_found and GL.INPUT1.DEBUG_VIEW:
                         new_cpu = psutil.cpu_percent(interval=None)
                         self.cpu_deque.append(new_cpu)
                         self.cpu_avg = sum(self.cpu_deque) / len(self.cpu_deque)
@@ -930,7 +930,7 @@ class GameLoop:
                 if event.type == QUIT:
                     EXIT_GAME()
 
-        if not self.player1.input.START_PRESS_EVENT:
+        if not GL.INPUT1.START_PRESS_EVENT:
             _handle_song_end_event()
             _handle_time_tick_event()
             _handle_regeneration_event()
@@ -942,7 +942,7 @@ class GameLoop:
             _handle_return_to_main_menu()
         else:
             _handle_quit_event()
-            self.player1.input.refresh_during_pause()
+            GL.INPUT1.refresh_during_pause()
             pygame.event.clear()
 
 # ----------------------------------------------------------------------------
