@@ -215,9 +215,10 @@ class GameLoop:
 
         def _handle_special_input():
             if GL.INPUT1.START_PRESS_EVENT:
-                rendered_font = self.pause_font.render('-PAUSE-', True, RED)
-                GL.SCREEN.blit(rendered_font, self.pause_font_xy)
-                pygame.display.update()
+                GL.INPUT1.START_PRESS_EVENT = False
+                self.return_now = True
+                GL.CURR_GAME = self
+                GL.NEXT_PAGE = 'pause'
 
             if GL.INPUT1.RESPAWN and not GL.INPUT1.START_PRESS_EVENT:
                 self.player1.topleft = self.player1.topleft_initial

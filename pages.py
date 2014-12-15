@@ -367,6 +367,7 @@ class PauseMenu:
         main_font = 'data/Kremlin.ttf'
         self.pause_font = pygame.font.Font(main_font, 200)
         self.pause_font_xy = font_position_center(GL.WINDOW, self.pause_font, '-PAUSE-')
+        self.pause_font_rendered = self.pause_font.render('-PAUSE-', True, RED)
 
     def __call__(self):
         self.return_now = False
@@ -377,6 +378,7 @@ class PauseMenu:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
+        GL.SCREEN.blit(self.pause_font_rendered, self.pause_font_xy)
         pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box)
         pygame.display.update()
 
