@@ -24,128 +24,40 @@ from pages import *
 from skills import *
 from pygbutton import PygButton
 
-# set window starting position for my desktop which has multiple monitors, this
-# is a convenience thing for me.  You guys can add your own setting here if
-# it's useful for you
-if os.environ['COMPUTERNAME'] == 'BRIAN-DESKTOP':
-    os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(1920, 90)
-if os.environ['COMPUTERNAME'] == 'MAX-LT':
-    os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(50, 30)
+# ----------------------------------------------------------------------------
+class Application:
+    def __init__(self):
+        start = StartMenu()
+        options = OptionsPage()
+        help = HelpPage()
+        playerSelect = PlayerSelectPage()
+        levelSelect = LevelSelectPage()
+        current_page = 'start'
+        while True:
+            eval(current_page + '()')
+            current_page = GL.NEXT_PAGE
 
-# -------------------------------------------------------------------------
-class StartMenu:
+# ----------------------------------------------------------------------------
+class GameLoop:
     def __init__(self):
         def _setup_display():
-            pygame.display.set_mode((1280, 600))
-            pygame.display.set_caption('Famished Tournament')
-            self.screen = pygame.display.get_surface()
-            self.start_button = PygButton((325, 395, 140, 40), 'Start')
-            self.help_button = PygButton((485, 395, 110, 40), 'Help')
-            self.options_button = PygButton((615, 395, 175, 40), 'Options')
-            self.exit_button = PygButton((810, 395, 105, 40), 'Exit')
-
-        def _setup_music():
-            AUDIO.turn_on_music()
-
-        def _setup_time():
-            self.clock = pygame.time.Clock()
-            self.fps = 5
-
-        def _setup_input():
-            self.input = Input(inside_menu=True)
-
-        pygame.init()
-        _setup_display()
-        _setup_music()
-        _setup_time()
-        _setup_input()
-
-    def __call__(self, restart_music=False):
-        if restart_music:
-            AUDIO.restart_music()
-        while True:
-            self.input.refresh()
-            self.draw_UI()
-            self.handle_events()
-            self.clock.tick(self.fps)
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if 'click' in self.start_button.handleEvent(event):
-                GameLoop(self)()
-            if 'click' in self.exit_button.handleEvent(event):
-                pygame.quit()
-                sys.exit()
-            if 'click' in self.help_button.handleEvent(event):
-                HelpPage(self)()
-            if 'click' in self.options_button.handleEvent(event):
-                OptionsPage(self)()
-            if self.input.ENTER_LEAVE:
-                self.input.ENTER_LEAVE = False
-                GameLoop(self)()
-
-    def draw_UI(self):
-        self.image = pygame.image.load('data/temp_start_bkg.png')
-        self.screen.blit(self.image, (0, 0))
-
-        self.start_button.draw(self.screen)
-        self.help_button.draw(self.screen)
-        self.options_button.draw(self.screen)
-        self.exit_button.draw(self.screen)
-
-        self.title_font = pygame.font.Font('data/Kremlin.ttf', 50)
-        self.title1 = self.title_font.render('Famished', True, DKRED)
-        self.title2 = self.title_font.render('Tournament', True, DKRED)
-        self.screen.blit(self.title1, (495, 120))
-        self.screen.blit(self.title2, (450, 175))
-
-        # text for transparent buttons
-        # self.button_font = pygame.font.Font('data/Kremlin.ttf', 30)
-        # self.b_start = self.button_font.render('Start', True, DKRED)
-        # self.b_help = self.button_font.render('Help', True, DKRED)
-        # self.b_options = self.button_font.render('Options', True, DKRED)
-        # self.b_exit = self. button_font.render('Exit', True, DKRED)
-        # self.screen.blit(self.b_start, (340, 400))
-        # self.screen.blit(self.b_help, (500, 400))
-        # self.screen.blit(self.b_options, (630, 400))
-        # self.screen.blit(self.b_exit, (845, 400))
-
-        pygame.display.flip()
-
-# -------------------------------------------------------------------------
-class GameLoop:
-    def __init__(self, start_menu):
-        def _setup_display():
-            # set the window size - can add the NOFRAME arg if we don't want a
-            # window frame but then we have to figure out how to move the
-            # window since it won't have a menu bar to grab
-            self.screen = pygame.display.set_mode((1280, 600))
-            pygame.display.set_caption('Famished Tournament')
-            self.surface = pygame.display.get_surface()
-            # main menu button at bottom middle of screen
             self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
 
         def _setup_time():
-            self.clock = pygame.time.Clock()
-            self.fps = 30
             pygame.time.set_timer(TIME_TICK_EVENT, 250)
             pygame.time.set_timer(REGENERATION_EVENT, 1000)
             self.game_time = GameTime()
 
         def _setup_ui():
-            self.start_menu = start_menu
-            self.window = self.surface.get_rect()
+            self.window = GL.SCREEN.get_rect()
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
             self.left_grey_fill = Rect2(left=0, top=0, width=65, height=600)
             self.right_grey_fill = Rect2(left=1215, top=0, width=60, height=600)
-            self.bottom_grey_fill = Rect2(left=0, top=475, width=1280, height=115)
+            self.bottom_grey_fill = Rect2(left=0, top=475, width=1280, height=125)
 
         def _setup_arena():
-            self.arena = Arena(random.choice((arena3, arena4, arena5)))
+            self.arena = Arena(GL.get_selected_level())#random.choice(( arena3, arena4, arena5)))
             GL.arena_in_use = self.arena  # used for out_of_arena_fix within global.py
 
         def _setup_fonts():
@@ -178,6 +90,7 @@ class GameLoop:
 
         def _setup_monsters():
             self.active_monsters = []
+            self.ultimate_monster_active = False
             self.dropped_skills = []
             self.spawn_monsters = False
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
@@ -220,13 +133,14 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/p1_human_8bit.png')
-            p2_sprite = _setup_player_sprites('data/p2_human_8bit.png')
+            p1_spritesheet = GL.get_spritesheet('player1')
+            p2_spritesheet = GL.get_spritesheet('player2')
 
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), sprite=p2_sprite)
+            p1_sprite = _setup_player_sprites(p1_spritesheet)
+            p2_sprite = _setup_player_sprites(p2_spritesheet)
 
-            self.player1.hit_points = 20  # FOR TESTING/DEBUGGING, REMOVE LATER
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, size=(30, 40), input=GL.INPUT1, sprite=p1_sprite)
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, size=(30, 40), input=GL.INPUT2, sprite=p2_sprite)
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -246,7 +160,6 @@ class GameLoop:
                 Rect2(topleft=(1100, 500), size=(40, 40), color=DKRED),
                 Rect2(topleft=(1150, 500), size=(40, 40), color=DKRED), ]
 
-        pygame.init()
         _setup_display()
         _setup_time()
         _setup_ui()
@@ -262,16 +175,17 @@ class GameLoop:
 
     # ------------------------------------------------------------------------
     def __call__(self):
-        while True:
-            if not self.player1.input.PAUSED:
+        self.return_now = False
+        while not self.return_now:
+            if not self.player1.input.START:
                 self.handle_players_inputs()
-                self.handle_monsters()
+                self.handle_monsters(self.game_time.msec)
                 self.handle_particles()
                 self.draw_screen()
                 self.draw_debug()
                 pygame.display.update()
                 self.handle_event_queue()
-                self.clock.tick(self.fps)
+                GL.CLOCK.tick(GL.FPS)
             else:
                 self.handle_players_inputs()
                 self.handle_event_queue()
@@ -284,17 +198,17 @@ class GameLoop:
             self.player2.input.refresh()
 
         def _handle_players_inputs():
-            if not self.player1.input.PAUSED:
+            if not self.player1.input.START:
                 self.player1(self.arena)
-                self.player2(self.arena, self.player1.input)
+                self.player2(self.arena)
 
         def _handle_special_input():
-            if self.player1.input.PAUSED:
+            if self.player1.input.START:
                 rendered_font = self.pause_font.render('-PAUSE-', True, RED)
-                self.surface.blit(rendered_font, self.pause_font_xy)
+                GL.SCREEN.blit(rendered_font, self.pause_font_xy)
                 pygame.display.update()
 
-            if self.player1.input.RESPAWN and not self.player1.input.PAUSED:
+            if self.player1.input.RESPAWN and not self.player1.input.START:
                 self.player1.topleft = self.player1.topleft_initial
                 self.player1.dx = self.player1.dx_initial
                 self.player1.facing_direction = self.player1.facing_direction_initial
@@ -302,7 +216,7 @@ class GameLoop:
                 self.player2.dx = self.player2.dx_initial
                 self.player2.facing_direction = self.player2.facing_direction_initial
 
-            if self.player1.input.KILLALL and not self.player1.input.PAUSED:
+            if self.player1.input.KILLALL and not self.player1.input.START:
                 for m in self.active_monsters:
                     m.hit_points = 0
 
@@ -393,7 +307,7 @@ class GameLoop:
         _check_particle_collisions()
 
     # -------------------------------------------------------------------------
-    def handle_monsters(self):
+    def handle_monsters(self, time):
 
         def _handle_monster_spawning():
             if self.spawn_monsters and len(self.active_monsters) < self.arena.max_monsters:
@@ -401,6 +315,12 @@ class GameLoop:
                 color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
                 monster_info = MONSTER_TABLE[random.choice(self.arena.possible_monsters)]  # pick a random monster
                 self.active_monsters.append(Monster(monster_info, spawn_point.topleft, self.player1, self.player2, color))
+            if not self.ultimate_monster_active:
+                if self.game_time.msec != 0 and (self.game_time.msec % ULTIMATE_SPAWN_RATE) == 0:
+                    spawn_point = self.arena.random_spawn_point  # pick a random spawn point
+                    color = random.choice((LLBLUE, DKYELLOW, DKPURPLE, DKORANGE))  # pick a random color
+                    self.ultimate_monster_active = True
+                    self.active_monsters.append(Monster(MONSTER_TABLE[ULTIMATE], spawn_point.topleft, self.player1, self.player2, color))
             self.spawn_monsters = False
 
         def _handle_dead_monsters():
@@ -409,87 +329,92 @@ class GameLoop:
                     dropped_skill_id = get_dropped_skill(m)
                     dropped_skill_rect = Rect2(topleft=m.topleft, size=(25, 25), id=dropped_skill_id, color=BLACK)
                     self.arena.dropped_skills.append(dropped_skill_rect)
+                    if m.kind == ULTIMATE:
+                        self.ultimate_monster_active = False
                     self.active_monsters.remove(m)
 
-        def _update_monsters():
+        def _update_monsters(time):
             for m in self.active_monsters:
                 m(self.game_time.msec, self.arena)
+                if m.colliderect(self.player1):
+                    m.on_hit(self.player1,time)
+                if m.colliderect(self.player2):
+                    m.on_hit(self.player2,time)
 
         _handle_monster_spawning()
         _handle_dead_monsters()
-        _update_monsters()
+        _update_monsters(time)
 
     # -------------------------------------------------------------------------
     def draw_screen(self):
-    
+
         def _draw_ui1():
-            self.surface.fill(DGREY)
+            GL.SCREEN.fill(DGREY)
             if self.arena.background is not None:
                 self.image = pygame.image.load(self.arena.background)
-                self.screen.blit(self.image, (self.arena.play_area_rect.left, 0))
-            
+                GL.SCREEN.blit(self.image, (self.arena.play_area_rect.left, 0))
 
         def _draw_ui2():
-            pygame.draw.rect(self.surface, DGREY, self.left_grey_fill)
-            pygame.draw.rect(self.surface, DGREY, self.right_grey_fill)
-            pygame.draw.rect(self.surface, DGREY, self.bottom_grey_fill)
+            pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
+            pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
+            pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
 
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
             # energy_display = self.energy_font.render(str(int(self.player1.energy)), True, YELLOW)
-            # self.surface.blit(health_display, self.health_font_xy)
-            # self.surface.blit(energy_display, self.energy_font_xy)
+            # GL.SCREEN.blit(health_display, self.health_font_xy)
+            # GL.SCREEN.blit(energy_display, self.energy_font_xy)
 
             # health bars
             # currently only goes off of one player's health
             # left health bar outline image
             self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
-            self.surface.blit(self.health_bar_outline, (5, 20))
+            GL.SCREEN.blit(self.health_bar_outline, (5, 20))
             self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
-            self.surface.blit(self.health_bar_outline2, (1239, 20))
+            GL.SCREEN.blit(self.health_bar_outline2, (1239, 20))
             # right health bar outline image
             # dynamic health bars
             self.damage_taken1 = self.player1.hit_points_max - self.player1.hit_points
             self.damage_taken2 = self.player2.hit_points_max - self.player2.hit_points
             self.health_bar1 = Rect((20, (21 + (2 * self.damage_taken1))), (20, (200 - (2 * self.damage_taken1))))
             self.health_bar2 = Rect((1241, (21 + (2 * self.damage_taken2))), (20, (200 - (2 * self.damage_taken2))))
-            pygame.draw.rect(self.surface, YELLOW, self.health_bar1)
-            pygame.draw.rect(self.surface, YELLOW, self.health_bar2)
+            pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar1)
+            pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar2)
 
             # need to add dynamic aspect of energy bars
             # left energy bar outline image
             self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
-            self.surface.blit(self.energy_bar_outline, (5, 280))
+            GL.SCREEN.blit(self.energy_bar_outline, (5, 280))
             # right energy bar outline image
             self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
-            self.surface.blit(self.energy_bar_outline2, (1239, 280))
+            GL.SCREEN.blit(self.energy_bar_outline2, (1239, 280))
             # dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
             self.energy_used2 = 10 - self.player2.energy
             self.energy_bar1 = Rect((20, 281 + (20 * self.energy_used1)), (20, 200 - (20 * self.energy_used1)))
             self.energy_bar2 = Rect((1241, 281 + (20 * self.energy_used2)), (20, 200 - (20 * self.energy_used2)))
-            pygame.draw.rect(self.surface, GREEN, self.energy_bar1)
-            pygame.draw.rect(self.surface, GREEN, self.energy_bar2)
+            pygame.draw.rect(GL.SCREEN, GREEN, self.energy_bar1)
+            pygame.draw.rect(GL.SCREEN, GREEN, self.energy_bar2)
 
             skill_ids = self.player1.skills + self.player2.skills
             for i, skill_box in enumerate(self.skill_boxes):
-                pygame.draw.rect(self.surface, skill_box.color, skill_box)
+                pygame.draw.rect(GL.SCREEN, skill_box.color, skill_box)
                 skill_text = str(skill_ids[i])
                 skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                 skill_text_xy = font_position_center(skill_box, self.debug_font_small_2, skill_text)
-                self.surface.blit(skill_font, skill_text_xy)
+                GL.SCREEN.blit(skill_font, skill_text_xy)
 
-            self.return_button.draw(self.surface)
+            self.return_button.draw(GL.SCREEN)
 
         def _draw_timer():
             time_display = self.timer_font.render(str(self.game_time), True, BLUE)
-            self.surface.blit(time_display, self.timer_font_xy)
+            GL.SCREEN.blit(time_display, self.timer_font_xy)
 
         def _draw_arena():
             for rect in self.arena:
                 if rect.color is not None:
-                    pygame.draw.rect(self.surface, rect.color, rect)
+                    pygame.draw.rect(GL.SCREEN, rect.color, rect)
 
         def _draw_players():
             def _draw_player(p):
@@ -518,7 +443,7 @@ class GameLoop:
                         p.wait_frames = 5
                         if p.animation_key <= 0:
                             p.animation_key += 1
-                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 30], flip, False), (p.left-17,p.top-22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 30], flip, False), (p.left-17,p.top-22))
                 # FALL
                 elif p.state == FALL:
                     if p.facing_direction == LEFT:
@@ -527,7 +452,7 @@ class GameLoop:
                         p.wait_frames = 5
                         if p.animation_key <= 0:
                             p.animation_key += 1
-                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 32], flip, False), (p.left-17,p.top-22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 32], flip, False), (p.left-17,p.top-22))
                 # WALK
                 elif p.state == RWALK or p.state == LWALK:
                     if p.facing_direction == LEFT:
@@ -541,13 +466,13 @@ class GameLoop:
                         p.animation_key += 1
                         if p.animation_key > 0:
                             p.animation_key %= 16  # Loops the key
-                    self.screen.blit(pygame.transform.flip(p.sprite[p.animation_key + 14], flip, False), (p.left - 17, p.top - 22))
+                    GL.SCREEN.blit(pygame.transform.flip(p.sprite[p.animation_key + 14], flip, False), (p.left - 17, p.top - 22))
                 # STAND (default animation)
                 else:
                     if p.facing_direction == LEFT:
                         flip = True
                     # Currently only have 1 standing sprite
-                    self.screen.blit(
+                    GL.SCREEN.blit(
                         pygame.transform.flip(p.sprite[p.animation_key + 1], flip, False), (p.left - 17, p.top - 22))
                 p.wait_frames += -1
 
@@ -558,29 +483,29 @@ class GameLoop:
 
         def _draw_monsters():
             for m in self.active_monsters:
-                pygame.draw.rect(self.surface, m.color, m)
+                pygame.draw.rect(GL.SCREEN, m.color, m)
                 health_bar = Rect2(left=m.left, top=m.top - 8, width=m.width, height=6)
                 health_bar_width = round(m.width * (m.hit_points / m.hit_points_max))
                 health_bar_life = Rect2(left=m.left, top=m.top - 8, width=health_bar_width, height=6)
 
-                pygame.draw.rect(self.surface, WHITE, health_bar)
-                pygame.draw.rect(self.surface, RED, health_bar_life)
-                pygame.draw.rect(self.surface, BLACK, health_bar, 1)
+                pygame.draw.rect(GL.SCREEN, WHITE, health_bar)
+                pygame.draw.rect(GL.SCREEN, RED, health_bar_life)
+                pygame.draw.rect(GL.SCREEN, BLACK, health_bar, 1)
 
         def _draw_dropped_skills():
             for skill in self.arena.dropped_skills:
-                pygame.draw.rect(self.surface, skill.color, skill)
+                pygame.draw.rect(GL.SCREEN, skill.color, skill)
                 skill_text = str(skill.id)
                 skill_font = self.debug_font_small_2.render(skill_text, True, WHITE)
                 skill_text_xy = font_position_center(skill, self.debug_font_small_2, skill_text)
-                self.surface.blit(skill_font, skill_text_xy)
+                GL.SCREEN.blit(skill_font, skill_text_xy)
 
         def _draw_particles():
             for p in self.active_particles:
                 if isinstance(p, FieldParticle):
-                    pygame.draw.circle(self.surface, p.color, (p.centerx, p.centery), p.radius, 1)
+                    pygame.draw.circle(GL.SCREEN, p.color, (p.centerx, p.centery), p.radius, 1)
                 else:
-                    pygame.draw.rect(self.surface, p.color, p)
+                    pygame.draw.rect(GL.SCREEN, p.color, p)
 
         def _draw_scrolling_text():
             for unit in self.active_monsters + [self.player1, self.player2]:
@@ -589,7 +514,7 @@ class GameLoop:
                     color = RED
                     if isinstance(t[0],str) and t[0] in BUFFS:
                         color = GREEN
-                    self.surface.blit(self.st_font.render(text, True, color),
+                    GL.SCREEN.blit(self.st_font.render(text, True, color),
                     (unit.centerx, unit.top - (3000 - t[1] + self.game_time.msec)/50))
                     if t[1] <= self.game_time.msec:
                         unit.st_buffer.remove(t)
@@ -603,7 +528,7 @@ class GameLoop:
 
             for r in self.rain_particles:
                 r.move_ip((0, 5))
-                pygame.draw.rect(self.surface, BLUE, r)
+                pygame.draw.rect(GL.SCREEN, BLUE, r)
 
             for r in self.rain_particles[:]:
                 if r.top > self.arena.play_area_rect.height:
@@ -611,7 +536,6 @@ class GameLoop:
             self.make_rain = False
 
         _draw_ui1()
-        _draw_timer()
         _draw_arena()
         _draw_monsters()
         _draw_dropped_skills()
@@ -620,22 +544,23 @@ class GameLoop:
         _draw_particles()
         _draw_scrolling_text()
         _draw_ui2()
-        # _draw_rain()
+        _draw_timer()
+        _draw_rain()
 
     # -------------------------------------------------------------------------
     def draw_debug(self):
 
         def _draw_spawn_point_rects():
             for rect in self.arena.spawn_points:
-                pygame.draw.rect(self.surface, RED, rect)
+                pygame.draw.rect(GL.SCREEN, RED, rect)
 
         def _draw_play_area_debug_border():
             old_play_area = Rect2(65, 0, 1150, 475)
-            pygame.draw.rect(self.surface, YELLOW, old_play_area, 1)
-            pygame.draw.rect(self.surface, GREEN, self.arena.play_area_rect, 1)
-            pygame.draw.rect(self.surface, RED, self.arena.left_wall, 1)
-            pygame.draw.rect(self.surface, RED, self.arena.floor, 1)
-            pygame.draw.rect(self.surface, RED, self.arena.right_wall, 1)
+            pygame.draw.rect(GL.SCREEN, YELLOW, old_play_area, 1)
+            pygame.draw.rect(GL.SCREEN, GREEN, self.arena.play_area_rect, 1)
+            pygame.draw.rect(GL.SCREEN, RED, self.arena.left_wall, 1)
+            pygame.draw.rect(GL.SCREEN, RED, self.arena.floor, 1)
+            pygame.draw.rect(GL.SCREEN, RED, self.arena.right_wall, 1)
 
         def _draw_debug_text():
             x = '| x:{:>8.2f}|'.format(self.player1.x)
@@ -646,44 +571,44 @@ class GameLoop:
             debug_font_2 = self.debug_font.render(y, True, GREEN)
             debug_font_3 = self.debug_font.render(dx, True, GREEN)
             debug_font_4 = self.debug_font.render(dy, True, GREEN)
-            self.surface.blit(debug_font_1, self.debug_font_xy1)
-            self.surface.blit(debug_font_2, self.debug_font_xy2)
-            self.surface.blit(debug_font_3, self.debug_font_xy3)
-            self.surface.blit(debug_font_4, self.debug_font_xy4)
+            GL.SCREEN.blit(debug_font_1, self.debug_font_xy1)
+            GL.SCREEN.blit(debug_font_2, self.debug_font_xy2)
+            GL.SCREEN.blit(debug_font_3, self.debug_font_xy3)
+            GL.SCREEN.blit(debug_font_4, self.debug_font_xy4)
 
             num_monsters = '|curr num monsters:{:>4}|'.format(len(self.active_monsters))
             max_monsters = '| max num monsters:{:>4}|'.format(self.arena.max_monsters)
             debug_font_m1 = self.debug_font.render(num_monsters, True, GREEN)
             debug_font_m2 = self.debug_font.render(max_monsters, True, GREEN)
-            self.surface.blit(debug_font_m1, self.debug_font_xy5)
-            self.surface.blit(debug_font_m2, self.debug_font_xy6)
+            GL.SCREEN.blit(debug_font_m1, self.debug_font_xy5)
+            GL.SCREEN.blit(debug_font_m2, self.debug_font_xy6)
 
         def _draw_cpu_usage():
             cpu_text = '|CPU Utilization:{:>5.1f}%|'.format(self.cpu_avg) if psutil_found else '|CPU Utilization:  ????|'
             cpu_font = self.debug_font.render(cpu_text, True, RED)
-            self.surface.blit(cpu_font, self.debug_font_xy7)
+            GL.SCREEN.blit(cpu_font, self.debug_font_xy7)
 
         def _draw_destructible_terrain_debug_text():
             for rect in self.arena.destructible_terrain:
                 rendered_debug_font = self.debug_font_small_2.render(str(rect.hits_to_destroy), True, BLACK)
                 pos = font_position_center(rect, self.debug_font_small_2, str(rect.hits_to_destroy))
-                self.surface.blit(rendered_debug_font, pos)
+                GL.SCREEN.blit(rendered_debug_font, pos)
 
         def _draw_mouse_text():
             mouse_pos = pygame.mouse.get_pos()
             play_area_mouse_pos = mouse_pos[0] - self.arena.play_area_rect.left, mouse_pos[1]
-            pygame.draw.circle(self.surface, WHITE, mouse_pos, 2, 0)
-            pygame.draw.circle(self.surface, BLACK, mouse_pos, 2, 1)
+            pygame.draw.circle(GL.SCREEN, WHITE, mouse_pos, 2, 0)
+            pygame.draw.circle(GL.SCREEN, BLACK, mouse_pos, 2, 1)
             if 0 <= play_area_mouse_pos[0] <= self.arena.play_area_rect.width and 0 <= play_area_mouse_pos[1] <= self.arena.play_area_rect.height:
                 offset_pos_mouse_font = self.debug_font_small.render(str(play_area_mouse_pos), True, DGREY)
-                self.surface.blit(offset_pos_mouse_font, mouse_pos)
+                GL.SCREEN.blit(offset_pos_mouse_font, mouse_pos)
             real_pos_mouse_font = self.debug_font_small.render(str(mouse_pos), True, DKYELLOW)
-            self.surface.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
+            GL.SCREEN.blit(real_pos_mouse_font, (mouse_pos[0] + 3, mouse_pos[1] + 10))
 
         def _draw_players_debug(draw_p1=True, draw_p2=True):
 
             def _draw_player_debug(p, c1, c2):
-                pygame.draw.rect(self.surface, c1, p)
+                pygame.draw.rect(GL.SCREEN, c1, p)
                 eye = Rect2(topleft=p.topleft, size=(5, 5))
                 if p.facing_direction == LEFT:
                     eye.topleft = p.topleft
@@ -691,7 +616,7 @@ class GameLoop:
                 else:
                     eye.topright = p.topright
                     eye.move_ip((-3, 3))
-                pygame.draw.rect(self.surface, c2, eye)
+                pygame.draw.rect(GL.SCREEN, c2, eye)
 
             if draw_p1:
                 _draw_player_debug(self.player1, DKRED, LBLUE)
@@ -711,9 +636,9 @@ class GameLoop:
                 if pt.BR: locs.append(self.player1.bottomright)
                 if pt.BL: locs.append(self.player1.bottomleft)
                 if locs:  # True if not empty list
-                    pygame.draw.circle(self.surface, ORANGE, self.player1.center, 5, 0)
+                    pygame.draw.circle(GL.SCREEN, ORANGE, self.player1.center, 5, 0)
                 for l in locs:
-                    pygame.draw.circle(self.surface, ORANGE, l, 3, 0)
+                    pygame.draw.circle(GL.SCREEN, ORANGE, l, 3, 0)
 
         if self.player1.input.DEBUG_VIEW:
             _draw_spawn_point_rects()
@@ -742,10 +667,12 @@ class GameLoop:
         def _handle_return_to_main_menu():
             for event in pygame.event.get():
                 if 'click' in self.return_button.handleEvent(event):
-                    self.start_menu(restart_music=True)
-            if self.player1.input.ENTER_LEAVE:
-                self.player1.input.ENTER_LEAVE = False
-                self.start_menu(restart_music=True)
+                    self.return_now = True
+                    GL.NEXT_PAGE = 'start'
+            if self.player1.input.SELECT:
+                self.player1.input.SELECT = False
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
 
         def _handle_time_tick_event():
             for event in pygame.event.get(TIME_TICK_EVENT):
@@ -820,6 +747,7 @@ class GameLoop:
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):
+                print('P1 LOCK EVENT')
                 # player 1 skill lock timer
                 if event.type == PLAYER1_LOCK_EVENT:
                     self.player1.attack_cooldown_expired = True
@@ -858,10 +786,9 @@ class GameLoop:
             for event in pygame.event.get(QUIT):
                 # QUIT event occurs when click X on window bar
                 if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    EXIT_GAME()
 
-        if not self.player1.input.PAUSED:
+        if not self.player1.input.START:
             _handle_song_end_event()
             _handle_time_tick_event()
             _handle_regeneration_event()
@@ -873,10 +800,9 @@ class GameLoop:
             _handle_return_to_main_menu()
         else:
             _handle_quit_event()
-            self.player1.input._handle_keyboard_updown_events()
-            self.player1.input._handle_gamepad_updown_events()
+            self.player1.input.refresh_during_pause()
             pygame.event.clear()
 
-# -------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if __name__ == '__main__':
-    StartMenu()()
+    Application()
