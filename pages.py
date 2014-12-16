@@ -271,14 +271,6 @@ class PlayerSelectPage:
             GL.INPUT1.refresh()
             GL.INPUT2.refresh()
 
-            if GL.INPUT1.SELECT_PRESS_EVENT:
-                GL.INPUT1.SELECT_PRESS_EVENT = False
-                GL.NEXT_PAGE = 'start'
-
-            if GL.INPUT2.SELECT_PRESS_EVENT:
-                GL.INPUT2.SELECT_PRESS_EVENT = False
-                GL.NEXT_PAGE = 'start'
-
         def player_select_inputs():
 
             def check_other_player(player):
@@ -302,7 +294,6 @@ class PlayerSelectPage:
                             self.index = len(self.portraits) - 1
 
                         check_other_player('player1')
-
 
                     elif GL.INPUT1.RIGHT_PRESS_EVENT:
                         GL.INPUT1.RIGHT_PRESS_EVENT = False
@@ -343,19 +334,17 @@ class PlayerSelectPage:
             # they want to select a different sprite or return to start screen
             if GL.INPUT1.A_PRESS_EVENT or GL.INPUT1.kb_input['K_SPACE']:
                 GL.INPUT1.A_PRESS_EVENT = False
-                GL.INPUT1.kb_input['K_SPACE'] = False # press space on keyboard to select
+                GL.INPUT1.kb_input['K_SPACE'] = False  # press space on keyboard to select
                 if self.ready2 and self.index2 == self.index:
                     print('Player 2 is using this character. Select a different one.')
-
                 else:
                     print('player 1 ready')
                     self.ready1 = True
 
-            elif GL.INPUT2.A_PRESS_EVENT:
+            if GL.INPUT2.A_PRESS_EVENT:
                 GL.INPUT2.A_PRESS_EVENT = False
                 if self.ready1 and self.index2 == self.index:
                     print('Player 1 is using this character. Select a different one.')
-
                 else:
                     print('player 2 ready')
                     self.ready2 = True
@@ -363,25 +352,60 @@ class PlayerSelectPage:
             # if player presses back when previously stated they were ready
             # allow them to reselect player
             # keyboard equivalent of select is 's' key
-            elif GL.INPUT1.SELECT_PRESS_EVENT or GL.INPUT1.kb_input['K_s']:
-                GL.INPUT1.SELECT_PRESS_EVENT = False
-                GL.INPUT1.kb_input['K_s'] = False
+            if self.ready1 and GL.INPUT1.B_PRESS_EVENT:
+                GL.INPUT1.B_PRESS_EVENT = False
+                print('player 1 not ready anymore')
                 self.ready1 = False
 
-            elif GL.INPUT2.SELECT_PRESS_EVENT:
-                GL.INPUT2.SELECT_PRESS_EVENT = False
+            elif not self.ready1 and GL.INPUT1.B_PRESS_EVENT:
+                GL.INPUT1.B_PRESS_EVENT = False
+                GL.NEXT_PAGE = 'start'
+                self.return_now = True
+                print('player 1 requested to go back to start')
+
+            if self.ready2 and GL.INPUT2.B_PRESS_EVENT:
+                GL.INPUT2.B_PRESS_EVENT = False
+                print('player 2 not ready anymore')
                 self.ready2 = False
+
+            elif not self.ready2 and GL.INPUT2.B_PRESS_EVENT:
+                GL.INPUT2.B_PRESS_EVENT = False
+                GL.NEXT_PAGE = 'start'
+                self.return_now = True
+                print('player 2 requested to go back to start')
+
+
+            # elif GL.INPUT1.SELECT_PRESS_EVENT or GL.INPUT1.kb_input['K_s']:
+            #     GL.INPUT1.SELECT_PRESS_EVENT = False
+            #     GL.INPUT1.kb_input['K_s'] = False
+            #     print('player 1 not ready anymore')
+            #     self.ready1 = False
+            #
+            # elif GL.INPUT2.SELECT_PRESS_EVENT:
+            #     GL.INPUT2.SELECT_PRESS_EVENT = False
+            #     print('player 2 not ready anymore')
+            #     self.ready2 = False
 
             # if player presses back when they were not ready
             # go back to start screen
-            elif (GL.INPUT1.SELECT_PRESS_EVENT and not self.ready1 or GL.INPUT1.kb_input['K_s']):
-                GL.INPUT1.SELECT_PRESS_EVENT = False
-                GL.INPUT1.kb_input['K_s'] = False
-                GL.NEXT_PAGE = 'start'
+            # if GL.INPUT1.SELECT_PRESS_EVENT and not self.ready1:
+            #     GL.INPUT1.SELECT_PRESS_EVENT = False
+            #     GL.NEXT_PAGE = 'start'
+            #     self.return_now = True
 
-            elif (GL.INPUT2.SELECT_PRESS_EVENT and not self.ready2):
-                GL.INPUT2.SELECT_PRESS_EVENT = False
-                GL.NEXT_PAGE = 'start'
+            # elif (GL.INPUT1.SELECT_PRESS_EVENT and not self.ready1 or GL.INPUT1.kb_input['K_s']):
+            #     GL.INPUT1.SELECT_PRESS_EVENT = False
+            #     GL.INPUT1.kb_input['K_s'] = False
+            #     GL.NEXT_PAGE = 'start'
+            #
+            # if GL.INPUT2.SELECT_PRESS_EVENT and not self.ready2:
+            #     GL.INPUT2.SELECT_PRESS_EVENT = False
+            #     GL.NEXT_PAGE = 'start'
+            #     self.return_now = True
+
+            # elif (GL.INPUT2.SELECT_PRESS_EVENT and not self.ready2):
+            #     GL.INPUT2.SELECT_PRESS_EVENT = False
+            #     GL.NEXT_PAGE = 'start'
 
         def ready_for_start():
             if self.ready1 and self.ready2:
@@ -486,17 +510,17 @@ class LevelSelectPage:
             if self.index < 0:
                 self.index = len(self.levels) - 1
 
-        elif GL.INPUT1.RIGHT_PRESS_EVENT:
+        if GL.INPUT1.RIGHT_PRESS_EVENT:
             GL.INPUT1.RIGHT_PRESS_EVENT = False
             self.index += 1
             if self.index >= len(self.levels):
                 self.index = 0
 
-        elif GL.INPUT1.SELECT_PRESS_EVENT or GL.INPUT1.kb_input['K_s']:
-            GL.INPUT1.SELECT_PRESS_EVENT = False
-            GL.INPUT1.kb_input['K_s'] = False
+        if GL.INPUT1.B_PRESS_EVENT:
+            GL.INPUT1.B_PRESS_EVENT = False
             GL.NEXT_PAGE = 'PlayerSelectPage()'
             self.return_now = True
+
 
         def ready_check():
             if GL.INPUT1.START_PRESS_EVENT or GL.INPUT1.kb_input['K_a']:
@@ -605,8 +629,8 @@ class OptionsPage:
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 
-        if GL.INPUT1.SELECT_PRESS_EVENT:
-            GL.INPUT1.SELECT_PRESS_EVENT = False
+        if GL.INPUT1.B_PRESS_EVENT:
+            GL.INPUT1.B_PRESS_EVENT = False
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
@@ -713,7 +737,7 @@ class PauseMenu:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
-        pygame.draw.rect(GL.SCREEN, WHITE, self.menu_box)
+        pygame.draw.rect(GL.SCREEN, DGREY, self.menu_box)
         pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box, 4)
         GL.SCREEN.blit(self.pause_font_rendered, (self.pause_font_xy[0], self.menu_box.top))
         self.continue_button.draw(GL.SCREEN)
@@ -724,16 +748,6 @@ class PauseMenu:
 
     def input(self):
         GL.INPUT1.refresh_during_pause()
-        # if GL.INPUT1.START_PRESS_EVENT:
-        #     GL.INPUT1.START_PRESS_EVENT = False
-        #     self.return_now = True
-        #     GL.NEXT_PAGE = 'GL.CURR_GAME'
-
-        if GL.INPUT1.SELECT_PRESS_EVENT:
-            GL.INPUT1.SELECT_PRESS_EVENT = False
-            self.return_now = True
-            GL.NEXT_PAGE = 'GL.CURR_GAME'
-
         if GL.INPUT1.START_PRESS_EVENT or GL.INPUT1.A_PRESS_EVENT:
 
             if GL.INPUT1.START_PRESS_EVENT:
