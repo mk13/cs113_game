@@ -89,7 +89,7 @@ class Player(Rect2):
         # character stats
         self.hit_points = self.hit_points_max = 100
         self.energy = self.energy_max = 10
-        self.level = 10
+        self.level = 1
         self.current_exp = 0
 
         # used for skill pickup
@@ -110,7 +110,7 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-        self.attack_id = 7
+        self.attack_id = 9
         self.skill1_id = 114
         self.skill2_id = 125
         self.skill3_id = 117

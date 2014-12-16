@@ -289,9 +289,10 @@ class GameLoop:
                             p.on_terrain_f(p)
                         self.active_particles.remove(p)
                         for i in all_terrain_hit_i:
-                            self.arena.rects[i].hits_to_destroy -= 1
-                            if self.arena.rects[i].hits_to_destroy == 0:
-                                self.arena.rects.pop(i)
+                            if i in range(0, len(self.arena.rects)):
+                                self.arena.rects[i].hits_to_destroy -= 1
+                                if self.arena.rects[i].hits_to_destroy == 0:
+                                    self.arena.rects.pop(i)
                     # Check Monsters
                     else:
                         first_hit = p.collidelist(self.active_monsters)

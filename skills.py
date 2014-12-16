@@ -97,7 +97,7 @@ def initialize_skill_table():
     PARTICLES_TABLE[2] = particle_image("2.png")
 
     # Spear
-    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 250, 250, DGREY, 15, 0, POKE, 2, 'none', True)
+    SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, POKE, 2, 'none', True)
     SKILLS_TABLE[3]['conditions'] = [classes.Wounded(2000)]
     ICONS_TABLE[3] = icon_image("3.png")
     # Nail-on-plank
