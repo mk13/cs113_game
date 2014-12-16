@@ -31,6 +31,8 @@ class Application:
         options = OptionsPage()
         help = HelpPage()
         pause = PauseMenu()
+        # playerSelect = PlayerSelectPage()
+        # levelSelect = LevelSelectPage()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -66,7 +68,7 @@ class GameLoop:
                 Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
 
         def _setup_arena():
-            self.arena = Arena(random.choice((arena1, arena2, arena3)))
+            self.arena = Arena(GL.get_selected_level())#random.choice(( arena3, arena4, arena5)))
             GL.arena_in_use = self.arena  # used for out_of_arena_fix within global.py
 
         def _setup_fonts():
@@ -180,6 +182,9 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_players()
+
+
+
 
     # ------------------------------------------------------------------------
     def __call__(self):
@@ -383,15 +388,22 @@ class GameLoop:
     def draw_screen(self):
 
         def _draw_ui1():
-            GL.SCREEN.fill(DGREY)
+            #GL.SCREEN.fill(DGREY)
+            self.bkg_image = pygame.image.load('data/options.png')
+            GL.SCREEN.blit(self.bkg_image, (0,0))
+
             if self.arena.background is not None:
                 self.image = pygame.image.load(self.arena.background)
                 GL.SCREEN.blit(self.image, (self.arena.play_area_rect.left, 0))
 
+                #monster_image = pygame.image.load('filename')
+                #GL.SCREEN.blit(monster_image, m.topleft)
+
+
         def _draw_ui2():
-            pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
-            pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
-            pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -590,7 +602,11 @@ class GameLoop:
 
         def _draw_monsters():
             for m in self.active_monsters:
+
                 pygame.draw.rect(GL.SCREEN, m.color, m)
+                #monster_image = pygame.image.load('filename')
+                #GL.SCREEN.blit(monster_image, m.topleft)
+
                 health_bar = Rect2(left=m.left, top=m.top - 8, width=m.width, height=6)
                 health_bar_width = round(m.width * (m.hit_points / m.hit_points_max))
                 health_bar_life = Rect2(left=m.left, top=m.top - 8, width=health_bar_width, height=6)

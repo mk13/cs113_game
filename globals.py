@@ -54,6 +54,8 @@ SONGS = ['data/pneumatic_driller.mp3', 'data/euglena_zielona.mp3',
          'data/drilldance.mp3', 'data/running_emu.mp3', 'data/wooboodoo.mp3',
          'data/accident.mp3']
 
+SOUNDS = {}
+
 # Monster Types and Globals
 ALL = 'ALL'
 WEAK = 'WEAK'
@@ -252,6 +254,32 @@ def EXIT_GAME():
     pygame.quit()
     sys.exit()
 
+# Getters and setter for player sprites and level select
+
+def set_player1_spritesheet(spritesheet):
+    global P1_SPRITESHEET
+    P1_SPRITESHEET = spritesheet
+
+def set_player2_spritesheet(spritesheet):
+    global P2_SPRITESHEET
+    P2_SPRITESHEET = spritesheet
+
+def set_level(arena):
+    global SELECTED_ARENA
+    SELECTED_ARENA = arena
+
+def get_spritesheet(player):
+    if player == 'player1':
+        global P1_SPRITESHEET
+        return P1_SPRITESHEET
+    elif player == 'player2':
+        global P2_SPRITESHEET
+        return P2_SPRITESHEET
+
+def get_selected_level():
+    global SELECTED_ARENA
+    return SELECTED_ARENA
+
 # Music and Sound
 class Audio:
     def __init__(self):
@@ -261,7 +289,7 @@ class Audio:
         except pygame.error:
             self.audio_device_found = False
         self.menu_song = self.curr_song = 'data/404error.mp3'
-        self.music_on = self.sound_on = False
+        self.music_on = self.sound_on = True
 
     def restart_music(self):
         if self.audio_device_found:
@@ -397,6 +425,9 @@ class Input:
                   'GP_R2': input_nt(kind='axis', number=2, value1=-1, value2=None)}
 
         self.GP_INPUTS_DICT = di
+
+    def get_gamepad(self):
+        return self.gamepad_found
 
     def refresh(self):
         if self.player_id == 1:
@@ -579,8 +610,8 @@ arena2 = arena_nt(
 arena3 = arena_nt(
     left_wall_x=65, right_wall_x=1215, floor_y=458,
     platforms=[
-        terrain_nt(425, 80, 73, 40, None, -1, False),
-        terrain_nt(555, 80, 100, 40, None, -1, False),
+        terrain_nt(401, 80, 112, 37, None, -1, False),
+        terrain_nt(557, 80, 112, 37, None, -1, False),
         terrain_nt(85, 140, 228, 40, None, -1, False),
         terrain_nt(85, 180, 40, 142, None, -1, False),
         terrain_nt(85, 322, 95, 40, None, -1, False),
@@ -590,8 +621,42 @@ arena3 = arena_nt(
         terrain_nt(785, 120, 227, 40, None, -1, False),
         terrain_nt(150, 465, -5, 5, None, -1, True),
         terrain_nt(930, 465, -5, 5, None, -1, True), ],
-    max_monsters=3, possible_monsters=(WEAK, MEDIUM),  # ALL
-    background='data/vines-copy2.png', p1_spawn=(75, 50), p2_spawn=(992, 50))
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM), # ALL
+    background='data/vinesLevel.png', p1_spawn=(75, 50), p2_spawn=(992, 50))
+
+arena4 = arena_nt(
+     left_wall_x=65, right_wall_x=1215, floor_y=458,
+    platforms=[
+        terrain_nt(546, 51, 229, 37, None, -1, False),
+        terrain_nt(0, 114, 110, 37, None, -1, False),
+        terrain_nt(338, 114, 112, 37, None, -1, False),
+        terrain_nt(823, 152, 229, 37, None, -1, False),
+        terrain_nt(594, 164, 18, 194, None, -1, False),
+        terrain_nt(702, 181, 18, 194, None, -1, False),
+        terrain_nt(134, 190, 113, 37, None, -1, False),
+        terrain_nt(268, 286, 229, 37, None, -1, False),
+        terrain_nt(802, 316, 348, 37, None, -1, False),
+        terrain_nt(72, 351, 112, 37, None, -1, False),
+        terrain_nt(150, 450, -5, 5, RED, -1, True),
+        terrain_nt(930, 450, -5, 5, RED, -1, True), ],
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM), #ALL
+    background='data/humanLevel.png', p1_spawn=(75,50), p2_spawn=(992, 50))
+
+arena5 = arena_nt(
+     left_wall_x=65, right_wall_x=1215, floor_y=458,
+    platforms=[
+        terrain_nt(59, 70, 40, 298, None, -1, False),
+        terrain_nt(236, 44, 40, 298, None, -1, False),
+        terrain_nt(498, 119, 112, 37, None, -1, False),
+        terrain_nt(953, 47, 112, 37, None, -1, False),
+        terrain_nt(1031, 335, 112, 37, None, -1, False),
+        terrain_nt(673, 208, 229, 37, None, -1, False),
+        terrain_nt(496, 348, 263, 56, None, -1, False),
+        terrain_nt(381, 402, 350, 56, None, -1, False),
+        terrain_nt(150, 450, -5, 5, RED, -1, True),
+        terrain_nt(930, 450, -5, 5, RED, -1, True), ],
+    max_monsters=3, possible_monsters=(WEAK, MEDIUM), #ALL
+    background='data/androidLevel.png', p1_spawn=(75,50), p2_spawn=(985, 150))
 
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
@@ -600,3 +665,7 @@ MONSTER_TABLE = {
     MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 5),
     ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 8)}
 
+# Spritesheet and arena globals with default values
+P1_SPRITESHEET = 'data/p1_human_8bit.png'
+P2_SPRITESHEET = 'data/p1_human_8bit.png'
+SELECTED_ARENA = arena3
