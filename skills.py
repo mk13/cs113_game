@@ -113,12 +113,12 @@ def initialize_skill_table():
     PARTICLES_TABLE[4] = particle_image("4.png")
 
     # Boomerang
-    SKILLS_TABLE[5] = _auto_range('Boomerang', 20, 20, 25, -2, 250, 5000, GREEN, 5, 0, THROW, 1)
+    SKILLS_TABLE[5] = _auto_range('Boomerang', 20, 20, 25, -2, 250, 5000, GREEN, 5, 0, THROW, 1, sound='data/sounds/boomerang.wav')
     ICONS_TABLE[5] = icon_image("5.png")
     PARTICLES_TABLE[5] = particle_image("5.png")
 
     # Heavy Bar
-    SKILLS_TABLE[6] = _auto_melee('Heavy Bar', 40, 40, math.pi/2, 40, 40, 1000, 750, BLACK, 30, 0, TWOHAND, 6)
+    SKILLS_TABLE[6] = _auto_melee('Heavy Bar', 40, 40, math.pi/2, 40, 40, 1000, 750, BLACK, 30, 0, TWOHAND, 6, sound='data/sounds/heavy.wav')
     SKILLS_TABLE[6]['conditions'] = [classes.Stun(500)]
     ICONS_TABLE[6] = icon_image("6.png")
     PARTICLES_TABLE[6] = particle_image("6.png")
@@ -411,16 +411,16 @@ def boulder_toss_start(sid, player, up=False, down=False):
     return obj
 
 def ADD_SHRAPNEL_BOMB(i):
-    # SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2, 'state': THROW, 'frame': 1}
-    SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2, 'sound':'data/sounds/shrap.wav'}
+    SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2, 'state': THROW, 'frame': 1, 'sound':'data/sounds/shrap.wav'}
+    #SKILLS_TABLE[i] = {'name': 'Shrapnel Bomb', 'type': None, 'start': shrapnel_bomb_start, 'cooldown': 200, 'energy':2, 'sound':'data/sounds/shrap.wav'}
     SKILLS_TABLE["shrapnel_base"] = _auto_range('',25, 25, 5, 0, 200, 3000, DGREY, 10, 0)
     PARTICLES_TABLE["shrapnel_base"] = particle_image("shrapnel_base.png")
     SKILLS_TABLE["shrapnel_base"]["special_path"] = lob_motion
     SKILLS_TABLE["shrapnel_base"]["on_hit_f"] = shrapnel_on_hit
     SKILLS_TABLE["shrapnel_base"]["on_expire_f"] = shrapnel_on_expire
     SKILLS_TABLE["shrapnel_base"]["on_terrain_f"] = shrapnel_on_terrain
-    # SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0, 'state': THROW, 'frame': 1}
-    SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0, 'sound':'data/sounds/shrap2.wav'}
+    SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0, 'state': THROW, 'frame': 1, 'sound':'data/sounds/shrap2.wav'}
+    #SKILLS_TABLE["shrapnel_trigger"] = {'name':'','type': None, 'start':shrapnel_trigger_start, 'cooldown':100, 'energy':0, 'sound':'data/sounds/shrap2.wav'}
     SKILLS_TABLE["shrapnel0"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
     SKILLS_TABLE["shrapnel0"]["special_path"] = (lambda p,t: (p.centerx+10, p.centery))
     SKILLS_TABLE["shrapnel1"] = _auto_range('',10, 10, 2, 0, 500, 1000, DGREY, 5, 0)
@@ -516,15 +516,15 @@ def shrapnel_on_terrain(particle):
 
 
 def ADD_SHIELD(i):
-    # SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6, 'state': CAST2, 'frame': 1}
-    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6, 'sound':'data/sounds/shield.wav'}
+    SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6, 'state': CAST2, 'frame': 1, 'sound':'data/sounds/shield.wav'}
+    #SKILLS_TABLE[i] = {'name':'Shield','type': None, 'start': shield_start, 'cooldown': 200, 'energy':6, 'sound':'data/sounds/shield.wav'}
 def shield_start(sid, player, up=False, down=False):
     sh = classes.Shield(10000,10)
     sh.begin(-1,player)
     return None
 def ADD_NAPALM(i):
-    # SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5, 'state': THROW, 'frame': 2}
-    SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5, 'sound':'data/sounds/napalm.wav'}
+    SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5, 'state': THROW, 'frame': 2, 'sound':'data/sounds/napalm.wav'}
+    #SKILLS_TABLE[i] = {'name': 'Napalm', 'type': None, 'start': napalm_start, 'cooldown': 500, 'energy':5, 'sound':'data/sounds/napalm.wav'}
     SKILLS_TABLE['napalm_main'] = _auto_range('',30, 30, 2, 0, 500, 500, RED, 10, 0)
     SKILLS_TABLE['napalm0'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
     SKILLS_TABLE['napalm1'] = _auto_range('',20, 20, 2, 0, 500, 3000, RED, 10, 0)
@@ -581,8 +581,8 @@ def napalm_on_expire(p):
         p.belongs_to.new_particle = [temp, obj0, obj1, obj2]
 
 def ADD_FIRE_AND_ICE(i):
-    # SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5, 'state': CAST1, 'frame': 1}
-    SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5, 'sound':'data/sounds/fireIce.wav'}
+    SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5, 'state': CAST1, 'frame': 1, 'sound':'data/sounds/fireIce.wav'}
+    #SKILLS_TABLE[i] = {'name':'Icy-Hot', 'type': None, 'start': fai_start, 'cooldown': 200, 'energy':5, 'sound':'data/sounds/fireIce.wav'}
     SKILLS_TABLE['fai_fire'] = _auto_range('',20, 20, 5, 2, 500, 10000, RED, 10, 2)
     SKILLS_TABLE['fai_fire']['special_path'] = fai_fire_path
     SKILLS_TABLE['fai_fire']['conditions'] = [classes.Dot(5, 3, 1000)]

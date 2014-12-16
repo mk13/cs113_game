@@ -207,7 +207,7 @@ class GameLoop:
                 self.handle_players_inputs()
                 self.handle_event_queue()
             self.end_game()
-                
+
     def end_game(self):
         if self.player1.is_dead() or self.player2.is_dead():
             self.return_now = True
@@ -469,9 +469,12 @@ class GameLoop:
             GL.SCREEN.blit(time_display, self.timer_font_xy)
 
         def _draw_arena():
-            for rect in self.arena:
+            for rect in self.arena.non_spawn_points:
                 if rect.color is not None:
                     pygame.draw.rect(GL.SCREEN, rect.color, rect)
+            # for rect in self.arena:
+            #     if rect.color is not None:
+            #         if rect.
 
         def _draw_players():
             def _draw_player(p):

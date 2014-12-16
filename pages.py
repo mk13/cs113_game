@@ -788,7 +788,7 @@ class PauseMenu:
             if 'click' in self.quit_button.handleEvent(event):
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
-                
+
 class GameOverMenu:
     def __init__(self):
         self.menu_box = Rect2(topleft=(290, 120), size=(670, 240), color=BLACK)
@@ -814,7 +814,7 @@ class GameOverMenu:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
-        pygame.draw.rect(GL.SCREEN, WHITE, self.menu_box)
+        pygame.draw.rect(GL.SCREEN, DGREY, self.menu_box)
         pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box, 4)
         GL.SCREEN.blit(self.game_over_rendered, (self.game_over_xy[0], self.menu_box.top))
         self.main_menu_button.draw(GL.SCREEN)
