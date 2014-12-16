@@ -416,9 +416,9 @@ class PlayerSelectPage:
                 self.player1_spritesheet = 'data/p1_elf.png'
 
             if self.index2 == 0:  # human
-                self.player2_spritesheet = 'data/p1_human.png'
+                self.player2_spritesheet = 'data/p2_human.png'
             elif self.index2 == 1:  # elf
-                self.player2_spritesheet = 'data/p2_human.png'  # Elf spritesheet 2 if available
+                self.player2_spritesheet = 'data/p2_elf.png'  # Elf spritesheet 2 if available
 
             GL.set_player1_spritesheet(self.player1_spritesheet)
             GL.set_player2_spritesheet(self.player2_spritesheet)
