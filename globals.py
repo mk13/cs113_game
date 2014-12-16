@@ -201,6 +201,8 @@ def handle_damage(target, value, time):
     if value != 0:
         target.hit_points -= value
         target.shield_trigger(value)
+        if target.hit_points < 0:
+            target.hit_points = 0
         if time >= 0:
             target.st_buffer.append((ST_DMG, value, time + 2000))
         else:
@@ -208,7 +210,8 @@ def handle_damage(target, value, time):
 
 def handle_hp_gain(target, value, time):
     if value != 0:
-        target.hit_points += value
+        if target.hit_points > 0:
+            target.hit_points += value
         if target.hit_points > target.hit_points_max:
             target.hit_points = target.hit_points_max
         if time >= 0:
