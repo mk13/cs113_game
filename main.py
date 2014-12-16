@@ -45,6 +45,7 @@ class GameLoop:
             self.game_time = GameTime()
 
         def _setup_ui():
+            self.bkg_image = pygame.image.load('data/options.png')
             self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
@@ -64,10 +65,15 @@ class GameLoop:
                 Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
+            self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
+            self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
+            self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
+            self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
 
         def _setup_arena():
-            self.arena = Arena(random.choice((arena1, arena2, arena3)))
+            self.arena = Arena(GL.get_selected_level())#random.choice(( arena3, arena4, arena5)))
             GL.arena_in_use = self.arena  # used for out_of_arena_fix within global.py
+            self.arena_image = pygame.image.load(self.arena.background)
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -112,6 +118,10 @@ class GameLoop:
             self.dropped_skills = []
             self.spawn_monsters = False
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
+
+            self.weak_monster_image = pygame.image.load('data/wMonster.png')
+            self.medium_monster_image = pygame.image.load('data/mMonster.png')
+            self.ultimate_monster_image = pygame.image.load('data/uMonster.png')
 
         def _setup_music():
             if AUDIO.music_on:
@@ -161,11 +171,8 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/pl_human.png')
-            p2_sprite = _setup_player_sprites('data/pl_human.png')
-
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=p2_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=_setup_player_sprites(GL.P1_SPRITESHEET))
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=_setup_player_sprites(GL.P2_SPRITESHEET))
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -384,15 +391,14 @@ class GameLoop:
     def draw_screen(self):
 
         def _draw_ui1():
-            GL.SCREEN.fill(DGREY)
+            GL.SCREEN.blit(self.bkg_image, (0, 0))
             if self.arena.background is not None:
-                self.image = pygame.image.load(self.arena.background)
-                GL.SCREEN.blit(self.image, (self.arena.play_area_rect.left, 0))
+                GL.SCREEN.blit(self.arena_image, (self.arena.play_area_rect.left, 0))
 
         def _draw_ui2():
-            pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
-            pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
-            pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
+            #pygame.draw.rect(GL.SCREEN, DGREY, self.bottom_grey_fill)
 
             # font for player's health and energy
             # health_display = self.health_font.render(str(self.player1.hit_points), True, RED)
@@ -401,13 +407,9 @@ class GameLoop:
             # GL.SCREEN.blit(energy_display, self.energy_font_xy)
 
             # health bars
-            # currently only goes off of one player's health
-            # left health bar outline image
-            self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
             GL.SCREEN.blit(self.health_bar_outline, (5, 20))
-            self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
             GL.SCREEN.blit(self.health_bar_outline2, (1239, 20))
-            # right health bar outline image
+
             # dynamic health bars
             self.damage_taken1 = self.player1.hit_points_max - self.player1.hit_points
             self.damage_taken2 = self.player2.hit_points_max - self.player2.hit_points
@@ -416,13 +418,10 @@ class GameLoop:
             pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar1)
             pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar2)
 
-            # need to add dynamic aspect of energy bars
-            # left energy bar outline image
-            self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
+            # energy bars
             GL.SCREEN.blit(self.energy_bar_outline, (5, 280))
-            # right energy bar outline image
-            self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
             GL.SCREEN.blit(self.energy_bar_outline2, (1239, 280))
+
             # dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
             self.energy_used2 = 10 - self.player2.energy
@@ -591,7 +590,12 @@ class GameLoop:
 
         def _draw_monsters():
             for m in self.active_monsters:
-                pygame.draw.rect(GL.SCREEN, m.color, m)
+                if m.kind == WEAK:
+                    GL.SCREEN.blit(self.weak_monster_image, m.topleft)
+                elif m.kind == MEDIUM:
+                    GL.SCREEN.blit(self.medium_monster_image, m.topleft)
+                elif m.kind == ULTIMATE:
+                    GL.SCREEN.blit(self.ultimate_monster_image, m.topleft)
                 health_bar = Rect2(left=m.left, top=m.top - 8, width=m.width, height=6)
                 health_bar_width = round(m.width * (m.hit_points / m.hit_points_max))
                 health_bar_life = Rect2(left=m.left, top=m.top - 8, width=health_bar_width, height=6)
@@ -891,41 +895,43 @@ class GameLoop:
             for event in pygame.event.get(REGENERATION_EVENT):
                 if event.type == REGENERATION_EVENT:
                     # Player 1
-                    if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
-                        self.player1.hit_points += self.player1.level / 20
-                    elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
-                        self.player1.hit_points += self.player1.level / 5
-                    else:
-                        self.player1.hit_points += self.player1.level / 10
-                    if self.player1.hit_points > 100:
-                        self.player1.hit_points = 100
+                    if self.player1.hit_points > 0:
+                        if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
+                            self.player1.hit_points += self.player1.level / 20
+                        elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
+                            self.player1.hit_points += self.player1.level / 5
+                        else:
+                            self.player1.hit_points += self.player1.level / 10
+                        if self.player1.hit_points > 100:
+                            self.player1.hit_points = 100
 
-                    if self.player1.conditions[WEAKENED] and not self.player1.conditions[EMPOWERED]:
-                        self.player1.energy += self.player1.level / 10
-                    elif not self.player1.conditions[WEAKENED] and self.player1.conditions[EMPOWERED]:
-                        self.player1.energy += self.player1.level / 2.5
-                    else:
-                        self.player1.energy += self.player1.level / 5
-                    if self.player1.energy > 10:
-                        self.player1.energy = 10
+                        if self.player1.conditions[WEAKENED] and not self.player1.conditions[EMPOWERED]:
+                            self.player1.energy += self.player1.level / 10
+                        elif not self.player1.conditions[WEAKENED] and self.player1.conditions[EMPOWERED]:
+                            self.player1.energy += self.player1.level / 2.5
+                        else:
+                            self.player1.energy += self.player1.level / 5
+                        if self.player1.energy > 10:
+                            self.player1.energy = 10
                     # Player 2
-                    if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
-                        self.player2.hit_points += self.player2.level / 20
-                    elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
-                        self.player2.hit_points += self.player2.level / 5
-                    else:
-                        self.player2.hit_points += self.player2.level / 10
-                    if self.player2.hit_points > 100:
-                        self.player2.hit_points = 100
+                    if self.player2.hit_points > 0:
+                        if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
+                            self.player2.hit_points += self.player2.level / 20
+                        elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
+                            self.player2.hit_points += self.player2.level / 5
+                        else:
+                            self.player2.hit_points += self.player2.level / 10
+                        if self.player2.hit_points > 100:
+                            self.player2.hit_points = 100
 
-                    if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
-                        self.player2.energy += self.player2.level / 10
-                    elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:
-                        self.player2.energy += self.player2.level / 2.5
-                    else:
-                        self.player2.energy += self.player2.level / 5
-                    if self.player2.energy > 10:
-                        self.player2.energy = 10
+                        if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
+                            self.player2.energy += self.player2.level / 10
+                        elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:
+                            self.player2.energy += self.player2.level / 2.5
+                        else:
+                            self.player2.energy += self.player2.level / 5
+                        if self.player2.energy > 10:
+                            self.player2.energy = 10
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):

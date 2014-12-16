@@ -110,11 +110,19 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
+<<<<<<< HEAD
         self.attack_id = 9
         self.skill1_id = 114
         self.skill2_id = 125
         self.skill3_id = 117
         self.ult_id = 104
+=======
+        self.attack_id = 10
+        self.skill1_id = 111
+        self.skill2_id = 102
+        self.skill3_id = 123
+        self.ult_id = 1005
+>>>>>>> df7c8a14da5ff2dd9573135c1a94b29851cd410b
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT
@@ -140,6 +148,17 @@ class Player(Rect2):
             return GL.INPUT1
         elif self.id == 2:
             return GL.INPUT2
+
+    #play the skill's sound
+    def play_sound(self, path, i):
+        print(SKILLS_TABLE[i]['sound'])
+        if SKILLS_TABLE[i]['sound'] is not 'none' and AUDIO.sound_on:
+            global SOUNDS
+            sound = SOUNDS.get(path)
+            if sound == None:
+                sound = pygame.mixer.Sound(path)
+                SOUNDS[path] = sound
+            sound.play()
 
     @property
     def skills(self):
@@ -330,6 +349,9 @@ class Player(Rect2):
                     if not(self.attack_state == RUN or self.attack_state == BREATH):
                         self.state = RESET
                     self.energy -= SKILLS_TABLE[i]['energy']
+
+                    self.play_sound(SKILLS_TABLE[i]['sound'], i)
+
                     self.new_particle = SKILLS_TABLE[i]['start'](i, self, self.input.UP, self.input.DOWN)
                     if SKILLS_TABLE[i]['cooldown']:
                         self.attack_cooldown_expired = False
@@ -408,6 +430,7 @@ class Player(Rect2):
         else:
             self.state = STAND
 
+
 # -------------------------------------------------------------------------
 class Monster(Player):
     def __init__(self, info, topleft, player1, player2, color=ORANGE):
@@ -431,7 +454,6 @@ class Monster(Player):
         self.has_hit_time = []
         self.hit_by = {1: False, 2: False}
         self.hit_by_time = {1: 0, 2: 0}
-        self.last_hit_by = None
 
     @property
     def input(self):
@@ -752,7 +774,6 @@ class RangeParticle(Particle):
                 target.hit_by[self.belongs_to.id] = True
                 target.hit_by_time[self.belongs_to.id] = time
                 target.last_hit_by = self.belongs_to
-
 
             if self.on_hit_f:
                 self.on_hit_f(self, target, time)
