@@ -788,3 +788,89 @@ class PauseMenu:
             if 'click' in self.quit_button.handleEvent(event):
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
+                
+class GameOverMenu:
+    def __init__(self):
+        self.menu_box = Rect2(topleft=(290, 120), size=(670, 240), color=BLACK)
+        main_font = 'data/Kremlin.ttf'
+        game_over_font = pygame.font.Font(main_font, 100)
+        self.game_over_xy = font_position_center(self.menu_box, game_over_font, '-Game Over-')
+        self.game_over_rendered = game_over_font.render('-Game Over-', True, RED)
+
+        self.main_menu_properties = (395, 270, 200, 50)
+        self.exit_button_properties = (730, 270, 100, 50)
+
+        self.main_menu_button = pygbutton.PygButton(self.main_menu_properties, 'Main Menu')
+        self.exit_button = pygbutton.PygButton(self.exit_button_properties, 'Exit')
+        self.selection_box_properties = [self.main_menu_properties, self.exit_button_properties]
+        self.selection_box_i = 0
+
+    def __call__(self):
+        self.return_now = False
+        while not self.return_now:
+            self.draw()
+            self.input()
+            self.events()
+            GL.CLOCK.tick(GL.FPS)
+
+    def draw(self):
+        pygame.draw.rect(GL.SCREEN, WHITE, self.menu_box)
+        pygame.draw.rect(GL.SCREEN, self.menu_box.color, self.menu_box, 4)
+        GL.SCREEN.blit(self.game_over_rendered, (self.game_over_xy[0], self.menu_box.top))
+        self.main_menu_button.draw(GL.SCREEN)
+        self.exit_button.draw(GL.SCREEN)
+        self.selection_box = Rect2(self.selection_box_properties[self.selection_box_i], color=BLUE)
+        pygame.draw.rect(GL.SCREEN, self.selection_box.color, self.selection_box, selection_box_width)
+        pygame.display.update()
+
+    def input(self):
+        GL.INPUT1.refresh_during_pause()
+        # if GL.INPUT1.START_PRESS_EVENT:
+        #     GL.INPUT1.START_PRESS_EVENT = False
+        #     self.return_now = True
+        #     GL.NEXT_PAGE = 'GL.CURR_GAME'
+
+        if GL.INPUT1.SELECT_PRESS_EVENT:
+            GL.INPUT1.SELECT_PRESS_EVENT = False
+            self.return_now = True
+            GL.NEXT_PAGE = 'start'
+
+        if GL.INPUT1.START_PRESS_EVENT or GL.INPUT1.A_PRESS_EVENT:
+
+            if GL.INPUT1.START_PRESS_EVENT:
+                GL.INPUT1.START_PRESS_EVENT = False
+
+            if GL.INPUT1.A_PRESS_EVENT:
+                GL.INPUT1.A_PRESS_EVENT = False
+
+            if self.selection_box_i == 0:
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
+
+            if self.selection_box_i == 1:
+                self.return_now = True
+                EXIT_GAME()
+
+        if GL.INPUT1.RIGHT_PRESS_EVENT:
+            GL.INPUT1.RIGHT_PRESS_EVENT = False
+            self.selection_box_i += 1
+            if self.selection_box_i > 1:
+                self.selection_box_i = 0
+
+        if GL.INPUT1.LEFT_PRESS_EVENT:
+            GL.INPUT1.LEFT_PRESS_EVENT = False
+            self.selection_box_i -= 1
+            if self.selection_box_i < 0:
+                self.selection_box_i = 1
+
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                EXIT_GAME()
+
+            if 'click' in self.main_menu_button.handleEvent(event):
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
+
+            if 'click' in self.exit_button.handleEvent(event):
+                EXIT_GAME()

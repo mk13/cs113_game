@@ -31,6 +31,7 @@ class Application:
         options = OptionsPage()
         help = HelpPage()
         pause = PauseMenu()
+        gameOver = GameOverMenu()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -198,12 +199,19 @@ class GameLoop:
                 self.handle_particles()
                 self.draw_screen()
                 self.draw_debug()
+                self.end_game()
                 pygame.display.update()
                 self.handle_event_queue()
                 GL.CLOCK.tick(GL.FPS)
             else:
                 self.handle_players_inputs()
                 self.handle_event_queue()
+            self.end_game()
+                
+    def end_game(self):
+        if self.player1.is_dead() or self.player2.is_dead():
+            self.return_now = True
+            GL.NEXT_PAGE = 'gameOver'
 
     # -------------------------------------------------------------------------
     def handle_players_inputs(self):
@@ -296,9 +304,10 @@ class GameLoop:
                             p.on_terrain_f(p)
                         self.active_particles.remove(p)
                         for i in all_terrain_hit_i:
-                            self.arena.rects[i].hits_to_destroy -= 1
-                            if self.arena.rects[i].hits_to_destroy == 0:
-                                self.arena.rects.pop(i)
+                            if i in range(0, len(self.arena.rects)):
+                                self.arena.rects[i].hits_to_destroy -= 1
+                                if self.arena.rects[i].hits_to_destroy == 0:
+                                    self.arena.rects.pop(i)
                     # Check Monsters
                     else:
                         first_hit = p.collidelist(self.active_monsters)

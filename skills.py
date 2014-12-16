@@ -84,7 +84,7 @@ def initialize_skill_table():
     # -----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
     # -----------------------------------------------------------------------------------------
-    SKILLS_TABLE[0] = {'name':'Blank','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0, 'sound':'none'}
+    SKILLS_TABLE[0] = {'name':'','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0, 'sound':'none'}
 
     # Monster Slayer (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0, ONEHAND, 3, sound='data/sounds/punch.wav')
@@ -100,6 +100,7 @@ def initialize_skill_table():
     PARTICLES_TABLE[2] = particle_image("2.png")
 
     # Spear
+
     SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 250, 250, DGREY, 15, 0, POKE, 2, 'none', True, sound='data/sounds/blink.wav')
     # SKILLS_TABLE[3] = _auto_melee('Spear', 10, 10, 0, 5, 60, 500, 500, DGREY, 15, 0, 'data/sounds/blink.wav', True)
     SKILLS_TABLE[3]['conditions'] = [classes.Wounded(2000)]
@@ -123,7 +124,7 @@ def initialize_skill_table():
     PARTICLES_TABLE[6] = particle_image("6.png")
 
     # Quick Shot
-    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 3, 0, MACHGUN, 2)
+    SKILLS_TABLE[7] = _auto_range('Quick Shot', 10, 10, 10, 2, 200, 5000, DGREY, 0, 0, MACHGUN, 2)
     SKILLS_TABLE[7]['on_hit_f'] = quick_shot_on_hit
     ICONS_TABLE[7] = icon_image("7.png")
     # Plague Swipe
@@ -144,7 +145,6 @@ def initialize_skill_table():
 
     # Teleport
     SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5, 'state': CAST2, 'frame': 2, 'sound': 'data/sounds/teleport.wav'}
-    # SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5, 'sound':'data/sounds/teleport.wav'}
     ICONS_TABLE[100] = icon_image("100.png")
 
     # Fireball
@@ -155,7 +155,7 @@ def initialize_skill_table():
 
     # Static Bolt
     SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2, CAST1, 2, sound='data/sounds/static.wav')
-    # SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2,'data/sounds/static.wav')
+    SKILLS_TABLE[102]['conditions'] = [classes.Weakened(5000)]
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_path
     ICONS_TABLE[102] = icon_image("102.png")
     PARTICLES_TABLE[102] = particle_image("102.png")
@@ -166,7 +166,6 @@ def initialize_skill_table():
 
     # Mines
     SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3, CAST3, 1,sound='data/sounds/mines.wav')
-    # SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3, 'data/sounds/mines.wav')
     ICONS_TABLE[104] = icon_image("104.png")
     PARTICLES_TABLE[104] = particle_image("104.png")
 
@@ -620,7 +619,8 @@ def ADD_VILE_BREATH(i):
     SKILLS_TABLE['vbreath'] = _auto_range('',10,10,5,0,500,1000,GREEN,2,1)
     SKILLS_TABLE['vbreath']['special_path'] = vile_breath_path
     SKILLS_TABLE['vbreath']['conditions'] = [classes.Weakened(random.randint(1,3)*1000),
-                                             classes.Slow(random.randint(1,3)*1000, 0.5)]
+                                             classes.Slow(random.randint(1,3)*1000, 0.5),
+                                             classes.Wounded(3000)]
 def vile_breath_start(sid,player,up=False, down=False):
     b0 = classes.RangeParticle('vbreath',player,up,down)
     b1 = classes.RangeParticle('vbreath',player,up,down)
@@ -647,8 +647,10 @@ def ADD_CROP_DUST(i):
     #SKILLS_TABLE[i] = {'name':'Crop Dust', 'type': None, 'start': crop_dust_start, 'cooldown': 1, 'energy': 1, 'sound':'data/sounds/cropdust.wav'}
     SKILLS_TABLE['cropdust'] = _auto_range('',10,10,5,0,500,1000,BROWN,1,1)
     SKILLS_TABLE['cropdust']['special_path'] = crop_dust_path
-    SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.50)]
+    SKILLS_TABLE['cropdust']['conditions'] = [classes.Slow(1500, 0.75)]
 def crop_dust_start(sid,player,up=False,down=False):
+    speed = classes.Speed(2000, 0.5)
+    speed.begin(-1, player)
     c0 = classes.RangeParticle('cropdust',player,up,down)
     c1 = classes.RangeParticle('cropdust',player,up,down)
     c2 = classes.RangeParticle('cropdust',player,up,down)
@@ -713,14 +715,14 @@ def ADD_BEE_HIVE(i):
     SKILLS_TABLE['beehive'] = _auto_range('',40,40, 3, 0, 500, 5000, WHITE, 4, 0)
     SKILLS_TABLE['beehive']['special_path'] = bee_hive_path
     SKILLS_TABLE['beehive']['conditions'] = [classes.Dot(3,5,1000)]
-    SKILLS_TABLE['bee1'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee2'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee3'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee4'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee5'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
-    SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 2, 0)
+    SKILLS_TABLE['bee1'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee2'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee3'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee4'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee5'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee6'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee7'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
+    SKILLS_TABLE['bee8'] = _auto_range('', 10, 10, 5, 0, 100, 500, YELLOW, 5, 0)
 
     SKILLS_TABLE["bee1"]["special_path"] = (lambda p,t: (p.centerx-10, p.centery-10))
     SKILLS_TABLE["bee2"]["special_path"] = (lambda p,t: (p.centerx, p.centery-10))
@@ -878,7 +880,7 @@ def adrenaline_start(sid,player,up,down):
     return None
 
 def quick_shot_on_hit(particle,target,time):
-    handle_damage(target, int(abs(particle.dx/4)), time)
+    handle_damage(target, min(10,int(abs(particle.dx/4))), time)
 
 
 def gravity_shot_on_hit(particle,target,time):

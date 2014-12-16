@@ -374,9 +374,9 @@ class Input:
             di = {
                   # HAT SETTINGS OPTION 1
                   'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
-                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),
-                  'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=-1),
-                  'GP_DOWN': input_nt(kind='hat', number=0, value1=0, value2=+1),
+                  'GP_RIGHT': input_nt(kind='hat', number=0, value1=1, value2=0),
+                  'GP_UP': input_nt(kind='hat', number=0, value1=1, value2=-1),
+                  'GP_DOWN': input_nt(kind='hat', number=0, value1=-1, value2=+1),
 
                   # HAT SETTINGS OPTION 2
                   # 'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),
@@ -410,6 +410,7 @@ class Input:
                   'GP_R1': input_nt(kind='button', number=5, value1=None, value2=None),
                   'GP_L2': input_nt(kind='button', number=6, value1=None, value2=None),
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
+
 
         elif self.gamepad.get_name() in ('Wireless Gamepad F710 (Controller)', 'Controller (XBOX 360 For Windows)'):  # Brian's gamepad if switched to "X"
             di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems ass backwards to me (value1 and value2)
@@ -683,9 +684,9 @@ arena5 = arena_nt(
 # Monsters
 monster_info_nt = namedtuple('monster_info_nt', 'kind, w, h, dx, dy, hp, chase, idle, exp_value, dmg')
 MONSTER_TABLE = {
-    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 100, 5000, 5000, WEAK_EXP_VALUE, 3),
-    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 250, 7000, 5000,MEDIUM_EXP_VALUE, 5),
-    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 500, 10000, 5000,ULTIMATE_EXP_VALUE, 8)}
+    WEAK: monster_info_nt(WEAK, 30, 40, 2, 10, 50, 5000, 5000, WEAK_EXP_VALUE, 3),
+    MEDIUM: monster_info_nt(MEDIUM, 50, 60, 3, 12, 100, 7000, 5000,MEDIUM_EXP_VALUE, 5),
+    ULTIMATE: monster_info_nt(ULTIMATE, 80, 80, 4, 13, 150, 10000, 5000,ULTIMATE_EXP_VALUE, 8)}
 
 # Spritesheet and arena globals with default values
 P1_SPRITESHEET = 'data/p1_human_8bit.png'
