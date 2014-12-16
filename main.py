@@ -171,11 +171,8 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/p1_human.png')
-            p2_sprite = _setup_player_sprites('data/p2_human.png')
-
-            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=p1_sprite)
-            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=p2_sprite)
+            self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=_setup_player_sprites(GL.P1_SPRITESHEET))
+            self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=_setup_player_sprites(GL.P2_SPRITESHEET))
 
             self.player1.opposite = self.player2  # Makes things a lot easier
             self.player2.opposite = self.player1  # Makes things a lot easier
@@ -897,41 +894,43 @@ class GameLoop:
             for event in pygame.event.get(REGENERATION_EVENT):
                 if event.type == REGENERATION_EVENT:
                     # Player 1
-                    if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
-                        self.player1.hit_points += self.player1.level / 20
-                    elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
-                        self.player1.hit_points += self.player1.level / 5
-                    else:
-                        self.player1.hit_points += self.player1.level / 10
-                    if self.player1.hit_points > 100:
-                        self.player1.hit_points = 100
+                    if self.player1.hit_points > 0:
+                        if self.player1.conditions[WOUNDED] and not self.player1.conditions[INVIGORATED]:
+                            self.player1.hit_points += self.player1.level / 20
+                        elif not self.player1.conditions[WOUNDED] and self.player1.conditions[INVIGORATED]:
+                            self.player1.hit_points += self.player1.level / 5
+                        else:
+                            self.player1.hit_points += self.player1.level / 10
+                        if self.player1.hit_points > 100:
+                            self.player1.hit_points = 100
 
-                    if self.player1.conditions[WEAKENED] and not self.player1.conditions[EMPOWERED]:
-                        self.player1.energy += self.player1.level / 10
-                    elif not self.player1.conditions[WEAKENED] and self.player1.conditions[EMPOWERED]:
-                        self.player1.energy += self.player1.level / 2.5
-                    else:
-                        self.player1.energy += self.player1.level / 5
-                    if self.player1.energy > 10:
-                        self.player1.energy = 10
+                        if self.player1.conditions[WEAKENED] and not self.player1.conditions[EMPOWERED]:
+                            self.player1.energy += self.player1.level / 10
+                        elif not self.player1.conditions[WEAKENED] and self.player1.conditions[EMPOWERED]:
+                            self.player1.energy += self.player1.level / 2.5
+                        else:
+                            self.player1.energy += self.player1.level / 5
+                        if self.player1.energy > 10:
+                            self.player1.energy = 10
                     # Player 2
-                    if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
-                        self.player2.hit_points += self.player2.level / 20
-                    elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
-                        self.player2.hit_points += self.player2.level / 5
-                    else:
-                        self.player2.hit_points += self.player2.level / 10
-                    if self.player2.hit_points > 100:
-                        self.player2.hit_points = 100
+                    if self.player2.hit_points > 0:
+                        if self.player2.conditions[WOUNDED] and not self.player2.conditions[INVIGORATED]:
+                            self.player2.hit_points += self.player2.level / 20
+                        elif not self.player2.conditions[WOUNDED] and self.player2.conditions[INVIGORATED]:
+                            self.player2.hit_points += self.player2.level / 5
+                        else:
+                            self.player2.hit_points += self.player2.level / 10
+                        if self.player2.hit_points > 100:
+                            self.player2.hit_points = 100
 
-                    if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
-                        self.player2.energy += self.player2.level / 10
-                    elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:
-                        self.player2.energy += self.player2.level / 2.5
-                    else:
-                        self.player2.energy += self.player2.level / 5
-                    if self.player2.energy > 10:
-                        self.player2.energy = 10
+                        if self.player2.conditions[WEAKENED] and not self.player2.conditions[EMPOWERED]:
+                            self.player2.energy += self.player2.level / 10
+                        elif not self.player2.conditions[WEAKENED] and self.player2.conditions[EMPOWERED]:
+                            self.player2.energy += self.player2.level / 2.5
+                        else:
+                            self.player2.energy += self.player2.level / 5
+                        if self.player2.energy > 10:
+                            self.player2.energy = 10
 
         def _handle_player_lock_events():
             for event in pygame.event.get(PLAYER1_LOCK_EVENT):
