@@ -45,6 +45,7 @@ class GameLoop:
             self.game_time = GameTime()
 
         def _setup_ui():
+            self.bkg_image = pygame.image.load('data/options.png')
             self.return_button = pygbutton.PygButton((490, 550, 300, 50), 'Main Menu')
             self.window_border = Rect2(left=0, top=0, width=1280, height=600)
             self.play_area_border = Rect2(left=60, top=0, width=1160, height=485)
@@ -64,10 +65,15 @@ class GameLoop:
                 Rect2(topleft=(1050, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(1100, 500), size=(40, 40), color=BLACK),
                 Rect2(topleft=(1150, 500), size=(40, 40), color=BLACK), ]
+            self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
+            self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
+            self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
+            self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
 
         def _setup_arena():
             self.arena = Arena(GL.get_selected_level())#random.choice(( arena3, arena4, arena5)))
             GL.arena_in_use = self.arena  # used for out_of_arena_fix within global.py
+            self.arena_image = pygame.image.load(self.arena.background)
 
         def _setup_fonts():
             # main_font = 'data/viner-hand-itc.ttf'
@@ -387,16 +393,9 @@ class GameLoop:
     def draw_screen(self):
 
         def _draw_ui1():
-            #GL.SCREEN.fill(DGREY)
-            self.bkg_image = pygame.image.load('data/options.png')
-            GL.SCREEN.blit(self.bkg_image, (0,0))
-
+            GL.SCREEN.blit(self.bkg_image, (0, 0))
             if self.arena.background is not None:
-                self.image = pygame.image.load(self.arena.background)
-                GL.SCREEN.blit(self.image, (self.arena.play_area_rect.left, 0))
-
-                #monster_image = pygame.image.load('filename')
-                #GL.SCREEN.blit(monster_image, m.topleft)
+                GL.SCREEN.blit(self.arena_image, (self.arena.play_area_rect.left, 0))
 
         def _draw_ui2():
             #pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
@@ -410,13 +409,9 @@ class GameLoop:
             # GL.SCREEN.blit(energy_display, self.energy_font_xy)
 
             # health bars
-            # currently only goes off of one player's health
-            # left health bar outline image
-            self.health_bar_outline = pygame.image.load('data/health_bar_outline.png')
             GL.SCREEN.blit(self.health_bar_outline, (5, 20))
-            self.health_bar_outline2 = pygame.image.load('data/health_bar_outline2.png')
             GL.SCREEN.blit(self.health_bar_outline2, (1239, 20))
-            # right health bar outline image
+
             # dynamic health bars
             self.damage_taken1 = self.player1.hit_points_max - self.player1.hit_points
             self.damage_taken2 = self.player2.hit_points_max - self.player2.hit_points
@@ -425,13 +420,10 @@ class GameLoop:
             pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar1)
             pygame.draw.rect(GL.SCREEN, YELLOW, self.health_bar2)
 
-            # need to add dynamic aspect of energy bars
-            # left energy bar outline image
-            self.energy_bar_outline = pygame.image.load('data/energy_bar_outline.png')
+            # energy bars
             GL.SCREEN.blit(self.energy_bar_outline, (5, 280))
-            # right energy bar outline image
-            self.energy_bar_outline2 = pygame.image.load('data/energy_bar_outline2.png')
             GL.SCREEN.blit(self.energy_bar_outline2, (1239, 280))
+
             # dynamic energy bars
             self.energy_used1 = 10 - self.player1.energy
             self.energy_used2 = 10 - self.player2.energy

@@ -123,13 +123,13 @@ class StartMenu:
             if event.type == pygame.QUIT:
                 EXIT_GAME()
 
-
+# ----------------------------------------------------------------------------
 class HelpPage:
     def __init__(self):
         self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
         self.section_font = pygame.font.Font('data/Kremlin.ttf', 40)
         self.font = pygame.font.Font('data/arial_narrow_7.ttf', 20)
-        self.bg_image = pygame.image.load('data/Evil_Eyes.png')
+        self.bg_image = pygame.image.load('data/help.png')
         self.bg_title = self.section_font.render('Background', True, WHITE)
         self.bg_text = textwrap.wrap('Under the tyranny of the dark overlord, the world' +
                                      'is in chaos and all the resources are nearly depleted. ' +
@@ -158,7 +158,7 @@ class HelpPage:
 
     def draw(self):
         GL.SCREEN.fill(BLACK)
-        GL.SCREEN.blit(self.bg_image, (0, 245))
+        GL.SCREEN.blit(self.bg_image, (0, 0))
 
         GL.SCREEN.blit(self.bg_title, (800, 40))
         for num, text in enumerate(self.bg_text):
@@ -198,43 +198,48 @@ class HelpPage:
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
-#----------------------------------------------------------------------------------------
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                EXIT_GAME()
+            if 'click' in self.return_button.handleEvent(event):
+                self.return_now = True
+                GL.NEXT_PAGE = 'start'
+
+# ----------------------------------------------------------------------------
 class PlayerSelectPage:
 
     def __init__(self):
         def _setup_display():
-            pygame.display.set_mode((1280, 600))
-            pygame.display.set_caption('Famished Tournament')
-            self.screen = pygame.display.get_surface()
-
             self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
-
             self.player1_spritesheet = None
             self.player2_spritesheet = None
 
         def _load_images():
+            self.bg_image = pygame.image.load('data/player_select_bkg.png')
             self.humanPortrait = pygame.image.load('data/portrait_human.png')
             self.elfPortrait = pygame.image.load('data/portrait_elf.png')
 
             self.portraits = [self.humanPortrait, self.elfPortrait]
             self.portraits2 = [self.humanPortrait, self.elfPortrait]
 
-            #show human portrait by default
+            # show human portrait by default
             self.index = 0
             self.index2 = 0
 
         def _setup_fonts():
             self.start_font = pygame.font.Font('data/Kremlin.ttf', 50)
             self.start_font_xy = font_position_center(GL.SCREEN.get_rect(), self.start_font, '---------------Press Start when ready---------------')
+            self.start_font_rendered = self.start_font.render('---------------Press Start when ready---------------', True, YELLOW)
 
         def _setup_flags():
             self.ready1 = False
             self.ready2 = False
             self.start = False
 
-            #if there is a second gamepad, there is a second player
-            #set ready to false if second player exists
-            #if no second player, set ready to true
+            # if there is a second gamepad, there is a second player
+            # set ready to false if second player exists
+            # if no second player, set ready to true
             if not GL.INPUT2.get_gamepad():
                 self.ready2 = True
 
@@ -252,14 +257,12 @@ class PlayerSelectPage:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
-        self.image = pygame.image.load('data/player_select_bkg.png')
-        GL.SCREEN.blit(self.image, (0,0))
-
+        GL.SCREEN.blit(self.bg_image, (0, 0))
         self.return_button.draw(GL.SCREEN)
-
         GL.SCREEN.blit(self.portraits[self.index], (167, 106))
         GL.SCREEN.blit(self.portraits2[self.index2], (810, 106))
-
+        if self.ready1 and self.ready2:
+            GL.SCREEN.blit(self.start_font_rendered, self.start_font_xy)
         pygame.display.update()
 
     def input(self):
@@ -280,13 +283,13 @@ class PlayerSelectPage:
 
             def check_other_player(player):
                 if player == 'player1':
-                    if self.index == self.index2 and self.ready2: #player 2 is using character, skip index
-                        self.index = self.index + 1
+                    if self.index == self.index2 and self.ready2:  # player 2 is using character, skip index
+                        self.index += 1
                         if self.index >= len(self.portraits):
                             self.index = 0
                 else:
-                    if self.index == self.index2 and self.ready1: #player 2 is using character, skip index
-                        self.index2 = self.index2 + 1
+                    if self.index == self.index2 and self.ready1:  # player 2 is using character, skip index
+                        self.index2 += 1
                         if self.index2 >= len(self.portraits2):
                             self.index2 = 0
 
@@ -294,7 +297,7 @@ class PlayerSelectPage:
                 if player == 'player1':
                     if GL.INPUT1.LEFT_PRESS_EVENT:
                         GL.INPUT1.LEFT_PRESS_EVENT = False
-                        self.index = self.index - 1
+                        self.index -= 1
                         if self.index < 0:
                             self.index = len(self.portraits) - 1
 
@@ -303,7 +306,7 @@ class PlayerSelectPage:
 
                     elif GL.INPUT1.RIGHT_PRESS_EVENT:
                         GL.INPUT1.RIGHT_PRESS_EVENT = False
-                        self.index = self.index + 1
+                        self.index += 1
                         if self.index >= len(self.portraits):
                             self.index = 0
 
@@ -312,35 +315,35 @@ class PlayerSelectPage:
                 elif player == 'player2':
                     if GL.INPUT2.LEFT_PRESS_EVENT:
                         GL.INPUT2.LEFT_PRESS_EVENT = False
-                        self.index2 = self.index2 - 1
+                        self.index2 -= 1
                         if self.index2 < 0:
-                            self.index2 = len(self.portraits2)- 1
+                            self.index2 = len(self.portraits2) - 1
 
                         check_other_player('player2')
 
                     elif GL.INPUT2.RIGHT_PRESS_EVENT:
                         GL.INPUT2.RIGHT_PRESS_EVENT = False
-                        self.index2 = self.index2 + 1
+                        self.index2 += 1
                         if self.index2 >= len(self.portraits2):
                             self.index2 = 0
 
                         check_other_player('player2')
 
-            #if player 1/2 is not ready, let them select character
+            # if player 1/2 is not ready, let them select character
             if not self.ready1:
                 check_left_right('player1')
             if not self.ready2:
                 check_left_right('player2')
 
         def player_done_selecting():
-            #if player presses A
-            #they selected sprite
-            #set sprite to player
-            #if they pressed select
-            #they want to select a different sprite or return to start screen
+            # if player presses A
+            # they selected sprite
+            # set sprite to player
+            # if they pressed select
+            # they want to select a different sprite or return to start screen
             if GL.INPUT1.A_PRESS_EVENT or GL.INPUT1.kb_input['K_SPACE']:
                 GL.INPUT1.A_PRESS_EVENT = False
-                GL.INPUT1.kb_input['K_SPACE'] = False #press space on keyboard to select
+                GL.INPUT1.kb_input['K_SPACE'] = False # press space on keyboard to select
                 if self.ready2 and self.index2 == self.index:
                     print('Player 2 is using this character. Select a different one.')
 
@@ -357,9 +360,9 @@ class PlayerSelectPage:
                     print('player 2 ready')
                     self.ready2 = True
 
-            #if player presses back when previously stated they were ready
-            #allow them to reselect player
-            #keyboard equivalent of select is 's' key
+            # if player presses back when previously stated they were ready
+            # allow them to reselect player
+            # keyboard equivalent of select is 's' key
             elif GL.INPUT1.SELECT_PRESS_EVENT or GL.INPUT1.kb_input['K_s']:
                 GL.INPUT1.SELECT_PRESS_EVENT = False
                 GL.INPUT1.kb_input['K_s'] = False
@@ -369,8 +372,8 @@ class PlayerSelectPage:
                 GL.INPUT2.SELECT_PRESS_EVENT = False
                 self.ready2 = False
 
-            #if player presses back when they were not ready
-            #go back to start screen
+            # if player presses back when they were not ready
+            # go back to start screen
             elif (GL.INPUT1.SELECT_PRESS_EVENT and not self.ready1 or GL.INPUT1.kb_input['K_s']):
                 GL.INPUT1.SELECT_PRESS_EVENT = False
                 GL.INPUT1.kb_input['K_s'] = False
@@ -381,18 +384,13 @@ class PlayerSelectPage:
                 GL.NEXT_PAGE = 'start'
 
         def ready_for_start():
-
             if self.ready1 and self.ready2:
 
-                start_font = self.start_font.render('---------------Press Start when ready---------------', True, YELLOW)
-                GL.SCREEN.blit(start_font, self.start_font_xy)
-                pygame.display.update()
-
-                #if player 1 or player 2 presses start when both players are ready
-                #enter game loop
-                #if using a keyboard - only one player
-                #if keyboard user presses 'A' when he is ready
-                #enter game loop
+                # if player 1 or player 2 presses start when both players are ready
+                # enter game loop
+                # if using a keyboard - only one player
+                # if keyboard user presses 'A' when he is ready
+                # enter game loop
                 if (GL.INPUT1.START_PRESS_EVENT or GL.INPUT2.START_PRESS_EVENT) or (GL.INPUT1.kb_input['K_a']):
                     if GL.INPUT1.START_PRESS_EVENT:
                         GL.INPUT1.START_PRESS_EVENT = False
@@ -409,17 +407,16 @@ class PlayerSelectPage:
                     GL.NEXT_PAGE = 'LevelSelectPage()'
                     self.return_now = True
 
-
         def set_sprites():
-            #set spritesheet for player1
-            if self.index == 0: #human
+            # set spritesheet for player1
+            if self.index == 0:  # human
                 self.player1_spritesheet = 'data/p1_human_8bit.png'
-            elif self.index == 1: #elf
-                self.player1_spritesheet = 'data/p2_human_8bit.png' #NEED TO CHANGE THIS WITH ELF SPRITE SHEET
+            elif self.index == 1:  # elf
+                self.player1_spritesheet = 'data/p2_human_8bit.png'  # NEED TO CHANGE THIS WITH ELF SPRITE SHEET
 
-            if self.index2 == 0: #human
+            if self.index2 == 0:  # human
                 self.player2_spritesheet = 'data/p1_human_8bit.png'
-            elif self.index2 == 1: #elf
+            elif self.index2 == 1:  # elf
                 self.player2_spritesheet = 'data/p2_human_8bit.png'
 
             GL.set_player1_spritesheet(self.player1_spritesheet)
@@ -438,28 +435,23 @@ class PlayerSelectPage:
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 
-#----------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 class LevelSelectPage:
 
     def __init__(self):
         def _setup_display():
-            pygame.display.set_mode((1280, 600))
-            pygame.display.set_caption('Famished Tournament')
-            self.screen = pygame.display.get_surface()
-
             self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
-
             self.ready = False
 
         def _load_images():
+            self.bg_image = pygame.image.load('data/level_select_bkg.png')
+            self.bg_image2 = pygame.image.load('data/level_select_bkg2.png')
             self.humanLevel = pygame.image.load('data/humanLevel.png')
             self.elfLevel = pygame.image.load('data/vinesLevel.png')
             self.androidLevel = pygame.image.load('data/androidLevel.png')
-
             self.levels = [self.humanLevel, self.elfLevel, self.androidLevel]
             self.outerX = [19, 444, 874]
             self.innerX = [24, 450, 878]
-
             self.index = 0
 
         _setup_display()
@@ -474,36 +466,28 @@ class LevelSelectPage:
             GL.CLOCK.tick(GL.FPS)
 
     def draw(self):
-
-        self.image = pygame.image.load('data/level_select_bkg.png')
-        GL.SCREEN.blit(self.image, (0,0))
-
+        GL.SCREEN.blit(self.bg_image, (0, 0))
         outer_highlight = Rect2(topleft=(self.outerX[self.index], 184), size = (389, 173), color=(20, 118, 128))
         inner_highlight = Rect2(topleft=(self.innerX[self.index], 190), size=(379, 162), color=(80, 191, 201))
-
         pygame.draw.rect(GL.SCREEN, outer_highlight.color, outer_highlight)
         pygame.draw.rect(GL.SCREEN, inner_highlight.color, inner_highlight)
-
-        self.image2 = pygame.image.load('data/level_select_bkg2.png')
-        GL.SCREEN.blit(self.image2, (0,0))
-
+        GL.SCREEN.blit(self.bg_image2, (0, 0))
         self.return_button.draw(GL.SCREEN)
-
         pygame.display.update()
 
-    #only player 1 can select level
+    # only player 1 can select level
     def input(self):
         GL.INPUT1.refresh()
 
         if GL.INPUT1.LEFT_PRESS_EVENT:
             GL.INPUT1.LEFT_PRESS_EVENT = False
-            self.index = self.index - 1
+            self.index -= 1
             if self.index < 0:
                 self.index = len(self.levels) - 1
 
         elif GL.INPUT1.RIGHT_PRESS_EVENT:
             GL.INPUT1.RIGHT_PRESS_EVENT = False
-            self.index = self.index + 1
+            self.index += 1
             if self.index >= len(self.levels):
                 self.index = 0
 
@@ -524,7 +508,7 @@ class LevelSelectPage:
                 self.return_now = True
 
         def set_level():
-            print ('setting level')
+            print('setting level')
             if self.index == 0:
                 arena = arena4
             elif self.index == 1:
@@ -533,73 +517,10 @@ class LevelSelectPage:
                 arena = arena5
 
             GL.set_level(arena)
-            print ('set level')
+            print('set level')
 
         ready_check()
 
-
-    def events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                EXIT_GAME()
-            if 'click' in self.return_button.handleEvent(event):
-                self.return_now = True
-                GL.NEXT_PAGE = 'start'
-#----------------------------------------------------------------------------------------
-class HelpPage:
-    def __init__(self):
-        self.return_button = pygbutton.PygButton((0, 550, 300, 50), 'Main Menu')
-        self.section_font = pygame.font.Font('data/Kremlin.ttf', 40)
-        self.font = pygame.font.Font('data/arial_narrow_7.ttf', 20)
-        self.bg_image = pygame.image.load('data/help.png')
-        self.bg_title = self.section_font.render('Background', True, WHITE)
-        self.bg_text = textwrap.wrap('Under the tyranny of the dark overlord, the world' +
-                                     'is in chaos and all the resources are nearly depleted. ' +
-                                     'Entire populations have been subjugated to life in labor ' +
-                                     'camps, brutally policed by the overlord\'s military forces. ' +
-                                     'As your people\'s champion, you must fight to the death in the ' +
-                                     'battle arena to win much needed resources.', width=50)
-        self.goals_title = self.section_font.render('Goals', True, WHITE)
-        self.goals_text = textwrap.wrap('Ultimately, you want to slay your opponent. ' +
-                                        'To become a better fighter, kill the monsters, gain ' +
-                                        'experience, and pick up skills. The player to land ' +
-                                        'the last hit on the monster will receives the experience ' +
-                                        'points. An ultimate boss will spawn every few ' +
-                                        'minutes. These bosses drop ultimate skills which ' +
-                                        'will help you humiliate and destroy your opponent.', width=50)
-
-    def __call__(self):
-        self.return_now = False
-        while not self.return_now:
-            self.draw()
-            self.input()
-            self.events()
-            GL.CLOCK.tick(GL.FPS)
-
-    def draw(self):
-        GL.SCREEN.fill(BLACK)
-        GL.SCREEN.blit(self.bg_image, (0, 0))
-
-        GL.SCREEN.blit(self.bg_title, (800, 40))
-        for num, text in enumerate(self.bg_text):
-            line = self.font.render(text, True, DKRED)
-            GL.SCREEN.blit(line, (800, 90 + (num * 20)))
-
-        GL.SCREEN.blit(self.goals_title, (800, 250))
-        for num, text in enumerate(self.goals_text):
-            line = self.font.render(text, True, DKRED)
-            GL.SCREEN.blit(line, (800, 300 + (num * 20)))
-
-        self.return_button.draw(GL.SCREEN)
-        pygame.display.update()
-
-    def input(self):
-        GL.INPUT1.refresh()
-        if GL.INPUT1.SELECT_PRESS_EVENT:
-            GL.INPUT1.SELECT_PRESS_EVENT = False
-            self.return_now = True
-            GL.NEXT_PAGE = 'start'
-
     def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -608,7 +529,7 @@ class HelpPage:
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 
-
+# ----------------------------------------------------------------------------
 class OptionsPage:
     def __init__(self):
         self.bg_image = pygame.image.load('data/background2.png')
@@ -663,8 +584,6 @@ class OptionsPage:
         GL.SCREEN.blit(self.bg_image, (0, 0))
         GL.SCREEN.blit(self.bg_font, (450, 200))
         GL.SCREEN.blit(self.se_font, (450, 260))
-        # GL.SCREEN.blit(self.bg_font, (500, 200))
-        # GL.SCREEN.blit(self.se_font, (400, 260))
         self.music_on_button.draw(GL.SCREEN)
         self.music_off_button.draw(GL.SCREEN)
         self.effects_on_button.draw(GL.SCREEN)
@@ -767,7 +686,7 @@ class OptionsPage:
                 self.return_now = True
                 GL.NEXT_PAGE = 'start'
 
-
+# ----------------------------------------------------------------------------
 class PauseMenu:
     def __init__(self):
         self.menu_box = Rect2(topleft=(320, 120), size=(640, 240), color=BLACK)
@@ -841,10 +760,6 @@ class PauseMenu:
             self.selection_box_i -= 1
             if self.selection_box_i < 0:
                 self.selection_box_i = 1
-
-
-
-
 
     def events(self):
         for event in pygame.event.get():
