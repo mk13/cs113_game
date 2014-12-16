@@ -409,14 +409,15 @@ class PlayerSelectPage:
         def set_sprites():
             #set spritesheet for player1
             if self.index == 0: #human
-                self.player1_spritesheet = 'data/p1_human_8bit.png'
-            elif self.index == 1: #elf
-                self.player1_spritesheet = 'data/p2_human_8bit.png' #NEED TO CHANGE THIS WITH ELF SPRITE SHEET
+                self.player1_spritesheet = 'data/p1_human.png'
+            #elif self.index == 1: #elf
+            else:
+                self.player1_spritesheet = 'data/p1_elf.png' 
 
             if self.index2 == 0: #human
-                self.player2_spritesheet = 'data/p1_human_8bit.png'
+                self.player2_spritesheet = 'data/p1_human.png'
             elif self.index2 == 1: #elf
-                self.player2_spritesheet = 'data/p2_human_8bit.png'
+                self.player2_spritesheet = 'data/p2_human.png' #Elf spritesheet 2 if available
 
             GL.set_player1_spritesheet(self.player1_spritesheet)
             GL.set_player2_spritesheet(self.player2_spritesheet)
