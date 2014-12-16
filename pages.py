@@ -835,13 +835,8 @@ class GameOverMenu:
             self.return_now = True
             GL.NEXT_PAGE = 'start'
 
-        if GL.INPUT1.START_PRESS_EVENT or GL.INPUT1.A_PRESS_EVENT:
-
-            if GL.INPUT1.START_PRESS_EVENT:
-                GL.INPUT1.START_PRESS_EVENT = False
-
-            if GL.INPUT1.A_PRESS_EVENT:
-                GL.INPUT1.A_PRESS_EVENT = False
+        if GL.INPUT1.START_PRESS_EVENT:
+            GL.INPUT1.START_PRESS_EVENT = False
 
             if self.selection_box_i == 0:
                 self.return_now = True
