@@ -161,8 +161,8 @@ class GameLoop:
 
                 return m1
 
-            p1_sprite = _setup_player_sprites('data/pl_human.png')
-            p2_sprite = _setup_player_sprites('data/pl_human.png')
+            p1_sprite = _setup_player_sprites('data/p1_human.png')
+            p2_sprite = _setup_player_sprites('data/p2_human.png')
 
             self.player1 = Player(id=1, topleft=self.arena.p1_spawn, sprite=p1_sprite)
             self.player2 = Player(id=2, topleft=self.arena.p2_spawn, sprite=p2_sprite)
