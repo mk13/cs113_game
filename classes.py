@@ -110,19 +110,11 @@ class Player(Rect2):
         # self.ult_id = random.randint(1000,1003)
 
         # specific testing:
-<<<<<<< HEAD
-        self.attack_id = 9
-        self.skill1_id = 114
-        self.skill2_id = 125
-        self.skill3_id = 117
-        self.ult_id = 104
-=======
-        self.attack_id = 10
-        self.skill1_id = 111
-        self.skill2_id = 102
-        self.skill3_id = 123
-        self.ult_id = 1005
->>>>>>> df7c8a14da5ff2dd9573135c1a94b29851cd410b
+        #self.attack_id = 10
+        #self.skill1_id = 111
+        #self.skill2_id = 102
+        #self.skill3_id = 123
+        #self.ult_id = 1005
 
         # attacking
         self.facing_direction = RIGHT if self.id == 1 else LEFT

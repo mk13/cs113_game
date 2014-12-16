@@ -31,6 +31,7 @@ class Application:
         options = OptionsPage()
         help = HelpPage()
         pause = PauseMenu()
+        gameOver = GameOverMenu()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -198,12 +199,19 @@ class GameLoop:
                 self.handle_particles()
                 self.draw_screen()
                 self.draw_debug()
+                self.end_game()
                 pygame.display.update()
                 self.handle_event_queue()
                 GL.CLOCK.tick(GL.FPS)
             else:
                 self.handle_players_inputs()
                 self.handle_event_queue()
+            self.end_game()
+                
+    def end_game(self):
+        if self.player1.is_dead() or self.player2.is_dead():
+            self.return_now = True
+            GL.NEXT_PAGE = 'gameOver'
 
     # -------------------------------------------------------------------------
     def handle_players_inputs(self):

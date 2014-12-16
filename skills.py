@@ -84,7 +84,7 @@ def initialize_skill_table():
     # -----------------------------------------------------------------------------------------
     # AUTO ATTACKS 1-99
     # -----------------------------------------------------------------------------------------
-    SKILLS_TABLE[0] = {'name':'Blank','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0, 'sound':'none'}
+    SKILLS_TABLE[0] = {'name':'','type': None, 'start': blank_start, 'cooldown': 0, 'energy': 0, 'sound':'none'}
 
     # Monster Slayer (Default auto attack)
     SKILLS_TABLE[1] = _auto_melee('Monster Slayer',30, 30, math.pi / 2, 40, 40, 500, 500, YELLOW, 0, 0, ONEHAND, 3, sound='data/sounds/punch.wav')
@@ -145,7 +145,6 @@ def initialize_skill_table():
 
     # Teleport
     SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5, 'state': CAST2, 'frame': 2, 'sound': 'data/sounds/teleport.wav'}
-    # SKILLS_TABLE[100] = {'name':'Teleport','type': None, 'start': teleport_start, 'cooldown': 200, 'energy': 5, 'sound':'data/sounds/teleport.wav'}
     ICONS_TABLE[100] = icon_image("100.png")
 
     # Fireball
@@ -157,8 +156,6 @@ def initialize_skill_table():
     # Static Bolt
     SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2, CAST1, 2, sound='data/sounds/static.wav')
     SKILLS_TABLE[102]['conditions'] = [classes.Weakened(5000)]
-    
-    # SKILLS_TABLE[102] = _auto_range('Static Bolt',50, 50, 5, 2, 500, 10000, BLUE, 10, 2,'data/sounds/static.wav')
     SKILLS_TABLE[102]["special_path"] = lightning_bolt_path
     ICONS_TABLE[102] = icon_image("102.png")
     PARTICLES_TABLE[102] = particle_image("102.png")
@@ -169,7 +166,6 @@ def initialize_skill_table():
 
     # Mines
     SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3, CAST3, 1,sound='data/sounds/mines.wav')
-    # SKILLS_TABLE[104] = _auto_range('Mines',40, 40, 0, 0, 500, 10000, DKGREEN, 25, 3, 'data/sounds/mines.wav')
     ICONS_TABLE[104] = icon_image("104.png")
     PARTICLES_TABLE[104] = particle_image("104.png")
 
