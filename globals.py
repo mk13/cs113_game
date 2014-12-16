@@ -344,7 +344,7 @@ class Input:
             self.gamepad = pygame.joystick.Joystick(player_id - 1)
             self.gamepad.init()
             self.gamepad_found = True
-            print('"{}"'.format(self.gamepad.get_name()))
+            print('p{} uses "{}"'.format(str(self.player_id), self.gamepad.get_name()))
             self.__setup_gamepad_buttons__()
         except pygame.error:
             pass
@@ -408,7 +408,7 @@ class Input:
                   'GP_L2': input_nt(kind='button', number=6, value1=None, value2=None),
                   'GP_R2': input_nt(kind='button', number=7, value1=None, value2=None)}
 
-        elif self.gamepad.get_name() == 'Wireless Gamepad F710 (Controller)':  # Brian's gamepad if switched to "X"
+        elif self.gamepad.get_name() in ('Wireless Gamepad F710 (Controller)', 'Controller (XBOX 360 For Windows)'):  # Brian's gamepad if switched to "X"
             di = {'GP_LEFT': input_nt(kind='hat', number=0, value1=-1, value2=0),  # works but seems ass backwards to me (value1 and value2)
                   'GP_RIGHT': input_nt(kind='hat', number=0, value1=+1, value2=0),  # works but seems ass backwards to me
                   'GP_UP': input_nt(kind='hat', number=0, value1=0, value2=+1),
@@ -476,8 +476,11 @@ class Input:
             if event.key == K_ESCAPE:
                 self.SELECT_PRESS_EVENT = not self.SELECT_PRESS_EVENT
 
-            if event.key in (K_BACKQUOTE, K_F12):
+            if event.key == K_BACKQUOTE:
                 self.DEBUG_VIEW = not self.DEBUG_VIEW
+
+            if event.key == K_F12:
+                self.F12DEBUG_VIEW = not self.DEBUG_VIEW
 
             if event.key == K_LEFT:
                 self.LEFT_PRESS_EVENT = not self.LEFT_PRESS_EVENT
@@ -493,9 +496,25 @@ class Input:
 
     def _get_gamepad_pressed2(self):
         if self.gamepad_found:
-            joy_button_events = [e for e in pygame.event.get(JOYBUTTONDOWN)]
-            joy_axis_events = [e for e in pygame.event.get(JOYAXISMOTION)]
-            joy_hat_events = [e for e in pygame.event.get(JOYHATMOTION)]
+            if self.player_id == 1:
+                Input.joy_button_events = [e for e in pygame.event.get(JOYBUTTONDOWN)]
+                Input.joy_axis_events = [e for e in pygame.event.get(JOYAXISMOTION)]
+                Input.joy_hat_events = [e for e in pygame.event.get(JOYHATMOTION)]
+
+            joy_button_events = list(filter(lambda x: x.joy == self.player_id - 1, Input.joy_button_events))
+            joy_axis_events = list(filter(lambda x: x.joy == self.player_id - 1, Input.joy_axis_events))
+            joy_hat_events = list(filter(lambda x: x.joy == self.player_id - 1, Input.joy_hat_events))
+
+            # if self.player_id == 1:
+            #     joy_button_events = list(filter(lambda x: x.joy == 0, Input.joy_button_events))
+            #     joy_axis_events = list(filter(lambda x: x.joy == 0, Input.joy_axis_events))
+            #     joy_hat_events = list(filter(lambda x: x.joy == 0, Input.joy_hat_events))
+            #
+            # elif self.player_id == 2:
+            #     joy_button_events = list(filter(lambda x: x.joy == 1, Input.joy_button_events))
+            #     joy_axis_events = list(filter(lambda x: x.joy == 1, Input.joy_axis_events))
+            #     joy_hat_events = list(filter(lambda x: x.joy == 1, Input.joy_hat_events))
+
 
             for name, info in self.GP_INPUTS_DICT.items():  # these are all the inputs that we care about
                 if info.kind == 'button':

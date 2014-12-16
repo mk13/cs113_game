@@ -31,8 +31,6 @@ class Application:
         options = OptionsPage()
         help = HelpPage()
         pause = PauseMenu()
-        # playerSelect = PlayerSelectPage()
-        # levelSelect = LevelSelectPage()
         current_page = 'start'
         while True:
             eval(current_page + '()')
@@ -115,6 +113,10 @@ class GameLoop:
             self.spawn_monsters = False
             pygame.event.post(pygame.event.Event(MONSTER_SPAWN_EVENT))
 
+            self.weak_monster_image = pygame.image.load('data/wMonster.png')
+            self.medium_monster_image = pygame.image.load('data/mMonster.png')
+            self.ultimate_monster_image = pygame.image.load('data/uMonster.png')
+
         def _setup_music():
             if AUDIO.music_on:
                 AUDIO.play_next_random_song()
@@ -182,9 +184,6 @@ class GameLoop:
         _setup_music()
         _setup_rain()
         _setup_players()
-
-
-
 
     # ------------------------------------------------------------------------
     def __call__(self):
@@ -399,7 +398,6 @@ class GameLoop:
                 #monster_image = pygame.image.load('filename')
                 #GL.SCREEN.blit(monster_image, m.topleft)
 
-
         def _draw_ui2():
             #pygame.draw.rect(GL.SCREEN, DGREY, self.left_grey_fill)
             #pygame.draw.rect(GL.SCREEN, DGREY, self.right_grey_fill)
@@ -602,11 +600,12 @@ class GameLoop:
 
         def _draw_monsters():
             for m in self.active_monsters:
-
-                pygame.draw.rect(GL.SCREEN, m.color, m)
-                #monster_image = pygame.image.load('filename')
-                #GL.SCREEN.blit(monster_image, m.topleft)
-
+                if m.kind == WEAK:
+                    GL.SCREEN.blit(self.weak_monster_image, m.topleft)
+                elif m.kind == MEDIUM:
+                    GL.SCREEN.blit(self.medium_monster_image, m.topleft)
+                elif m.kind == ULTIMATE:
+                    GL.SCREEN.blit(self.ultimate_monster_image, m.topleft)
                 health_bar = Rect2(left=m.left, top=m.top - 8, width=m.width, height=6)
                 health_bar_width = round(m.width * (m.hit_points / m.hit_points_max))
                 health_bar_life = Rect2(left=m.left, top=m.top - 8, width=health_bar_width, height=6)

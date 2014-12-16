@@ -53,6 +53,10 @@ class StartMenu:
     def input(self):
         GL.INPUT1.refresh()
 
+        if GL.INPUT1.kb_input['K_F12']:
+            self.return_now = True
+            GL.NEXT_PAGE = 'GameLoop()'
+
         if GL.INPUT1.SELECT_PRESS_EVENT:
             GL.INPUT1.SELECT_PRESS_EVENT = False
 
